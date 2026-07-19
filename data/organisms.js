@@ -3772,8 +3772,23 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "treatment": [],
-    "resistance": []
+    "treatment": [
+      {
+        "class": "Voriconazole (azole) — first-line",
+        "mechanism": "Azole inhibition of 14-α-demethylase blocking ergosterol synthesis; preferred because Trichosporon responds poorly to amphotericin and echinocandins."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Intrinsic reduced susceptibility",
+        "detail": "Naturally poorly susceptible to amphotericin B and to echinocandins, which is why an extended-spectrum azole is used."
+      }
+    ],
+    "panels": {
+      "resp": "A basidiomycetous yeast normally held off by intact skin/mucosal barriers and neutrophils.",
+      "evade": "In profound neutropenia it invades and disseminates, and it tolerates several antifungals — narrowing the options.",
+      "dis": "White piedra (hair nodules) in the healthy; disseminated trichosporonosis with fungaemia and skin lesions in the neutropenic — a high-mortality breakthrough infection."
+    }
   },
   {
     "id": "rhodotorula",
@@ -3788,8 +3803,23 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "treatment": [],
-    "resistance": []
+    "treatment": [
+      {
+        "class": "Amphotericin B (± flucytosine) + line removal",
+        "mechanism": "Polyene binding to ergosterol; catheter removal is essential because the organism persists in biofilm on the device."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Intrinsic azole / echinocandin resistance",
+        "detail": "Rhodotorula is inherently resistant to fluconazole and to echinocandins, so amphotericin B is the mainstay."
+      }
+    ],
+    "panels": {
+      "resp": "An environmental pink yeast normally excluded by intact barriers; disease is device-associated.",
+      "evade": "Colonises plastic and forms catheter biofilm beyond the reach of host defences and of many antifungals.",
+      "dis": "Catheter-related fungaemia in the immunocompromised; removing the line is central to cure."
+    }
   },
   {
     "id": "malassezia-furfur",
@@ -3804,8 +3834,23 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "treatment": [],
-    "resistance": []
+    "treatment": [
+      {
+        "class": "Topical azole / selenium sulfide / terbinafine (skin); oral azole if extensive",
+        "mechanism": "Azoles and terbinafine block ergosterol synthesis (at 14-α-demethylase and squalene epoxidase respectively); selenium sulfide is antiproliferative/keratolytic. For line sepsis, stop the lipid infusion and remove the catheter."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Recurrence from the commensal reservoir",
+        "detail": "Relapse is common because the yeast is a normal skin resident; this is reinfection/overgrowth rather than acquired drug resistance."
+      }
+    ],
+    "panels": {
+      "resp": "A lipophilic skin commensal kept in check at the epithelial surface (barrier, antimicrobial peptides, local immunity).",
+      "evade": "It overgrows where skin is lipid-rich or under lipid infusions rather than by evading immunity; a carboxylic acid it produces depigments skin.",
+      "dis": "Pityriasis versicolor (hypo/hyperpigmented macules), Malassezia folliculitis and seborrhoeic dermatitis; catheter sepsis in neonates and patients on lipid infusions."
+    }
   },
   {
     "id": "histoplasma-capsulatum",
@@ -3995,8 +4040,23 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "treatment": [],
-    "resistance": []
+    "treatment": [
+      {
+        "class": "Voriconazole (azole) or liposomal amphotericin B",
+        "mechanism": "Ergosterol-targeting agents; response is limited and recovery of the neutrophil count is decisive."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Intrinsic multi-antifungal resistance",
+        "detail": "Fusarium is intrinsically resistant to many antifungals and often to amphotericin, so options are few and outcomes in the neutropenic are poor."
+      }
+    ],
+    "panels": {
+      "resp": "A septate environmental mould whose conidia and hyphae are cleared by macrophages and neutrophils.",
+      "evade": "In prolonged neutropenia it invades blood vessels (angioinvasion) like Aspergillus, and is intrinsically resistant to many antifungals.",
+      "dis": "Keratitis (contact-lens related) and onychomycosis in the healthy; disseminated fusariosis with fungaemia and skin lesions in the neutropenic — often blood-culture-positive, unlike Aspergillus."
+    }
   },
   {
     "id": "scedosporium",
@@ -4011,8 +4071,23 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "treatment": [],
-    "resistance": []
+    "treatment": [
+      {
+        "class": "Voriconazole (azole) + surgical debridement",
+        "mechanism": "Voriconazole is the most active azole; because the organism resists amphotericin, source control by debridement is essential."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Intrinsic resistance to most antifungals",
+        "detail": "Including amphotericin B — the defining problem, which is why voriconazole plus surgery is used and mortality is high."
+      }
+    ],
+    "panels": {
+      "resp": "A septate soil mould cleared by phagocytes in the immunocompetent (it may cause localised disease after trauma).",
+      "evade": "Intrinsically resistant to most antifungals including amphotericin, so it survives therapy that would clear other moulds; angioinvasive in the immunocompromised.",
+      "dis": "Eumycetoma and localised osteoarticular disease after trauma; disseminated disease with cerebral lesions and high mortality in the immunocompromised (S. prolificans especially)."
+    }
   },
   {
     "id": "mycetoma-agents",
@@ -4027,8 +4102,23 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "treatment": [],
-    "resistance": []
+    "treatment": [
+      {
+        "class": "Prolonged itraconazole (azole) + surgical excision",
+        "mechanism": "Long-course azole to inhibit ergosterol synthesis, combined with surgery because the grain/abscess compartment is poorly penetrated by drug alone."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Poor drug penetration, not classic resistance",
+        "detail": "Grains and abscesses shield the organism, so cure needs prolonged therapy plus surgery rather than a change of agent for 'resistance'."
+      }
+    ],
+    "panels": {
+      "resp": "Soil fungi implanted by trauma provoke a chronic granulomatous, walled-off response.",
+      "evade": "The organism aggregates into grains within abscesses and sinus tracts — a compartment that host defences and drugs penetrate poorly.",
+      "dis": "Eumycetoma ('Madura foot') — chronic swelling of the foot or hand with discharging sinuses and grains, spreading to bone; tropical (Madurella the commonest cause)."
+    }
   }
 ];
   root.ORGANISMS = ORGANISMS;
