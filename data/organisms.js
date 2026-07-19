@@ -369,9 +369,40 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "gram": "positive",
+      "morphology": "rod with terminal 'drumstick' spore",
+      "catalase": null,
+      "oxidase": null,
+      "coagulase": null,
+      "haemolysis": null,
+      "lactose": null,
+      "note": "obligate anaerobe; motile (peritrichous flagella, swarming film); Gram-variable on staining; classic terminal drumstick spores"
+    },
+    "treatment": [
+      {
+        "class": "Tetanus immunoglobulin (antitoxin)",
+        "mechanism": "Human anti-tetanus antibody neutralises circulating tetanospasmin before it enters nerve endings; it cannot reverse toxin already internalised, so it is given as early as possible."
+      },
+      {
+        "class": "Wound debridement",
+        "mechanism": "Removes the anaerobic devitalised focus where spores germinate and produce toxin — source control, not a drug."
+      },
+      {
+        "class": "Antibiotic (metronidazole or penicillin)",
+        "mechanism": "Kills vegetative organisms to halt further toxin production; adjunct to antitoxin."
+      },
+      {
+        "class": "Tetanus toxoid (immunisation)",
+        "mechanism": "Inactivated toxin induces neutralising antitoxin antibody. Natural disease confers no immunity (the lethal toxin dose is sub-immunogenic), so toxoid is given after recovery and for prophylaxis."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Not a resistance concern",
+        "detail": "Disease is toxin-mediated; prevention and treatment rest on antitoxin and toxoid, not on antimicrobial susceptibility. No clinically important acquired resistance."
+      }
+    ]
   },
   {
     "id": "clostridium-botulinum",
@@ -395,9 +426,36 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "gram": "positive",
+      "morphology": "rod with oval subterminal spore",
+      "catalase": null,
+      "oxidase": null,
+      "coagulase": null,
+      "haemolysis": null,
+      "lactose": null,
+      "note": "strictly anaerobic, motile; very hardy subterminal spores (survive boiling at 100°C; killed by moist heat 120°C/5min); toxin types A–G"
+    },
+    "treatment": [
+      {
+        "class": "Botulinum antitoxin",
+        "mechanism": "Polyvalent (equine) antitoxin neutralises unbound toxin in the circulation; it cannot reverse toxin already fixed to nerve terminals, so recovery then depends on nerve-terminal regrowth plus supportive care."
+      },
+      {
+        "class": "Supportive / ICU care",
+        "mechanism": "Ventilatory and organ support while the neuromuscular block (toxin cleaves SNARE proteins, blocking acetylcholine release) resolves — the mainstay, as most forms need no antibiotics."
+      },
+      {
+        "class": "Antibiotic — wound botulism only (benzylpenicillin + metronidazole)",
+        "mechanism": "With debridement, reduces organism load and ongoing toxin production. Antibiotics are NOT used in food-borne or intestinal botulism."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Not a resistance concern",
+        "detail": "Management is antitoxin plus supportive care; antimicrobial resistance does not affect the outcome."
+      }
+    ]
   },
   {
     "id": "clostridium-perfringens",
@@ -421,9 +479,32 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "gram": "positive",
+      "morphology": "large boxcar / brick-shaped rods with rounded ends",
+      "catalase": null,
+      "oxidase": null,
+      "coagulase": null,
+      "haemolysis": "double-zone (target)",
+      "lactose": null,
+      "note": "anaerobic spore-former (spores rarely seen in tissue); NON-motile, unlike most clostridia; lecithinase/α-toxin positive (Nagler reaction)"
+    },
+    "treatment": [
+      {
+        "class": "Urgent surgical debridement",
+        "mechanism": "Removes necrotic, anaerobic muscle — the essential step in clostridial myonecrosis, because the avascular focus is unreachable by antibiotics or immune cells."
+      },
+      {
+        "class": "Benzylpenicillin + clindamycin",
+        "mechanism": "Penicillin (β-lactam) kills the organism; clindamycin inhibits the 50S ribosome and specifically suppresses α-toxin (exotoxin) synthesis, adding toxin control to bacterial killing."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Generally penicillin-susceptible",
+        "detail": "C. perfringens remains penicillin-susceptible; outcome depends on surgical source control, not resistance. Clindamycin is added for its anti-toxin effect, not because of β-lactam resistance."
+      }
+    ]
   },
   {
     "id": "vibrio-cholerae",
