@@ -71,6 +71,39 @@
       "f_mhc2_cd4", "f_mhc1_cd8", "f_cd4_th1", "f_cd4_th2", "f_cd4_th17",
       "f_cd4_tfh", "f_th1_mac", "f_th1_ctl", "f_th2_ige", "f_th17_neut",
       "f_tfh_b", "f_b_ab", "f_ab_c3", "f_ab_phag"
+    ],
+
+    /* Transmission tags — the emoji memory vocabulary. Each organism's
+       `routes[]` references these ids; the emoji is the visible face and the
+       label is its identification (shown as a legend and a tooltip).
+       kind: "route" (how it reaches humans) · "vector" · "reservoir". */
+    transmissionTags: [
+      // --- how it reaches humans ---
+      { id: "respiratory",      emoji: "🫁", label: "Respiratory / droplet",    kind: "route" },
+      { id: "faeco-oral",       emoji: "💧", label: "Faeco-oral (water / food)", kind: "route" },
+      { id: "ingestion-meat",   emoji: "🥩", label: "Undercooked meat",         kind: "route" },
+      { id: "ingestion-fish",   emoji: "🍣", label: "Raw fish / shellfish",     kind: "route" },
+      { id: "sexual",           emoji: "🔞", label: "Sexual",                   kind: "route" },
+      { id: "blood",            emoji: "🩸", label: "Blood / needles",          kind: "route" },
+      { id: "vertical",         emoji: "🤰", label: "Vertical / congenital",    kind: "route" },
+      { id: "skin-contact",     emoji: "🖐️", label: "Direct skin contact",      kind: "route" },
+      { id: "skin-penetration", emoji: "🦶", label: "Skin-penetrating",         kind: "route" },
+      { id: "soil",             emoji: "🌱", label: "Soil / spores",            kind: "route" },
+      { id: "healthcare",       emoji: "🏥", label: "Healthcare / device",      kind: "route" },
+      // --- arthropod vectors ---
+      { id: "mosquito",         emoji: "🦟", label: "Mosquito",                 kind: "vector" },
+      { id: "sandfly-flea",     emoji: "🪰", label: "Sandfly / flea",           kind: "vector" },
+      { id: "tick-mite",        emoji: "🕷️", label: "Tick / mite",              kind: "vector" },
+      { id: "snail",            emoji: "🐌", label: "Snail (intermediate host)", kind: "vector" },
+      // --- animal reservoirs ---
+      { id: "rodent",           emoji: "🐀", label: "Rodent reservoir",         kind: "reservoir" },
+      { id: "bat",              emoji: "🦇", label: "Bat reservoir",            kind: "reservoir" },
+      { id: "livestock",        emoji: "🐄", label: "Cattle / livestock",       kind: "reservoir" },
+      { id: "pig",              emoji: "🐷", label: "Pig",                      kind: "reservoir" },
+      { id: "dog",              emoji: "🐕", label: "Dog",                      kind: "reservoir" },
+      { id: "cat",              emoji: "🐈", label: "Cat",                      kind: "reservoir" },
+      { id: "bird",             emoji: "🐦", label: "Bird / poultry",           kind: "reservoir" },
+      { id: "water-env",        emoji: "💦", label: "Water / environment",      kind: "reservoir" }
     ]
   };
 

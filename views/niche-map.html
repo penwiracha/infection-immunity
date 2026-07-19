@@ -59,6 +59,16 @@ h1{margin:0 0 6px;font-size:22px}
  background:#3a2530;color:#f0a8bd;margin-bottom:10px}
 .empty{color:var(--dim);font-size:13.5px;padding-top:40px;text-align:center}
 .note{font-size:11.5px;color:var(--dim);margin-top:22px;border-top:1px solid var(--line);padding-top:12px}
+.bar2{padding-top:0;padding-bottom:12px}
+.rhint{font-size:11px;color:var(--dim2,#6a7280);margin-left:2px}
+.rchip{display:inline-flex;align-items:center;gap:5px}
+.rchip .e{font-size:14px;line-height:1}
+.rchip.sel{background:var(--txt);color:#0f1115;border-color:var(--txt);font-weight:600}
+.org .oe{font-size:12.5px;margin-right:1px;line-height:1}
+.routes{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 9px}
+.rtag{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--txt);
+ background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:3px 9px 3px 7px}
+.rtag .e{font-size:14px;line-height:1}
 </style>
 </head>
 <body>
@@ -73,6 +83,7 @@ h1{margin:0 0 6px;font-size:22px}
   <input id="q" placeholder="Search organism or disease...">
   <div class="count" id="ct"></div>
 </div>
+<div class="bar bar2" id="rbar"><span class="gl">Route</span><span class="rhint" id="rhint"></span></div>
 <div class="wrap">
   <div class="tree" id="tree"></div>
   <div class="side" id="side"><div class="empty">Select an organism from the tree.</div></div>
@@ -87,7 +98,11 @@ const ORGS = ORGANISMS.filter(o=>!o.reference);  // ศรว core only (referen
 const NICHES = ENUMS.niches;            // shared niche vocabulary + effector prose
 const FAILS = ENUMS.failureModes;       // canonical failure-mode categories
 
-const S={niche:{},tier:{1:true,2:true},fail:{},q:""};
+const TAGS=new Map((ENUMS.transmissionTags||[]).map(t=>[t.id,t]));
+function routeTags(o){ if(!o.routes||!o.routes.length) return '';
+  return `<div class="routes">${o.routes.map(r=>{const t=TAGS.get(r);return t?`<span class="rtag" title="${t.kind}: ${t.label}"><span class="e">${t.emoji}</span>${t.label}</span>`:''}).join('')}</div>`; }
+
+const S={niche:{},tier:{1:true,2:true},fail:{},route:new Set(),q:""};
 NICHES.forEach(n=>S.niche[n.id]=true);
 FAILS.forEach(f=>S.fail[f]=true);
 
@@ -105,10 +120,23 @@ FAILS.forEach(f=>{const c=chip(fb,f,true);
   c.onclick=()=>{S.fail[f]=!S.fail[f];c.classList.toggle('off');render();};});
 document.getElementById('q').oninput=e=>{S.q=e.target.value.toLowerCase();render();};
 
+// Route filter + legend — only the routes actually used appear (grows as more are authored)
+const rbar=document.getElementById('rbar');
+const usedRoutes=new Set(); ORGS.forEach(o=>(o.routes||[]).forEach(r=>usedRoutes.add(r)));
+(ENUMS.transmissionTags||[]).filter(t=>usedRoutes.has(t.id)).forEach(t=>{
+  const c=document.createElement('div');c.className='chip rchip';c.title=t.kind+': '+t.label;
+  c.innerHTML=`<span class="e">${t.emoji}</span>${t.label}`;
+  c.onclick=()=>{ if(S.route.has(t.id)){S.route.delete(t.id);c.classList.remove('sel');}
+    else{S.route.add(t.id);c.classList.add('sel');} render(); };
+  rbar.appendChild(c);
+});
+document.getElementById('rhint').textContent = usedRoutes.size ? 'tap to filter · hover for name' : '(none authored yet)';
+
 const tree=document.getElementById('tree'),side=document.getElementById('side'),ct=document.getElementById('ct');
 function pass(o){
   if(!S.tier[o.tier]&&o.tier)return false;
   if(!S.fail[o.fail])return false;
+  if(S.route.size && !(o.routes||[]).some(r=>S.route.has(r)))return false;
   if(S.q){const h=(o.name+' '+o.panels.dis+' '+o.sys.join(' ')+' '+o.fail+' '+o.sub+' '+o.panels.evade).toLowerCase();
     if(!h.includes(S.q))return false;}
   return true;
@@ -124,7 +152,8 @@ function render(){
     const box=document.createElement('div');box.className='orgs';
     list.forEach(o=>{seen.add(o.name);
       const b=document.createElement('div');b.className='org';
-      b.innerHTML=`<span>${o.name}</span><span class="t t${o.tier}">${o.tier}</span>`;
+      const em=(o.routes||[]).map(r=>{const t=TAGS.get(r);return t?`<span class="oe" title="${t.label}">${t.emoji}</span>`:''}).join('');
+      b.innerHTML=`${em}<span>${o.name}</span><span class="t t${o.tier}">${o.tier}</span>`;
       b.onclick=()=>{show(o,n);document.querySelectorAll('.org').forEach(x=>x.classList.remove('active'));b.classList.add('active');};
       box.appendChild(b);});
     d.appendChild(box);tree.appendChild(d);
@@ -139,7 +168,7 @@ function show(o,n){
    <div class="tag">Niche: <b>${n.name.split('—')[0].trim()}</b>${others.length?' · also '+others.join(', '):''}</div>
    <div class="meta"><span>กลุ่ม ${o.tier}</span>${o.sys.map(s=>`<span>${s}</span>`).join('')}</div>
    <div class="fail">${o.fail} · ${o.sub}</div>
-   ${o.transmission?`<div class="blk"><div class="lab">Transmission — how it reaches humans</div><p>${o.transmission}</p></div>`:''}
+   ${o.transmission?`<div class="blk"><div class="lab">Transmission — how it reaches humans</div>${routeTags(o)}<p>${o.transmission}</p></div>`:''}
    ${o.lifecycle?`<div class="blk"><div class="lab">Life cycle</div><p>${o.lifecycle}</p></div>`:''}
    <div class="blk"><div class="lab">1 · Response mounted</div><p>${o.panels.resp}</p></div>
    <div class="blk"><div class="lab">2 · Why it is not enough</div><p>${o.panels.evade}</p></div>

@@ -53,6 +53,7 @@ const failSet = new Set(ENUMS.failureModes);
 const nicheSet = new Set(ENUMS.niches.map((n) => n.id));
 const sysSet = new Set(ENUMS.systems);
 const kingdomSet = new Set(ENUMS.kingdoms);
+const routeSet = new Set((ENUMS.transmissionTags || []).map((t) => t.id));
 
 /* ---- component/flow reference checker ---- */
 function checkRefs(rec, label) {
@@ -82,6 +83,7 @@ for (const o of ORGANISMS) {
   if (!o.kingdom) err(`${label}: missing required field "kingdom"`);
   else if (!kingdomSet.has(o.kingdom)) err(`${label}: unknown kingdom "${o.kingdom}"`);
   checkRefs(o, label);
+  for (const r of o.routes || []) if (!routeSet.has(r)) err(`${label}: route "${r}" not in transmissionTags`);
 
   // reference entries appear in the taxonomy browse only — the ศรว-specific
   // fields (niche/tier/sys/fail/sub/panels) are optional, but validated if present.
