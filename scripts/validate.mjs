@@ -27,12 +27,13 @@ vm.createContext(ctx);
 for (const f of [
   "data/enums.js", "data/organisms.js", "data/host-defects.js",
   "data/cascades/extracellular.js",
-  "data/cascades/vesicular.js", "data/cascades/cytosolic.js", "data/cascades/surface.js"
+  "data/cascades/vesicular.js", "data/cascades/cytosolic.js", "data/cascades/surface.js",
+  "data/taxonomy.js"
 ]) {
   if (!existsSync(P(f))) continue; // seams may not exist yet
   vm.runInContext(readFileSync(P(f), "utf8"), ctx, { filename: f });
 }
-const { ENUMS, ORGANISMS, HOST_DEFECTS, CASCADES } = ctx;
+const { ENUMS, ORGANISMS, HOST_DEFECTS, CASCADES, TAXONOMY } = ctx;
 
 const errors = [];
 const warnings = [];
@@ -115,6 +116,31 @@ for (const [branch, c] of Object.entries(CASCADES || {})) {
     else if (b.refKind === "host") { if (!hIds.has(b.ref)) err(`${bl}: unknown host-defect ref "${b.ref}"`); }
     else err(`${bl}: invalid refKind "${b.refKind}"`);
   }
+}
+
+/* ---- taxonomy trees: every kingdom organism is exactly one leaf ---- */
+function collectLeaves(node, acc, dupSink, label) {
+  if (!node || typeof node !== "object") return;
+  if (node.organism) {
+    if (acc.has(node.organism)) dupSink.push(`${label}: organism "${node.organism}" appears more than once in the tree`);
+    acc.add(node.organism);
+  }
+  for (const c of node.children || []) collectLeaves(c, acc, dupSink, label);
+}
+for (const [kingdom, entry] of Object.entries(TAXONOMY || {})) {
+  if (!entry || entry.pending) continue; // seams not yet populated
+  const label = `taxonomy ${kingdom}`;
+  const leaves = new Set();
+  collectLeaves(entry.tree, leaves, errors, label);
+  // every leaf must be a real organism of this kingdom
+  for (const id of leaves) {
+    const o = ORGANISMS.find((x) => x.id === id);
+    if (!o) err(`${label}: leaf "${id}" is not a known organism`);
+    else if (o.kingdom !== kingdom) err(`${label}: leaf "${id}" is kingdom "${o.kingdom}", not ${kingdom}`);
+  }
+  // every organism of this kingdom must appear as a leaf
+  for (const o of ORGANISMS.filter((x) => x.kingdom === kingdom))
+    if (!leaves.has(o.id)) err(`${label}: organism "${o.id}" is not placed anywhere in the tree`);
 }
 
 /* ---- scope seam: cross-check against the ศรว. list when supplied ---- */

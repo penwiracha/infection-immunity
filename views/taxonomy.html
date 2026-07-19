@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Taxonomy Browse — Seam</title>
+<title>Taxonomy Browse</title>
 <style>
-:root{--bg:#0f1115;--panel2:#1e222b;--line:#2b303b;--txt:#e6e8ec;--dim:#9aa3b2;
- --extra:#e0603f;--vesic:#e0a83f;--cyto:#4fa3e3;--surf:#57b86b;}
+:root{--bg:#0f1115;--panel:#171a21;--panel2:#1e222b;--line:#2b303b;--txt:#e6e8ec;--dim:#9aa3b2;
+ --extra:#e0603f;--vesic:#e0a83f;--cyto:#4fa3e3;--surf:#57b86b;--host:#7a6cf0;}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--txt);
  font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
@@ -14,11 +14,22 @@ header{padding:22px 28px 14px;border-bottom:1px solid var(--line)}
 h1{margin:0 0 6px;font-size:22px}
 .sub{color:var(--dim);font-size:13.5px;max-width:900px}
 .sub a{color:var(--dim)}
-.wrap{padding:22px 28px 60px}
-.kings{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
-.king{padding:10px 16px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);
- font-weight:600;font-size:14px}
-.king small{display:block;color:var(--dim);font-weight:400;font-size:11.5px;margin-top:3px}
+.wrap{padding:20px 28px 60px;max-width:1000px}
+.kings{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}
+.king{padding:8px 14px;border-radius:20px;border:1px solid var(--line);background:var(--panel2);
+ font-weight:600;font-size:13px;cursor:pointer;user-select:none}
+.king small{color:var(--dim);font-weight:400;margin-left:6px}
+.king.on{background:var(--c);color:#0f1115;border-color:var(--c)}
+.king.seam{opacity:.5}
+.src{font-size:11.5px;color:var(--dim);margin:0 0 16px}
+.node{margin-left:18px;border-left:1px solid var(--line);padding-left:14px;margin-top:3px}
+.nlabel{font-size:13px;padding:3px 0}
+.ntest{font-size:11px;color:var(--dim);font-style:italic;margin-left:6px}
+.nnote{font-size:11px;color:var(--dim);margin-left:6px}
+.leaf{display:inline-block;font-size:12.5px;padding:4px 10px;border-radius:7px;margin:3px 0;
+ background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--surf)}
+.leaf b{font-weight:600}
+.root>.node{border-left:none;margin-left:0;padding-left:0}
 .pending{color:var(--dim);font-size:13.5px;max-width:640px;line-height:1.7;
  border-left:3px solid var(--line);padding-left:16px}
 code{background:var(--panel2);padding:1px 5px;border-radius:4px;font-size:12px}
@@ -26,33 +37,63 @@ code{background:var(--panel2);padding:1px 5px;border-radius:4px;font-size:12px}
 </head>
 <body>
 <header>
-  <h1>Taxonomy browse</h1>
-  <div class="sub">Roadmap entry: pick a kingdom &rarr; classification tree &rarr; organism &rarr; its niche and immune map. This is a seam &mdash; the tree in <code>data/taxonomy.js</code> is empty. &middot; <a href="../index.html">home</a></div>
+  <h1>Taxonomy browse — identification key</h1>
+  <div class="sub">Phenotypic identification, kingdom by kingdom. The bacteria key follows the Oxford Handbook of ID &amp; Microbiology (Figs 7.1&ndash;7.4). Leaves are organisms; the labels above each are the discriminating tests. &middot; <a href="../index.html">home</a></div>
 </header>
 <div class="wrap">
   <div class="kings" id="kings"></div>
-  <div class="pending">
-    Each organism already carries a <code>kingdom</code> tag (populated) and an empty
-    <code>taxonomy</code> object (filled incrementally). Once the classification trees in
-    <code>data/taxonomy.js</code> are authored, this view walks them down to organism leaves,
-    then hands off to the niche map and the immune map. The counts below come straight from
-    the data layer.
-  </div>
+  <div class="src" id="src"></div>
+  <div id="tree" class="root"></div>
 </div>
 <script src="../data/enums.js"></script>
 <script src="../data/organisms.js"></script>
 <script src="../data/taxonomy.js"></script>
 <script>
-const counts={};
-ORGANISMS.forEach(o=>{counts[o.kingdom]=(counts[o.kingdom]||0)+1;});
-const NICHE_ANY={bacteria:'var(--extra)',virus:'var(--cyto)',fungus:'var(--vesic)',parasite:'var(--surf)'};
-const kh=document.getElementById('kings');
+const NAME = new Map(ORGANISMS.map(o=>[o.id,o.name]));
+const COUNTS={}; ORGANISMS.forEach(o=>COUNTS[o.kingdom]=(COUNTS[o.kingdom]||0)+1);
+const KCOL={bacteria:'var(--extra)',virus:'var(--cyto)',fungus:'var(--vesic)',parasite:'var(--surf)'};
+const kh=document.getElementById('kings'), treeEl=document.getElementById('tree'), srcEl=document.getElementById('src');
+let cur='bacteria';
+
+function renderNode(node){
+  const wrap=document.createElement('div'); wrap.className='node';
+  if(node.organism){
+    const leaf=document.createElement('div'); leaf.className='leaf';
+    leaf.innerHTML='<b>'+(NAME.get(node.organism)||node.organism)+'</b>'+
+      (node.label?` <span class="nnote">— ${node.label}</span>`:'');
+    wrap.appendChild(leaf);
+    return wrap;
+  }
+  const lab=document.createElement('div'); lab.className='nlabel';
+  lab.innerHTML=`${node.label||''}`+
+    (node.test?`<span class="ntest">→ ${node.test}</span>`:'')+
+    (node.note?`<span class="nnote">(${node.note})</span>`:'');
+  wrap.appendChild(lab);
+  (node.children||[]).forEach(c=>wrap.appendChild(renderNode(c)));
+  return wrap;
+}
+function draw(){
+  treeEl.innerHTML=''; srcEl.textContent='';
+  const entry=TAXONOMY[cur];
+  if(!entry||entry.pending){
+    treeEl.innerHTML='<div class="pending"><b>'+cur[0].toUpperCase()+cur.slice(1)+
+      ' tree not yet authored.</b><br>Seam in <code>data/taxonomy.js</code>. '+
+      'Each organism already carries a <code>kingdom</code> tag ('+(COUNTS[cur]||0)+
+      ' '+cur+'), so this key will be built the same way the bacteria one was.</div>';
+    return;
+  }
+  if(entry.source) srcEl.textContent='Source: '+entry.source;
+  treeEl.appendChild(renderNode(entry.tree));
+}
 ENUMS.kingdoms.forEach(k=>{
-  const d=document.createElement('div');d.className='king';
-  d.style.borderColor=NICHE_ANY[k]||'var(--line)';
-  d.innerHTML=k[0].toUpperCase()+k.slice(1)+'<small>'+(counts[k]||0)+' organisms</small>';
-  kh.appendChild(d);
+  const c=document.createElement('div');
+  c.className='king'+(TAXONOMY[k]&&TAXONOMY[k].pending?' seam':'')+(k===cur?' on':'');
+  c.style.setProperty('--c',KCOL[k]||'var(--dim)');
+  c.innerHTML=k[0].toUpperCase()+k.slice(1)+'<small>'+(COUNTS[k]||0)+'</small>';
+  c.onclick=()=>{cur=k;document.querySelectorAll('.king').forEach(x=>x.classList.remove('on'));c.classList.add('on');draw();};
+  kh.appendChild(c);
 });
+draw();
 </script>
 </body>
 </html>
