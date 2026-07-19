@@ -9,6 +9,7 @@
   const ORGANISMS = [
   {
     "id": "streptococcus-pneumoniae",
+    "routes": ["respiratory"],
     "name": "Streptococcus pneumoniae",
     "kingdom": "bacteria",
     "niche": [
@@ -84,6 +85,7 @@
   },
   {
     "id": "streptococcus-pyogenes",
+    "routes": ["respiratory", "skin-contact"],
     "name": "Streptococcus pyogenes (GAS)",
     "kingdom": "bacteria",
     "niche": [
@@ -138,6 +140,7 @@
   },
   {
     "id": "staphylococcus-aureus",
+    "routes": ["skin-contact", "healthcare"],
     "name": "Staphylococcus aureus",
     "kingdom": "bacteria",
     "niche": [
@@ -199,6 +202,7 @@
   },
   {
     "id": "neisseria-meningitidis",
+    "routes": ["respiratory"],
     "name": "Neisseria meningitidis",
     "kingdom": "bacteria",
     "niche": [
@@ -247,6 +251,7 @@
   },
   {
     "id": "haemophilus-influenzae-b",
+    "routes": ["respiratory"],
     "name": "Haemophilus influenzae b",
     "kingdom": "bacteria",
     "niche": [
@@ -301,6 +306,7 @@
   },
   {
     "id": "corynebacterium-diphtheriae",
+    "routes": ["respiratory", "skin-contact"],
     "name": "Corynebacterium diphtheriae",
     "kingdom": "bacteria",
     "niche": [
@@ -354,6 +360,7 @@
   },
   {
     "id": "bordetella-pertussis",
+    "routes": ["respiratory"],
     "name": "Bordetella pertussis",
     "kingdom": "bacteria",
     "niche": [
@@ -402,6 +409,7 @@
   },
   {
     "id": "clostridium-tetani",
+    "routes": ["soil", "skin-penetration"],
     "name": "Clostridium tetani",
     "kingdom": "bacteria",
     "niche": [
@@ -458,6 +466,7 @@
   },
   {
     "id": "clostridium-botulinum",
+    "routes": ["faeco-oral", "soil"],
     "name": "Clostridium botulinum",
     "kingdom": "bacteria",
     "niche": [
@@ -511,6 +520,7 @@
   },
   {
     "id": "clostridium-perfringens",
+    "routes": ["faeco-oral", "soil"],
     "name": "Clostridium perfringens",
     "kingdom": "bacteria",
     "niche": [
@@ -560,6 +570,7 @@
   },
   {
     "id": "vibrio-cholerae",
+    "routes": ["faeco-oral"],
     "name": "Vibrio cholerae",
     "kingdom": "bacteria",
     "niche": [
@@ -608,6 +619,7 @@
   },
   {
     "id": "shigella-eiec",
+    "routes": ["faeco-oral"],
     "name": "Shigella / EIEC",
     "kingdom": "bacteria",
     "niche": [
@@ -657,6 +669,7 @@
   },
   {
     "id": "salmonella",
+    "routes": ["faeco-oral", "bird"],
     "name": "Salmonella (non-typhoidal)",
     "kingdom": "bacteria",
     "niche": [
@@ -706,6 +719,7 @@
   },
   {
     "id": "salmonella-typhi",
+    "routes": ["faeco-oral"],
     "name": "Salmonella Typhi",
     "kingdom": "bacteria",
     "niche": [
@@ -754,6 +768,7 @@
   },
   {
     "id": "campylobacter-jejuni",
+    "routes": ["faeco-oral", "bird"],
     "name": "Campylobacter jejuni",
     "kingdom": "bacteria",
     "niche": [
@@ -807,6 +822,7 @@
   },
   {
     "id": "escherichia-coli",
+    "routes": ["faeco-oral"],
     "name": "Escherichia coli (UPEC/ETEC)",
     "kingdom": "bacteria",
     "niche": [
@@ -860,6 +876,7 @@
   },
   {
     "id": "pseudomonas-aeruginosa",
+    "routes": ["water-env", "healthcare"],
     "name": "Pseudomonas aeruginosa",
     "kingdom": "bacteria",
     "niche": [
@@ -914,6 +931,7 @@
   },
   {
     "id": "burkholderia-pseudomallei",
+    "routes": ["soil", "skin-penetration", "respiratory"],
     "name": "Burkholderia pseudomallei",
     "kingdom": "bacteria",
     "niche": [
@@ -965,6 +983,7 @@
   },
   {
     "id": "leptospira-interrogans",
+    "routes": ["water-env", "skin-penetration", "rodent"],
     "name": "Leptospira interrogans",
     "kingdom": "bacteria",
     "niche": [
@@ -1011,6 +1030,7 @@
   },
   {
     "id": "treponema-pallidum",
+    "routes": ["sexual", "vertical"],
     "name": "Treponema pallidum",
     "kingdom": "bacteria",
     "niche": [
@@ -1061,6 +1081,7 @@
   },
   {
     "id": "neisseria-gonorrhoeae",
+    "routes": ["sexual", "vertical"],
     "name": "Neisseria gonorrhoeae",
     "kingdom": "bacteria",
     "niche": [
@@ -1113,6 +1134,7 @@
   },
   {
     "id": "chlamydia-trachomatis",
+    "routes": ["sexual", "vertical"],
     "name": "Chlamydia trachomatis",
     "kingdom": "bacteria",
     "niche": [
@@ -1158,6 +1180,7 @@
   },
   {
     "id": "haemophilus-ducreyi",
+    "routes": ["sexual"],
     "name": "Haemophilus ducreyi",
     "kingdom": "bacteria",
     "niche": [
@@ -1206,6 +1229,7 @@
   },
   {
     "id": "gardnerella-bv-flora",
+    "routes": ["sexual"],
     "name": "Gardnerella / BV flora",
     "kingdom": "bacteria",
     "niche": [
@@ -1250,6 +1274,7 @@
   },
   {
     "id": "mycobacterium-tuberculosis",
+    "routes": ["respiratory"],
     "name": "Mycobacterium tuberculosis",
     "kingdom": "bacteria",
     "niche": [
@@ -1321,6 +1346,7 @@
   },
   {
     "id": "mycobacterium-leprae",
+    "routes": ["respiratory", "skin-contact"],
     "name": "Mycobacterium leprae",
     "kingdom": "bacteria",
     "niche": [
@@ -1366,6 +1392,7 @@
   },
   {
     "id": "legionella-pneumophila",
+    "routes": ["water-env", "respiratory"],
     "name": "Legionella pneumophila",
     "kingdom": "bacteria",
     "niche": [
@@ -1410,6 +1437,7 @@
   },
   {
     "id": "brucella-species",
+    "routes": ["livestock", "faeco-oral", "skin-contact"],
     "name": "Brucella species",
     "kingdom": "bacteria",
     "niche": [
@@ -1455,6 +1483,7 @@
   },
   {
     "id": "listeria-monocytogenes",
+    "routes": ["faeco-oral", "vertical"],
     "name": "Listeria monocytogenes",
     "kingdom": "bacteria",
     "niche": [
@@ -1501,6 +1530,7 @@
   },
   {
     "id": "rickettsia-orientia-tsutsugamushi",
+    "routes": ["tick-mite", "rodent"],
     "name": "Rickettsia / Orientia tsutsugamushi",
     "kingdom": "bacteria",
     "niche": [
@@ -1550,6 +1580,7 @@
   },
   {
     "id": "influenza-a",
+    "routes": ["respiratory", "bird", "pig"],
     "name": "Influenza A",
     "kingdom": "virus",
     "niche": [
@@ -1597,6 +1628,7 @@
   },
   {
     "id": "sars-cov-2",
+    "routes": ["respiratory", "bat"],
     "name": "SARS-CoV-2",
     "kingdom": "virus",
     "niche": [
@@ -1650,6 +1682,7 @@
   },
   {
     "id": "respiratory-syncytial-virus",
+    "routes": ["respiratory"],
     "name": "Respiratory syncytial virus",
     "kingdom": "virus",
     "niche": [
@@ -1694,6 +1727,7 @@
   },
   {
     "id": "measles-virus",
+    "routes": ["respiratory"],
     "name": "Measles virus",
     "kingdom": "virus",
     "niche": [
@@ -1740,6 +1774,7 @@
   },
   {
     "id": "rubella-virus",
+    "routes": ["respiratory", "vertical"],
     "name": "Rubella virus",
     "kingdom": "virus",
     "niche": [
@@ -1785,6 +1820,7 @@
   },
   {
     "id": "varicella-zoster-virus",
+    "routes": ["respiratory", "skin-contact"],
     "name": "Varicella zoster virus",
     "kingdom": "virus",
     "niche": [
@@ -1826,6 +1862,7 @@
   },
   {
     "id": "herpes-simplex-virus",
+    "routes": ["skin-contact", "sexual", "vertical"],
     "name": "Herpes simplex virus",
     "kingdom": "virus",
     "niche": [
@@ -1887,6 +1924,7 @@
   },
   {
     "id": "cytomegalovirus",
+    "routes": ["vertical", "blood", "sexual", "saliva"],
     "name": "Cytomegalovirus",
     "kingdom": "virus",
     "niche": [
@@ -1937,6 +1975,7 @@
   },
   {
     "id": "epstein-barr-virus",
+    "routes": ["saliva", "sexual"],
     "name": "Epstein–Barr virus",
     "kingdom": "virus",
     "niche": [
@@ -1982,6 +2021,7 @@
   },
   {
     "id": "hepatitis-a-virus",
+    "routes": ["faeco-oral"],
     "name": "Hepatitis A virus",
     "kingdom": "virus",
     "niche": [
@@ -2026,6 +2066,7 @@
   },
   {
     "id": "hepatitis-b-virus",
+    "routes": ["blood", "sexual", "vertical"],
     "name": "Hepatitis B virus",
     "kingdom": "virus",
     "niche": [
@@ -2071,6 +2112,7 @@
   },
   {
     "id": "hepatitis-c-virus",
+    "routes": ["blood"],
     "name": "Hepatitis C virus",
     "kingdom": "virus",
     "niche": [
@@ -2112,6 +2154,7 @@
   },
   {
     "id": "hepatitis-e-virus",
+    "routes": ["faeco-oral", "pig"],
     "name": "Hepatitis E virus",
     "kingdom": "virus",
     "niche": [
@@ -2156,6 +2199,7 @@
   },
   {
     "id": "hiv-1",
+    "routes": ["sexual", "blood", "vertical"],
     "name": "HIV-1",
     "kingdom": "virus",
     "niche": [
@@ -2224,6 +2268,7 @@
   },
   {
     "id": "dengue-virus",
+    "routes": ["mosquito"],
     "name": "Dengue virus",
     "kingdom": "virus",
     "niche": [
@@ -2264,6 +2309,7 @@
   },
   {
     "id": "chikungunya-virus",
+    "routes": ["mosquito"],
     "name": "Chikungunya virus",
     "kingdom": "virus",
     "niche": [
@@ -2305,6 +2351,7 @@
   },
   {
     "id": "zika-virus",
+    "routes": ["mosquito", "sexual", "vertical"],
     "name": "Zika virus",
     "kingdom": "virus",
     "niche": [
@@ -2346,6 +2393,7 @@
   },
   {
     "id": "rabies-virus",
+    "routes": ["dog", "bat", "skin-penetration"],
     "name": "Rabies virus",
     "kingdom": "virus",
     "niche": [
@@ -2390,6 +2438,7 @@
   },
   {
     "id": "poliovirus",
+    "routes": ["faeco-oral"],
     "name": "Poliovirus",
     "kingdom": "virus",
     "niche": [
@@ -2434,6 +2483,7 @@
   },
   {
     "id": "mumps-virus",
+    "routes": ["respiratory", "saliva"],
     "name": "Mumps virus",
     "kingdom": "virus",
     "niche": [
@@ -2479,6 +2529,7 @@
   },
   {
     "id": "enteroviruses",
+    "routes": ["faeco-oral", "respiratory"],
     "name": "Enteroviruses (EV71, Coxsackie)",
     "kingdom": "virus",
     "niche": [
@@ -2520,6 +2571,7 @@
   },
   {
     "id": "parvovirus-b19",
+    "routes": ["respiratory", "vertical", "blood"],
     "name": "Parvovirus B19",
     "kingdom": "virus",
     "niche": [
@@ -2565,6 +2617,7 @@
   },
   {
     "id": "human-herpesvirus-6",
+    "routes": ["saliva"],
     "name": "Human herpesvirus 6",
     "kingdom": "virus",
     "niche": [
@@ -2610,6 +2663,7 @@
   },
   {
     "id": "human-papillomavirus",
+    "routes": ["sexual", "skin-contact", "vertical"],
     "name": "Human papillomavirus",
     "kingdom": "virus",
     "niche": [
@@ -2655,6 +2709,7 @@
   },
   {
     "id": "nipah-virus",
+    "routes": ["bat", "pig", "faeco-oral", "respiratory"],
     "name": "Nipah virus",
     "kingdom": "virus",
     "niche": [
@@ -2696,6 +2751,7 @@
   },
   {
     "id": "candida-albicans",
+    "routes": ["healthcare", "vertical"],
     "name": "Candida albicans",
     "kingdom": "fungus",
     "niche": [
@@ -2771,6 +2827,7 @@
   },
   {
     "id": "cryptococcus-neoformans",
+    "routes": ["respiratory", "bird"],
     "name": "Cryptococcus neoformans",
     "kingdom": "fungus",
     "niche": [
@@ -2816,6 +2873,7 @@
   },
   {
     "id": "talaromyces-marneffei",
+    "routes": ["respiratory", "soil", "rodent"],
     "name": "Talaromyces (Penicillium) marneffei",
     "kingdom": "fungus",
     "niche": [
@@ -2856,6 +2914,7 @@
   },
   {
     "id": "aspergillus-fumigatus",
+    "routes": ["respiratory", "soil"],
     "name": "Aspergillus fumigatus",
     "kingdom": "fungus",
     "niche": [
@@ -2899,6 +2958,7 @@
   },
   {
     "id": "mucorales",
+    "routes": ["respiratory", "soil", "skin-penetration"],
     "name": "Mucorales (mucormycosis)",
     "kingdom": "fungus",
     "niche": [
@@ -2943,6 +3003,7 @@
   },
   {
     "id": "pneumocystis-jirovecii",
+    "routes": ["respiratory"],
     "name": "Pneumocystis jirovecii",
     "kingdom": "fungus",
     "niche": [
@@ -2986,6 +3047,7 @@
   },
   {
     "id": "dermatophytes",
+    "routes": ["skin-contact", "soil", "cat"],
     "name": "Dermatophytes (Trichophyton etc.)",
     "kingdom": "fungus",
     "niche": [
@@ -4074,6 +4136,7 @@
   },
   {
     "id": "bacillus-anthracis",
+    "routes": ["skin-contact", "respiratory", "soil"],
     "name": "Bacillus anthracis",
     "kingdom": "bacteria",
     "niche": [
@@ -4123,6 +4186,7 @@
   },
   {
     "id": "yersinia-pestis",
+    "routes": ["sandfly-flea", "rodent", "respiratory"],
     "name": "Yersinia pestis",
     "kingdom": "bacteria",
     "niche": [
@@ -4173,6 +4237,7 @@
   },
   {
     "id": "group-b-streptococcus",
+    "routes": ["vertical"],
     "name": "Group B Streptococcus",
     "kingdom": "bacteria",
     "niche": [
@@ -4225,6 +4290,7 @@
   },
   {
     "id": "helicobacter-pylori",
+    "routes": ["faeco-oral"],
     "name": "Helicobacter pylori",
     "kingdom": "bacteria",
     "niche": [
@@ -4274,6 +4340,7 @@
   },
   {
     "id": "clostridioides-difficile",
+    "routes": ["faeco-oral", "healthcare"],
     "name": "Clostridioides difficile",
     "kingdom": "bacteria",
     "niche": [
@@ -4330,6 +4397,7 @@
   },
   {
     "id": "trichosporon",
+    "routes": ["soil", "healthcare"],
     "name": "Trichosporon",
     "kingdom": "fungus",
     "reference": true,
@@ -4361,6 +4429,7 @@
   },
   {
     "id": "rhodotorula",
+    "routes": ["water-env", "healthcare"],
     "name": "Rhodotorula",
     "kingdom": "fungus",
     "reference": true,
@@ -4392,6 +4461,7 @@
   },
   {
     "id": "malassezia-furfur",
+    "routes": ["skin-contact", "healthcare"],
     "name": "Malassezia furfur",
     "kingdom": "fungus",
     "reference": true,
@@ -4423,6 +4493,7 @@
   },
   {
     "id": "histoplasma-capsulatum",
+    "routes": ["respiratory", "soil", "bird", "bat"],
     "name": "Histoplasma capsulatum",
     "kingdom": "fungus",
     "reference": true,
@@ -4458,6 +4529,7 @@
   },
   {
     "id": "blastomyces-dermatitidis",
+    "routes": ["respiratory", "soil"],
     "name": "Blastomyces dermatitidis",
     "kingdom": "fungus",
     "reference": true,
@@ -4493,6 +4565,7 @@
   },
   {
     "id": "sporothrix-schenckii",
+    "routes": ["skin-penetration", "soil", "cat"],
     "name": "Sporothrix schenckii",
     "kingdom": "fungus",
     "reference": true,
@@ -4528,6 +4601,7 @@
   },
   {
     "id": "coccidioides-immitis",
+    "routes": ["respiratory", "soil"],
     "name": "Coccidioides immitis",
     "kingdom": "fungus",
     "reference": true,
@@ -4563,6 +4637,7 @@
   },
   {
     "id": "paracoccidioides-brasiliensis",
+    "routes": ["respiratory", "soil"],
     "name": "Paracoccidioides brasiliensis",
     "kingdom": "fungus",
     "reference": true,
@@ -4598,6 +4673,7 @@
   },
   {
     "id": "fusarium",
+    "routes": ["respiratory", "soil", "skin-penetration"],
     "name": "Fusarium",
     "kingdom": "fungus",
     "reference": true,
@@ -4629,6 +4705,7 @@
   },
   {
     "id": "scedosporium",
+    "routes": ["respiratory", "water-env", "skin-penetration"],
     "name": "Pseudallescheria boydii / Scedosporium",
     "kingdom": "fungus",
     "reference": true,
@@ -4660,6 +4737,7 @@
   },
   {
     "id": "mycetoma-agents",
+    "routes": ["skin-penetration", "soil"],
     "name": "Madurella / Acremonium / Exophiala",
     "kingdom": "fungus",
     "reference": true,

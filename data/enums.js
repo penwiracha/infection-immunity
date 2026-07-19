@@ -87,6 +87,7 @@
       { id: "blood",            emoji: "🩸", label: "Blood / needles",          kind: "route" },
       { id: "vertical",         emoji: "🤰", label: "Vertical / congenital",    kind: "route" },
       { id: "skin-contact",     emoji: "🖐️", label: "Direct skin contact",      kind: "route" },
+      { id: "saliva",           emoji: "💋", label: "Saliva / oral contact",    kind: "route" },
       { id: "skin-penetration", emoji: "🦶", label: "Skin-penetrating",         kind: "route" },
       { id: "soil",             emoji: "🌱", label: "Soil / spores",            kind: "route" },
       { id: "healthcare",       emoji: "🏥", label: "Healthcare / device",      kind: "route" },

@@ -181,14 +181,19 @@ function show(o,n){
   side.scrollTop=0;
   mountLifecycle(o);
 }
-/* Drop images/<id>-lifecycle.(jpg|jpeg|png) and it appears in the Life cycle block. */
+/* In the single-file bundle, images are inlined as base64 in window.__IMG__
+   (on this frame or its parent shell). Look there first; else probe images/. */
+function embeddedImg(key){ try{ return (window.__IMG__||(window.parent&&window.parent.__IMG__)||{})[key]||null; }catch(e){ return null; } }
+/* Drop images/<id>-lifecycle.(jpg|jpeg|png|gif) and it appears in the Life cycle block. */
 function mountLifecycle(o){
   const slot=side.querySelector('.lcimg'); if(!slot) return;
-  const paths=['jpg','jpeg','png','gif'].map(e=>`../images/${o.id}-lifecycle.${e}`);
+  const key=o.id+'-lifecycle', paint=(src)=>{ slot.innerHTML=`<img class="lcpic" src="${src}" alt="Life cycle of ${o.name}"><div class="lccap">Life-cycle diagram.</div>`; };
+  const emb=embeddedImg(key); if(emb){ paint(emb); return; }
+  const paths=['jpg','jpeg','png','gif'].map(e=>`../images/${key}.${e}`);
   let i=0;
   (function tryNext(){ if(i>=paths.length) return;
     const src=paths[i++], img=new Image();
-    img.onload=()=>{ slot.innerHTML=`<img class="lcpic" src="${src}" alt="Life cycle of ${o.name}"><div class="lccap">Life-cycle diagram.</div>`; };
+    img.onload=()=>paint(src);
     img.onerror=tryNext; img.src=src; })();
 }
 render();

@@ -5,12 +5,25 @@
    and writes dist/infection-immunity.html.  Run:  node scripts/bundle.mjs
    Share that single file — it opens by double-click.
    ============================================================ */
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const P = (...a) => join(ROOT, ...a);
+
+/* ---- inline every image in images/ as a base64 data-URI ----
+   Keyed by filename stem: "<id>-lifecycle" for diagrams, "<id>" for micrographs.
+   The views read this map (window.__IMG__, on the frame or its parent shell)
+   before probing the images/ folder, so the single file shows pictures offline. */
+const MIME = { gif: "image/gif", jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png" };
+const IMG_MAP = {};
+for (const f of readdirSync(P("images"))) {
+  const m = f.match(/^(.+)\.(gif|jpe?g|png)$/i);
+  if (!m) continue; // skip README, .gitignore, credits
+  const buf = readFileSync(P("images", f));
+  IMG_MAP[m[1]] = `data:${MIME[m[2].toLowerCase()]};base64,${buf.toString("base64")}`;
+}
 
 /* ---- all data, in load order, as one blob (escaped so </script> is safe) ---- */
 const DATA_FILES = [
@@ -97,6 +110,8 @@ const SHELL = `<!doctype html>
   </nav>
   <iframe id="view" title="view"></iframe>
 </div>
+<script id="imgs" type="application/json">${JSON.stringify(IMG_MAP)}</script>
+<script>window.__IMG__=JSON.parse(document.getElementById('imgs').textContent);</script>
 <script id="views" type="application/json">${JSON.stringify(VIEWS_B64)}</script>
 <script>
  const VIEWS=JSON.parse(document.getElementById('views').textContent);
@@ -119,4 +134,5 @@ mkdirSync(P("dist"), { recursive: true });
 const OUT = P("dist", "infection-immunity.html");
 writeFileSync(OUT, SHELL);
 const kb = (Buffer.byteLength(SHELL) / 1024).toFixed(0);
-console.log(`built dist/infection-immunity.html  (${kb} KB, ${Object.keys(VIEWS).length} views, fully offline)`);
+const imgCount = Object.keys(IMG_MAP).length;
+console.log(`built dist/infection-immunity.html  (${kb} KB, ${Object.keys(VIEWS).length} views, ${imgCount} images inlined, fully offline)`);

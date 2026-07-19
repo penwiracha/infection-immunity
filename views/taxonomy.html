@@ -230,16 +230,21 @@ function showDetail(o, path){
   mountLifecycle(o);
 }
 
-/* Drop a life-cycle diagram in as images/<id>-lifecycle.(jpg|jpeg|png) and it
+/* In the single-file bundle, images are inlined as base64 in window.__IMG__
+   (on this frame or its parent shell). Look there first; else probe images/. */
+function embeddedImg(key){ try{ return (window.__IMG__||(window.parent&&window.parent.__IMG__)||{})[key]||null; }catch(e){ return null; } }
+/* Drop a life-cycle diagram in as images/<id>-lifecycle.(jpg|jpeg|png|gif) and it
    appears inside the Life cycle block. Falls back silently to the text. */
 function mountLifecycle(o){
   const slot=side.querySelector('.lcimg'); if(!slot) return;
-  const paths=['jpg','jpeg','png','gif'].map(e=>`../images/${o.id}-lifecycle.${e}`);
+  const key=o.id+'-lifecycle', paint=(src)=>{ slot.innerHTML=`<img class="lcpic" src="${src}" alt="Life cycle of ${o.name}"><div class="microcap">Life-cycle diagram.</div>`; };
+  const emb=embeddedImg(key); if(emb){ paint(emb); return; }
+  const paths=['jpg','jpeg','png','gif'].map(e=>`../images/${key}.${e}`);
   let i=0;
   (function tryNext(){
     if(i>=paths.length) return;
     const src=paths[i++], img=new Image();
-    img.onload=()=>{ slot.innerHTML=`<img class="lcpic" src="${src}" alt="Life cycle of ${o.name}"><div class="microcap">Life-cycle diagram.</div>`; };
+    img.onload=()=>paint(src);
     img.onerror=tryNext;
     img.src=src;
   })();
@@ -250,15 +255,17 @@ function mountLifecycle(o){
    Falls back silently to the schematic when no image is found. */
 function mountMicrograph(o){
   const slot=side.querySelector('.micro'); if(!slot) return;
+  const paint=(src)=>{ slot.innerHTML=
+      `<img src="${src}" alt="Light micrograph of ${o.name}" style="width:100%;max-width:320px;border-radius:8px;display:block;margin:auto">
+       <div class="microcap">Light micrograph.</div>`; };
+  if(!o.micrograph){ const emb=embeddedImg(o.id); if(emb){ paint(emb); return; } }
   const paths = o.micrograph ? [o.micrograph]
     : ['jpg','jpeg','png'].map(e=>`../images/${o.id}.${e}`);
   let i=0;
   (function tryNext(){
     if(i>=paths.length) return;           // keep the schematic fallback
     const src=paths[i++], img=new Image();
-    img.onload=()=>{ slot.innerHTML=
-      `<img src="${src}" alt="Light micrograph of ${o.name}" style="width:100%;max-width:320px;border-radius:8px;display:block;margin:auto">
-       <div class="microcap">Light micrograph.</div>`; };
+    img.onload=()=>paint(src);
     img.onerror=tryNext;
     img.src=src;
   })();
