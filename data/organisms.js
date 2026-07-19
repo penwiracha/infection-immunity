@@ -3049,9 +3049,31 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "class": "protozoa",
+      "subclass": "Apicomplexa (sporozoa)",
+      "detail": "intra-erythrocytic parasite; ring / trophozoite / schizont blood stages; PfEMP1-mediated cytoadherence; Anopheles-transmitted"
+    },
+    "treatment": [
+      {
+        "class": "Artemisinin-based combination therapy (ACT) — uncomplicated",
+        "mechanism": "Artemisinin is activated by parasite heme-iron to generate free radicals that kill blood-stage parasites (and gametocytes, cutting transmission); paired with a longer-acting partner drug (e.g. lumefantrine) to clear residual parasites and protect against resistance."
+      },
+      {
+        "class": "IV artesunate — severe / cerebral malaria",
+        "mechanism": "Parenteral artemisinin derivative; reduces mortality compared with quinine in severe disease."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Artemisinin resistance (kelch13 / K13)",
+        "detail": "K13-propeller mutations cause delayed parasite clearance — first and most intense in the Greater Mekong (including Thailand), the reason artemisinin is never used alone and ACT partner drugs matter."
+      },
+      {
+        "mechanism": "Chloroquine resistance (pfcrt)",
+        "detail": "pfcrt mutations that expel chloroquine from the food vacuole made chloroquine useless against P. falciparum decades ago."
+      }
+    ]
   },
   {
     "id": "entamoeba-histolytica",
@@ -3075,9 +3097,23 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "class": "protozoa",
+      "subclass": "amoeba",
+      "detail": "faeco-oral cyst; trophozoite invades colon; distinguished from non-pathogenic E. dispar by molecular tests"
+    },
+    "treatment": [
+      {
+        "class": "Metronidazole (invasive disease) then a luminal agent",
+        "mechanism": "Metronidazole (a nitroimidazole reduced to DNA-damaging radicals inside the protozoon) clears invasive colitis and liver abscess; it is followed by a poorly-absorbed luminal amoebicide (paromomycin / diloxanide) to eradicate colonising cysts and prevent relapse."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Clinically significant resistance rare",
+        "detail": "Metronidazole resistance is uncommon; relapse usually reflects failure to clear luminal cysts — hence the two-drug approach."
+      }
+    ]
   },
   {
     "id": "giardia-lamblia",
@@ -3100,9 +3136,23 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "class": "protozoa",
+      "subclass": "flagellate",
+      "detail": "faeco-oral cyst; binucleate 'owl-face' trophozoite attaches to the duodenal mucosa by a ventral disc"
+    },
+    "treatment": [
+      {
+        "class": "Metronidazole or tinidazole (nitazoxanide alternative)",
+        "mechanism": "Nitroimidazoles are reduced to toxic radicals inside the anaerobic protozoon, damaging DNA; tinidazole allows single-dose therapy and nitazoxanide is an alternative."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Treatment failure / relapse",
+        "detail": "Nitroimidazole failure and reinfection occur; a switch of class (nitazoxanide or albendazole) is used, and IgA deficiency predisposes to chronic infection."
+      }
+    ]
   },
   {
     "id": "toxoplasma-gondii",
@@ -3127,9 +3177,27 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "class": "protozoa",
+      "subclass": "Apicomplexa",
+      "detail": "cat is the definitive host; latent bradyzoite tissue cysts (brain/muscle) and fast tachyzoites; acquired from oocysts or undercooked meat"
+    },
+    "treatment": [
+      {
+        "class": "Pyrimethamine + sulfadiazine (+ folinic acid)",
+        "mechanism": "Sequential blockade of parasite folate synthesis (pyrimethamine inhibits dihydrofolate reductase, sulfadiazine dihydropteroate synthase); folinic acid rescues host marrow. First-line for toxoplasmic encephalitis and ocular disease."
+      },
+      {
+        "class": "Co-trimoxazole (alternative / prophylaxis)",
+        "mechanism": "Also blocks folate synthesis; an alternative treatment and the prophylaxis used in advanced HIV."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Resistance not a practical issue",
+        "detail": "Significant drug resistance is not established; the real limit is that drugs kill tachyzoites but not latent tissue cysts, so reactivation recurs if immunity is not restored."
+      }
+    ]
   },
   {
     "id": "trichomonas-vaginalis",
@@ -3152,9 +3220,23 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "class": "protozoa",
+      "subclass": "flagellate",
+      "detail": "motile flagellate with an undulating membrane; sexually transmitted; adheres to squamous vaginal epithelium (no cyst stage)"
+    },
+    "treatment": [
+      {
+        "class": "Metronidazole or tinidazole (treat partners)",
+        "mechanism": "Nitroimidazole reduced to DNA-damaging radicals in the anaerobic protozoon; partner treatment is essential as reinfection is otherwise the rule."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Metronidazole resistance (rising)",
+        "detail": "Reduced nitroreductase activation causes metronidazole-refractory trichomoniasis; higher-dose regimens or tinidazole are then used."
+      }
+    ]
   },
   {
     "id": "leishmania-species",
@@ -3178,9 +3260,27 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "class": "protozoa",
+      "subclass": "flagellate (kinetoplastid)",
+      "detail": "sandfly-transmitted; promastigote in the vector, amastigote inside macrophages; kinetoplast DNA"
+    },
+    "treatment": [
+      {
+        "class": "Liposomal amphotericin B (visceral, first-line)",
+        "mechanism": "Polyene binding to parasite membrane sterols; concentrates in the reticuloendothelial system where amastigotes live — first-line for kala-azar."
+      },
+      {
+        "class": "Pentavalent antimonials / miltefosine / paromomycin",
+        "mechanism": "Antimonials (sodium stibogluconate) impair parasite energy metabolism; miltefosine (oral alkylphosphocholine) disrupts membranes; paromomycin (aminoglycoside) — the regimen is chosen by region and species."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Antimonial resistance",
+        "detail": "Widespread pentavalent-antimonial resistance (notably in Bihar, India) shifted visceral leishmaniasis treatment to liposomal amphotericin and miltefosine."
+      }
+    ]
   },
   {
     "id": "free-living-amoebae",
@@ -3204,9 +3304,27 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "class": "protozoa",
+      "subclass": "amoeba (free-living)",
+      "detail": "environmental; Naegleria fowleri trophozoite (warm fresh water, cribriform-plate entry); Acanthamoeba forms highly resistant cysts"
+    },
+    "treatment": [
+      {
+        "class": "Naegleria (PAM): amphotericin B + miltefosine + ICU support",
+        "mechanism": "High-dose amphotericin (± miltefosine, azoles, rifampicin); outcomes remain dismal because diagnosis is late and drugs penetrate the inflamed brain poorly."
+      },
+      {
+        "class": "Acanthamoeba keratitis: topical biguanide + chlorhexidine",
+        "mechanism": "Polyhexamethylene biguanide (PHMB) or chlorhexidine disrupt the amoebic membrane; prolonged therapy is needed because the cyst is highly resistant."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Cyst resistance",
+        "detail": "The Acanthamoeba cyst is intrinsically resistant to most agents and disinfectants, so relapse is common and treatment prolonged — cyst tolerance rather than classic acquired resistance."
+      }
+    ]
   },
   {
     "id": "ascaris-lumbricoides",
@@ -3230,9 +3348,23 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "class": "helminth",
+      "subclass": "nematode (roundworm)",
+      "detail": "large intestinal roundworm; faeco-oral eggs; a Löffler pulmonary phase occurs during larval migration"
+    },
+    "treatment": [
+      {
+        "class": "Albendazole or mebendazole (single / short course)",
+        "mechanism": "Benzimidazoles bind parasite β-tubulin and block microtubule polymerisation, so the worm cannot take up glucose and starves; single-dose albendazole clears most infections."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Benzimidazole resistance (β-tubulin) — emerging",
+        "detail": "β-tubulin mutations cause benzimidazole resistance — well documented in veterinary nematodes and an emerging concern in human soil-transmitted helminths under mass drug administration."
+      }
+    ]
   },
   {
     "id": "hookworm",
