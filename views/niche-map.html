@@ -148,5 +148,42 @@ function show(o,n){
 }
 render();
 </script>
+<!-- selection detail as a centered popup (POPUP-MODAL) -->
+<style>
+.wrap{grid-template-columns:1fr !important}
+#pop-backdrop{position:fixed;inset:0;background:rgba(6,8,12,.66);opacity:0;pointer-events:none;
+  transition:opacity .16s ease;z-index:90}
+body.pop-open #pop-backdrop{opacity:1;pointer-events:auto}
+.side{position:fixed !important;top:50% !important;left:50% !important;bottom:auto !important;
+  transform:translate(-50%,-47%) scale(.985);
+  width:min(600px,calc(100vw - 24px)) !important;max-width:calc(100vw - 24px) !important;
+  max-height:min(88vh,760px) !important;height:auto !important;
+  border:1px solid var(--line) !important;border-radius:16px !important;
+  box-shadow:0 28px 80px rgba(0,0,0,.6);opacity:0;pointer-events:none;z-index:91;
+  transition:opacity .18s ease,transform .18s ease;overscroll-behavior:contain}
+body.pop-open .side{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+#pop-close{position:fixed;top:16px;right:18px;z-index:92;width:34px;height:34px;border-radius:9px;
+  border:1px solid var(--line);background:var(--panel2,#1c212a);color:var(--ink,#e8eaee);
+  font:600 18px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;cursor:pointer;display:none}
+body.pop-open #pop-close{display:block}
+@media (prefers-reduced-motion:reduce){#pop-backdrop,.side{transition:none}}
+</style>
+<script>
+(function(){
+  var side=document.getElementById('side'); if(!side) return;
+  var empty=side.innerHTML;
+  var bd=document.createElement('div'); bd.id='pop-backdrop';
+  var cl=document.createElement('button'); cl.id='pop-close'; cl.type='button'; cl.setAttribute('aria-label','Close'); cl.innerHTML='×';
+  document.body.appendChild(bd); document.body.appendChild(cl);
+  function isOpen(){ return !!side.querySelector('.card'); }
+  function sync(){ document.body.classList.toggle('pop-open', isOpen()); }
+  new MutationObserver(sync).observe(side,{childList:true});
+  function close(){ side.innerHTML=empty; document.body.classList.remove('pop-open');
+    document.querySelectorAll('.org.active,.leaf.active,.chip.on,.lz.on').forEach(function(e){e.classList.remove('active');e.classList.remove('on');}); }
+  bd.addEventListener('click',close); cl.addEventListener('click',close);
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&document.body.classList.contains('pop-open')) close(); });
+  sync();
+})();
+</script>
 </body>
 </html>
