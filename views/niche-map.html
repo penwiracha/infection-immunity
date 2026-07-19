@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Infection &amp; Defence — Niche Map</title>
+<style>
+:root{
+  --bg:#0f1115; --panel:#171a21; --panel2:#1e222b; --line:#2b303b;
+  --txt:#e6e8ec; --dim:#9aa3b2;
+  --extra:#e0603f; --vesic:#e0a83f; --cyto:#4fa3e3; --surf:#57b86b;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);
+ font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+header{padding:22px 28px 14px;border-bottom:1px solid var(--line)}
+h1{margin:0 0 6px;font-size:22px}
+.sub{color:var(--dim);font-size:13.5px;max-width:900px}
+.sub a{color:var(--dim)}
+.bar{display:flex;flex-wrap:wrap;gap:14px;padding:12px 28px 14px;
+ border-bottom:1px solid var(--line);align-items:center}
+.grp{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.grp .gl{font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-right:2px}
+.chip{font-size:12px;padding:4px 10px;border-radius:20px;border:1px solid var(--line);
+ background:var(--panel2);cursor:pointer;user-select:none;white-space:nowrap}
+.chip .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+.chip.off{opacity:.32}
+#q{background:var(--panel2);border:1px solid var(--line);color:var(--txt);
+ padding:6px 12px;border-radius:20px;font-size:12.5px;width:190px;outline:none}
+.count{font-size:11.5px;color:var(--dim);margin-left:auto}
+.wrap{display:grid;grid-template-columns:minmax(340px,1fr) minmax(370px,450px)}
+@media(max-width:900px){.wrap{grid-template-columns:1fr}}
+.tree{padding:20px 28px 60px}
+.side{position:sticky;top:0;max-height:100vh;overflow:auto;
+ border-left:1px solid var(--line);padding:22px 24px 60px;background:var(--panel)}
+.branch{margin:16px 0 0;border-left:3px solid var(--c);padding-left:16px}
+.branch h2{font-size:14.5px;margin:0 0 2px;color:var(--c)}
+.branch .eff{font-size:12.5px;color:var(--dim);margin:0 0 10px}
+.orgs{display:flex;flex-wrap:wrap;gap:6px}
+.org{font-size:12.5px;padding:5px 10px;border-radius:7px;background:var(--panel2);
+ border:1px solid var(--line);cursor:pointer;transition:.12s;display:flex;align-items:center;gap:6px}
+.org:hover{border-color:var(--c);transform:translateY(-1px)}
+.org.active{background:var(--c);color:#0f1115;border-color:var(--c);font-weight:600}
+.t{font-size:9.5px;padding:1px 5px;border-radius:4px;font-weight:700;letter-spacing:.4px}
+.t1{background:#2d4a35;color:#7fd39b}
+.t2{background:#463a24;color:#e3bc72}
+.org.active .t{background:rgba(0,0,0,.22);color:inherit}
+.card h3{margin:0 0 3px;font-size:19px}
+.card .tag{font-size:11.5px;color:var(--dim);margin-bottom:12px}
+.card .tag b{color:var(--c2)}
+.meta{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px}
+.meta span{font-size:10.5px;padding:3px 8px;border-radius:5px;background:var(--panel2);color:var(--dim)}
+.blk{margin-bottom:13px;padding:12px 14px;background:var(--panel2);
+ border-radius:8px;border-left:3px solid var(--c2)}
+.blk .lab{font-size:10.5px;letter-spacing:1.1px;text-transform:uppercase;
+ color:var(--dim);margin-bottom:5px}
+.blk p{margin:0;font-size:13.5px}
+.fail{display:inline-block;font-size:11px;padding:3px 9px;border-radius:5px;
+ background:#3a2530;color:#f0a8bd;margin-bottom:10px}
+.empty{color:var(--dim);font-size:13.5px;padding-top:40px;text-align:center}
+.note{font-size:11.5px;color:var(--dim);margin-top:22px;border-top:1px solid var(--line);padding-top:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Infection &amp; Defence — Niche Map</h1>
+  <div class="sub">Branching by <b>where the pathogen lives</b>, because niche &mdash; not taxonomy &mdash; determines which effector arm responds. Coverage keyed to the &#3624;&#3619;&#3623;. national licensing requirement list (&#3585;&#3621;&#3640;&#3656;&#3617; 1 = diagnose &amp; manage independently; &#3585;&#3621;&#3640;&#3656;&#3617; 2 = diagnose, initiate, refer). &middot; <a href="../index.html">home</a></div>
+</header>
+<div class="bar">
+  <div class="grp" id="nb"><span class="gl">Niche</span></div>
+  <div class="grp" id="tb"><span class="gl">Tier</span></div>
+  <div class="grp" id="fb"><span class="gl">Failure mode</span></div>
+  <input id="q" placeholder="Search organism or disease...">
+  <div class="count" id="ct"></div>
+</div>
+<div class="wrap">
+  <div class="tree" id="tree"></div>
+  <div class="side" id="side"><div class="empty">Select an organism from the tree.</div></div>
+</div>
+
+<!-- data layer (global-script, load order matters) -->
+<script src="../data/enums.js"></script>
+<script src="../data/organisms.js"></script>
+<script>
+// Views read from the data layer — no organism content lives here.
+const ORGS = ORGANISMS;                 // single source of truth
+const NICHES = ENUMS.niches;            // shared niche vocabulary + effector prose
+const FAILS = ENUMS.failureModes;       // canonical failure-mode categories
+
+const S={niche:{},tier:{1:true,2:true},fail:{},q:""};
+NICHES.forEach(n=>S.niche[n.id]=true);
+FAILS.forEach(f=>S.fail[f]=true);
+
+function chip(host,label,on,dot){
+  const c=document.createElement('div');c.className='chip'+(on?'':' off');
+  c.innerHTML=(dot?`<span class="dot" style="background:${dot}"></span>`:'')+label;
+  host.appendChild(c);return c;
+}
+const nb=document.getElementById('nb'),tb=document.getElementById('tb'),fb=document.getElementById('fb');
+NICHES.forEach(n=>{const lbl={extra:'Extracellular',vesic:'Vesicular',cyto:'Cytosolic',surf:'Surface'}[n.id];
+  const c=chip(nb,lbl,true,n.col);c.onclick=()=>{S.niche[n.id]=!S.niche[n.id];c.classList.toggle('off');render();};});
+[1,2].forEach(t=>{const c=chip(tb,'กลุ่ม '+t,true);
+  c.onclick=()=>{S.tier[t]=!S.tier[t];c.classList.toggle('off');render();};});
+FAILS.forEach(f=>{const c=chip(fb,f,true);
+  c.onclick=()=>{S.fail[f]=!S.fail[f];c.classList.toggle('off');render();};});
+document.getElementById('q').oninput=e=>{S.q=e.target.value.toLowerCase();render();};
+
+const tree=document.getElementById('tree'),side=document.getElementById('side'),ct=document.getElementById('ct');
+function pass(o){
+  if(!S.tier[o.tier]&&o.tier)return false;
+  if(!S.fail[o.fail])return false;
+  if(S.q){const h=(o.name+' '+o.panels.dis+' '+o.sys.join(' ')+' '+o.fail+' '+o.sub+' '+o.panels.evade).toLowerCase();
+    if(!h.includes(S.q))return false;}
+  return true;
+}
+function render(){
+  tree.innerHTML='';let seen=new Set();
+  NICHES.forEach(n=>{
+    if(!S.niche[n.id])return;
+    const list=ORGS.filter(o=>o.niche.includes(n.id)&&pass(o));
+    if(!list.length)return;
+    const d=document.createElement('div');d.className='branch';d.style.setProperty('--c',n.col);
+    d.innerHTML=`<h2>${n.name}</h2><p class="eff">${n.eff}</p>`;
+    const box=document.createElement('div');box.className='orgs';
+    list.forEach(o=>{seen.add(o.name);
+      const b=document.createElement('div');b.className='org';
+      b.innerHTML=`<span>${o.name}</span><span class="t t${o.tier}">${o.tier}</span>`;
+      b.onclick=()=>{show(o,n);document.querySelectorAll('.org').forEach(x=>x.classList.remove('active'));b.classList.add('active');};
+      box.appendChild(b);});
+    d.appendChild(box);tree.appendChild(d);
+  });
+  ct.textContent=seen.size+' of '+ORGS.length+' organisms';
+  if(!seen.size)tree.innerHTML='<div class="empty">No organisms match these filters.</div>';
+}
+function show(o,n){
+  const others=o.niche.filter(x=>x!==n.id).map(x=>NICHES.find(y=>y.id===x).name.split('—')[0].trim());
+  side.innerHTML=`<div class="card" style="--c2:${n.col}">
+   <h3>${o.name}</h3>
+   <div class="tag">Niche: <b>${n.name.split('—')[0].trim()}</b>${others.length?' · also '+others.join(', '):''}</div>
+   <div class="meta"><span>กลุ่ม ${o.tier}</span>${o.sys.map(s=>`<span>${s}</span>`).join('')}</div>
+   <div class="fail">${o.fail} · ${o.sub}</div>
+   <div class="blk"><div class="lab">1 · Response mounted</div><p>${o.panels.resp}</p></div>
+   <div class="blk"><div class="lab">2 · Why it is not enough</div><p>${o.panels.evade}</p></div>
+   <div class="blk"><div class="lab">3 · Resulting disease</div><p>${o.panels.dis}</p></div>
+   <div class="note">Organisms listed under more than one branch occupy multiple niches — the effector arm needed changes with the stage of infection.</div>
+  </div>`;
+  side.scrollTop=0;
+}
+render();
+</script>
+</body>
+</html>

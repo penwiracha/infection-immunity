@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cascade — Where It Breaks</title>
+<style>
+:root{
+  --bg:#0e1014; --ink:#e8eaee; --dim:#8d96a6; --line:#272c36;
+  --panel:#161a21; --panel2:#1c212a;
+  --arm:#e0603f;           /* set per branch at runtime */
+  --host:#7a6cf0;
+  --ok:#4a8f68;
+  --extra:#e0603f; --vesic:#e0a83f; --cyto:#4fa3e3; --surf:#57b86b;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+ font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+a{color:inherit}
+header{padding:26px 30px 16px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--arm);margin-bottom:7px}
+h1{margin:0 0 7px;font-size:23px;letter-spacing:.2px}
+.sub{color:var(--dim);font-size:13.5px;max-width:860px}
+.sub a{color:var(--dim)}
+.branchnav{display:flex;gap:6px;flex-wrap:wrap;padding:10px 30px;border-bottom:1px solid var(--line)}
+.bn{font-size:12px;padding:4px 11px;border-radius:20px;border:1px solid var(--line);background:var(--panel2);
+ cursor:pointer;text-decoration:none}
+.bn.on{color:#0e1014;font-weight:600}
+.bar{display:flex;flex-wrap:wrap;gap:16px;align-items:center;
+ padding:12px 30px;border-bottom:1px solid var(--line)}
+.gl{font-size:10.5px;letter-spacing:1.1px;text-transform:uppercase;color:var(--dim);margin-right:4px}
+.chip{font-size:12px;padding:4px 11px;border-radius:20px;border:1px solid var(--line);
+ background:var(--panel2);cursor:pointer;user-select:none}
+.chip.off{opacity:.32}
+.chip .sw{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;vertical-align:1px}
+.count{margin-left:auto;font-size:11.5px;color:var(--dim)}
+.wrap{display:grid;grid-template-columns:minmax(420px,1fr) minmax(360px,430px)}
+@media(max-width:940px){.wrap{grid-template-columns:1fr}}
+.stage{padding:26px 30px 70px}
+.side{position:sticky;top:0;max-height:100vh;overflow:auto;background:var(--panel);
+ border-left:1px solid var(--line);padding:24px 24px 70px}
+.step{position:relative;padding:0 0 4px 46px;margin-bottom:2px}
+.step:before{content:"";position:absolute;left:15px;top:26px;bottom:-6px;width:2px;background:var(--line)}
+.step:last-of-type:before{display:none}
+.node{position:absolute;left:6px;top:5px;width:20px;height:20px;border-radius:50%;
+ background:var(--panel2);border:2px solid var(--arm);display:flex;align-items:center;
+ justify-content:center;font-size:10px;font-weight:700;color:var(--arm)}
+.step h3{margin:2px 0 2px;font-size:15px;letter-spacing:.1px}
+.step .desc{font-size:12.5px;color:var(--dim);margin:0 0 9px;max-width:620px}
+.lesions{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.lz{font-size:12px;padding:5px 10px;border-radius:6px;cursor:pointer;
+ border:1px solid var(--line);background:var(--panel2);transition:.12s;
+ display:flex;align-items:center;gap:7px;line-height:1.3}
+.lz:hover{transform:translateY(-1px)}
+.lz .bar2{width:3px;align-self:stretch;border-radius:2px;background:var(--arm)}
+.lz.host .bar2{background:var(--host)}
+.lz.on{background:var(--arm);color:#0e1014;border-color:var(--arm);font-weight:600}
+.lz.host.on{background:var(--host);color:#fff;border-color:var(--host)}
+.lz.on .bar2{background:rgba(0,0,0,.3)}
+.lz .t{font-size:9.5px;font-weight:700;padding:1px 5px;border-radius:4px;background:#2d4a35;color:#7fd39b}
+.lz .t.t2{background:#463a24;color:#e3bc72}
+.lz.on .t{background:rgba(0,0,0,.22);color:inherit}
+.outcome{margin-top:18px;padding:14px 16px;border-radius:9px;
+ background:linear-gradient(180deg,rgba(74,143,104,.12),rgba(74,143,104,.04));
+ border:1px solid rgba(74,143,104,.3)}
+.outcome .lab{font-size:10.5px;letter-spacing:1.1px;text-transform:uppercase;color:var(--ok);margin-bottom:4px}
+.outcome p{margin:0;font-size:13px;color:var(--dim)}
+.pending{color:var(--dim);font-size:13.5px;padding:40px 0;line-height:1.7;max-width:620px}
+.empty{color:var(--dim);font-size:13.5px;text-align:center;padding-top:50px;line-height:1.7}
+.card h2{margin:0 0 4px;font-size:19px}
+.card .where{font-size:11.5px;color:var(--dim);margin-bottom:13px}
+.card .where b{color:var(--k)}
+.meta{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px}
+.meta span{font-size:10.5px;padding:3px 8px;border-radius:5px;background:var(--panel2);color:var(--dim)}
+.blk{margin-bottom:12px;padding:12px 14px;background:var(--panel2);border-radius:8px;
+ border-left:3px solid var(--k)}
+.blk .lab{font-size:10.5px;letter-spacing:1.1px;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
+.blk p{margin:0;font-size:13.5px}
+.note{font-size:11.5px;color:var(--dim);margin-top:20px;border-top:1px solid var(--line);padding-top:12px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow" id="eyebrow">Cascade</div>
+  <h1 id="title">The cascade &mdash; and where it breaks</h1>
+  <div class="sub">Every organism in a branch meets the same chain. Each marker sits on the step it disables. Pathogens break it from outside <span style="color:var(--arm)">&#9632;</span>; host defects break the identical step from inside <span style="color:var(--host)">&#9632;</span> &mdash; which is why they produce the same infections. &middot; <a href="../index.html">home</a></div>
+</header>
+
+<div class="branchnav" id="branchnav"></div>
+
+<div class="bar">
+  <span class="gl">Show</span>
+  <div class="chip" id="cP"><span class="sw" style="background:var(--arm)"></span>Pathogen evasion</div>
+  <div class="chip" id="cH"><span class="sw" style="background:var(--host)"></span>Host defect</div>
+  <span class="gl" style="margin-left:8px">Tier</span>
+  <div class="chip" id="c1">กลุ่ม 1</div>
+  <div class="chip" id="c2">กลุ่ม 2</div>
+  <div class="count" id="ct"></div>
+</div>
+
+<div class="wrap">
+  <div class="stage" id="stage"></div>
+  <div class="side" id="side">
+    <div class="empty">Select any marker on the cascade.<br>Red = pathogen evasion. Purple = host defect.</div>
+  </div>
+</div>
+
+<!-- data layer -->
+<script src="../data/enums.js"></script>
+<script src="../data/organisms.js"></script>
+<script src="../data/host-defects.js"></script>
+<script src="../data/cascades/extracellular.js"></script>
+<script src="../data/cascades/vesicular.js"></script>
+<script src="../data/cascades/cytosolic.js"></script>
+<script src="../data/cascades/surface.js"></script>
+<script>
+const NICHE_COL={extra:'var(--extra)',vesic:'var(--vesic)',cyto:'var(--cyto)',surf:'var(--surf)'};
+const BRANCHES=[
+  {id:'extracellular',label:'Extracellular',niche:'extra'},
+  {id:'vesicular',label:'Vesicular',niche:'vesic'},
+  {id:'cytosolic',label:'Cytosolic',niche:'cyto'},
+  {id:'surface',label:'Surface',niche:'surf'}
+];
+const params=new URLSearchParams(location.search);
+const branchId=params.get('b')||'extracellular';
+const branch=BRANCHES.find(b=>b.id===branchId)||BRANCHES[0];
+const cascade=(window.CASCADES||{})[branch.id]||{steps:[],breaks:[],pending:true};
+
+// theme the accent to the branch niche colour
+document.documentElement.style.setProperty('--arm', NICHE_COL[branch.niche]);
+document.getElementById('eyebrow').textContent='Branch · '+branch.label;
+document.getElementById('title').innerHTML='The '+branch.label.toLowerCase()+' cascade &mdash; and where it breaks';
+
+// resolve a break-point's referenced record (organism or host defect)
+const ORG=new Map((window.ORGANISMS||[]).map(o=>[o.id,o]));
+const HOST=new Map((window.HOST_DEFECTS||[]).map(h=>[h.id,h]));
+function recFor(b){return b.refKind==='host'?HOST.get(b.ref):ORG.get(b.ref);}
+function disFor(b){const r=recFor(b);return r?(r.panels.dis||''):'';}
+
+// branch nav
+const bn=document.getElementById('branchnav');
+BRANCHES.forEach(b=>{
+  const a=document.createElement('a');a.className='bn'+(b.id===branch.id?' on':'');
+  a.href='?b='+b.id;a.textContent=b.label;
+  if(b.id===branch.id)a.style.background=NICHE_COL[b.niche],a.style.borderColor=NICHE_COL[b.niche];
+  bn.appendChild(a);
+});
+
+const S={p:true,h:true,t1:true,t2:true,sel:null};
+const stage=document.getElementById('stage'),side=document.getElementById('side'),ct=document.getElementById('ct');
+function tog(id,key){const e=document.getElementById(id);
+  const set=()=>e.classList.toggle('off',!S[key]);set();
+  e.onclick=()=>{S[key]=!S[key];set();draw();};}
+tog('cP','p');tog('cH','h');tog('c1','t1');tog('c2','t2');
+
+function vis(b){
+  const host=b.side==='host';
+  if(host&&!S.h)return false;
+  if(!host&&!S.p)return false;
+  if(b.tier===1&&!S.t1)return false;
+  if(b.tier===2&&!S.t2)return false;
+  return true;
+}
+function draw(){
+  stage.innerHTML='';let n=0;
+  if(cascade.pending||!cascade.steps.length){
+    stage.innerHTML='<div class="pending"><b>This cascade is not yet authored.</b><br>'
+      +'The '+branch.label.toLowerCase()+' branch (~'+({vesicular:15,cytosolic:32,surface:19}[branch.id]||'?')
+      +' organisms) will follow the extracellular cascade exactly: an 8-step spine with pathogen-evasion and host-defect break-points on each step. The seam is in <code>data/cascades/'+branch.id+'.js</code>.</div>';
+    ct.textContent='0 break-points';return;
+  }
+  cascade.steps.forEach((st,i)=>{
+    const items=cascade.breaks.filter(b=>b.step===st.k&&vis(b));
+    const d=document.createElement('div');d.className='step';
+    d.innerHTML=`<div class="node">${i+1}</div><h3>${st.t}</h3><p class="desc">${st.d}</p>`;
+    const box=document.createElement('div');box.className='lesions';
+    items.forEach(b=>{n++;
+      const host=b.side==='host';
+      const el=document.createElement('div');
+      el.className='lz'+(host?' host':'')+(S.sel===b.label+b.step?' on':'');
+      el.innerHTML=`<span class="bar2"></span><span>${b.label}</span>`+
+        (b.tier?`<span class="t${b.tier===2?' t2':''}">${b.tier}</span>`:'');
+      el.onclick=()=>{S.sel=b.label+b.step;show(b,st);draw();};
+      box.appendChild(el);});
+    if(items.length)d.appendChild(box);
+    stage.appendChild(d);
+  });
+  const o=document.createElement('div');o.className='outcome';
+  o.innerHTML=`<div class="lab">If every step holds</div><p>The organism is cleared, tissue is repaired, and durable class-switched antibody prevents the next encounter becoming an illness. Every marker above is a place where that chain gives way &mdash; and the resulting disease is largely predictable from which link failed.</p>`;
+  stage.appendChild(o);
+  ct.textContent=n+' break-points shown';
+}
+function show(b,st){
+  const host=b.side==='host';
+  const col=host?'var(--host)':'var(--arm)';
+  side.innerHTML=`<div class="card" style="--k:${col}">
+    <h2>${b.label}</h2>
+    <div class="where">Breaks at step ${cascade.steps.indexOf(st)+1} &mdash; <b>${st.t}</b></div>
+    <div class="meta">
+      <span>${host?'Host defect':'Pathogen evasion'}</span>
+      ${b.tier?`<span>กลุ่ม ${b.tier}</span>`:''}
+      <span>${b.how}</span>
+    </div>
+    <div class="blk"><div class="lab">Mechanism at this step</div><p>${b.mech}</p></div>
+    <div class="blk"><div class="lab">Resulting disease</div><p>${disFor(b)}</p></div>
+    <div class="note">Pathogen evasion and host defect at the same step produce overlapping infections &mdash; compare the markers sharing this step to see why.</div>
+  </div>`;
+  side.scrollTop=0;
+}
+draw();
+</script>
+</body>
+</html>

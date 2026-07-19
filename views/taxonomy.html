@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Taxonomy Browse — Seam</title>
+<style>
+:root{--bg:#0f1115;--panel2:#1e222b;--line:#2b303b;--txt:#e6e8ec;--dim:#9aa3b2;
+ --extra:#e0603f;--vesic:#e0a83f;--cyto:#4fa3e3;--surf:#57b86b;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);
+ font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+header{padding:22px 28px 14px;border-bottom:1px solid var(--line)}
+h1{margin:0 0 6px;font-size:22px}
+.sub{color:var(--dim);font-size:13.5px;max-width:900px}
+.sub a{color:var(--dim)}
+.wrap{padding:22px 28px 60px}
+.kings{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+.king{padding:10px 16px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);
+ font-weight:600;font-size:14px}
+.king small{display:block;color:var(--dim);font-weight:400;font-size:11.5px;margin-top:3px}
+.pending{color:var(--dim);font-size:13.5px;max-width:640px;line-height:1.7;
+ border-left:3px solid var(--line);padding-left:16px}
+code{background:var(--panel2);padding:1px 5px;border-radius:4px;font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Taxonomy browse</h1>
+  <div class="sub">Roadmap entry: pick a kingdom &rarr; classification tree &rarr; organism &rarr; its niche and immune map. This is a seam &mdash; the tree in <code>data/taxonomy.js</code> is empty. &middot; <a href="../index.html">home</a></div>
+</header>
+<div class="wrap">
+  <div class="kings" id="kings"></div>
+  <div class="pending">
+    Each organism already carries a <code>kingdom</code> tag (populated) and an empty
+    <code>taxonomy</code> object (filled incrementally). Once the classification trees in
+    <code>data/taxonomy.js</code> are authored, this view walks them down to organism leaves,
+    then hands off to the niche map and the immune map. The counts below come straight from
+    the data layer.
+  </div>
+</div>
+<script src="../data/enums.js"></script>
+<script src="../data/organisms.js"></script>
+<script src="../data/taxonomy.js"></script>
+<script>
+const counts={};
+ORGANISMS.forEach(o=>{counts[o.kingdom]=(counts[o.kingdom]||0)+1;});
+const NICHE_ANY={bacteria:'var(--extra)',virus:'var(--cyto)',fungus:'var(--vesic)',parasite:'var(--surf)'};
+const kh=document.getElementById('kings');
+ENUMS.kingdoms.forEach(k=>{
+  const d=document.createElement('div');d.className='king';
+  d.style.borderColor=NICHE_ANY[k]||'var(--line)';
+  d.innerHTML=k[0].toUpperCase()+k.slice(1)+'<small>'+(counts[k]||0)+' organisms</small>';
+  kh.appendChild(d);
+});
+</script>
+</body>
+</html>
