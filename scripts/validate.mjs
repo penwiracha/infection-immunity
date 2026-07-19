@@ -28,12 +28,12 @@ for (const f of [
   "data/enums.js", "data/organisms.js", "data/host-defects.js",
   "data/cascades/extracellular.js",
   "data/cascades/vesicular.js", "data/cascades/cytosolic.js", "data/cascades/surface.js",
-  "data/taxonomy.js", "data/drugs.js"
+  "data/taxonomy.js", "data/drugs.js", "data/immune-map.js"
 ]) {
   if (!existsSync(P(f))) continue; // seams may not exist yet
   vm.runInContext(readFileSync(P(f), "utf8"), ctx, { filename: f });
 }
-const { ENUMS, ORGANISMS, HOST_DEFECTS, CASCADES, TAXONOMY, DRUGS } = ctx;
+const { ENUMS, ORGANISMS, HOST_DEFECTS, CASCADES, TAXONOMY, DRUGS, IMMUNE_MAP } = ctx;
 
 const errors = [];
 const warnings = [];
@@ -172,6 +172,21 @@ if (DRUGS) {
     for (const c of node.children || []) walkDrug(c, `${path} › ${node.label || ""}`);
   };
   for (const fam of DRUGS.families || []) walkDrug(fam, fam.label);
+}
+
+/* ---- immune-map knowledge layer: cover every c_* and f_* ---- */
+if (IMMUNE_MAP) {
+  const comps = IMMUNE_MAP.components || {}, flows = IMMUNE_MAP.flows || {};
+  for (const id of ENUMS.cIds) if (!comps[id]) err(`immune-map: component "${id}" has no knowledge entry`);
+  for (const id of Object.keys(comps)) { if (!cId.has(id)) err(`immune-map: unknown component "${id}"`);
+    if (!comps[id].name || !comps[id].detail) err(`immune-map: component "${id}" missing name/detail`); }
+  for (const id of ENUMS.flowIds) if (!flows[id]) err(`immune-map: flow "${id}" has no knowledge entry`);
+  for (const [id, f] of Object.entries(flows)) {
+    if (!fId.has(id)) err(`immune-map: unknown flow "${id}"`);
+    if (!cId.has(f.from)) err(`immune-map: flow "${id}" from unknown "${f.from}"`);
+    if (!cId.has(f.to)) err(`immune-map: flow "${id}" to unknown "${f.to}"`);
+    if (!f.detail) err(`immune-map: flow "${id}" missing detail`);
+  }
 }
 
 /* ---- scope seam: cross-check against the ศรว. list when supplied ---- */

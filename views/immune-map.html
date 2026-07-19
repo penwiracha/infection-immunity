@@ -61,6 +61,11 @@ svg{width:100%;height:auto;display:block}
 .hits{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
 .hits span{font-size:10.5px;padding:3px 8px;border-radius:5px;background:#3a2530;color:#f0a8bd}
 .hits span.h{background:#2a2545;color:#b9aefc}
+.recs .rec{background:var(--panel2);color:var(--ink);border-left:3px solid var(--rc,var(--line));cursor:pointer}
+.recs .rec:hover{background:#242a34}
+.recs .rec.h{border-left-color:var(--host)}
+.blk a{color:#9fc3e8;text-decoration:none;border-bottom:1px dotted #5b6472;cursor:pointer}
+.blk a:hover{color:#cfe3f6}
 .note{font-size:11.5px;color:var(--dim);margin-top:18px;border-top:1px solid var(--line);padding-top:11px}
 code{background:var(--panel2);padding:1px 5px;border-radius:4px;font-size:11.5px}
 </style>
@@ -219,6 +224,7 @@ code{background:var(--panel2);padding:1px 5px;border-radius:4px;font-size:11.5px
 <script src="../data/enums.js"></script>
 <script src="../data/organisms.js"></script>
 <script src="../data/host-defects.js"></script>
+<script src="../data/immune-map.js"></script>
 <script>
 /* ============================================================
    The organism→component mapping now lives in the data layer.
@@ -302,14 +308,87 @@ document.getElementById('clr').onclick=()=>{cur=null;reset();
   document.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));
   side.innerHTML='<div class="empty">Select an organism above.<br>Highlighted components are the ones it engages or breaks.</div>';};
 
-// clicking a component shows what it is
-ALL.forEach(e=>e.addEventListener('click',()=>{
-  if(cur)return;
+/* ============================================================
+   Knowledge layer: click any box for its role, click any arrow for
+   the connection it represents. IMMUNE_MAP holds the content.
+   ============================================================ */
+const COMP=IMMUNE_MAP.components, FLOW=IMMUNE_MAP.flows;
+
+// cross-reference: which authored records engage / break each component
+const engagedBy={}, brokenBy={};
+RECORDS.forEach(r=>{
+  (r.engages||[]).forEach(id=>{(engagedBy[id]=engagedBy[id]||[]).push(r)});
+  (r.breaks||[]).forEach(id=>{(brokenBy[id]=brokenBy[id]||[]).push(r)});
+});
+const chipRow=(list)=>list.map(r=>`<span class="rec ${r.host?'h':''}" data-o="${r.key}" style="--rc:${ARMC[r.arm]}">${r.name}</span>`).join('');
+
+function selectClear(){cur=null;reset();document.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));}
+
+function showComponent(id){
+  const c=COMP[id]; if(!c) return;
+  reset();
+  // spotlight this component + the arrows touching it
+  ALL.forEach(e=>e.classList.toggle('dim', e.id!==id));
+  const cel=document.getElementById(id); if(cel){cel.classList.remove('dim');cel.classList.add('hit');cel.style.setProperty('--hc','#39414f');}
+  const touch=Object.entries(FLOW).filter(([,f])=>f.from===id||f.to===id).map(([fid])=>fid);
+  FL.forEach(e=>{if(touch.includes(e.id)){e.classList.remove('dim');e.classList.add('hit');e.style.setProperty('--hc','#5b6472')}else e.classList.add('dim')});
+  const eb=engagedBy[id]||[], bb=brokenBy[id]||[];
   side.innerHTML=`<div class="card" style="--k:var(--innate)">
-   <h2>${label(e.id)}</h2><div class="kick">component &middot; <code>${e.id}</code></div>
-   <div class="blk"><div class="lab">Address</div><p>Organism records reference this component by its ID. Add <code>${e.id}</code> to a record's <code>engages</code> or <code>breaks</code> array and it lights up here.</p></div>
+    <h2>${c.name}</h2>
+    <div class="kick">${c.zone} &middot; <code>${id}</code></div>
+    <div class="blk"><div class="lab">Role</div><p>${c.detail}</p></div>
+    ${touch.length?`<div class="blk"><div class="lab">Connections</div><p>${touch.map(fid=>`<a href="#" class="flowlink" data-f="${fid}">${FLOW[fid].label}</a>`).join(' &nbsp;·&nbsp; ')}</p></div>`:''}
+    ${eb.length?`<div class="blk"><div class="lab">Engaged by</div><div class="hits recs">${chipRow(eb)}</div></div>`:''}
+    ${bb.length?`<div class="blk"><div class="lab">Broken by</div><div class="hits recs">${chipRow(bb)}</div></div>`:''}
+    <div class="note">Click a connection or a linked organism to follow it. Choose an organism above to see what it engages and breaks.</div>
   </div>`;
-}));
+  side.scrollTop=0;
+  wireLinks();
+}
+
+function showFlow(fid){
+  const f=FLOW[fid]; if(!f) return;
+  reset();
+  const on=new Set([f.from,f.to]);
+  ALL.forEach(e=>{if(on.has(e.id)){e.classList.add('hit');e.style.setProperty('--hc','#39414f')}else e.classList.add('dim')});
+  FL.forEach(e=>{if(e.id===fid){e.classList.add('hit');e.style.setProperty('--hc','#7f8b9c')}else e.classList.add('dim')});
+  side.innerHTML=`<div class="card" style="--k:var(--innate)">
+    <h2>${COMP[f.from].name} &rarr; ${COMP[f.to].name}</h2>
+    <div class="kick">connection &middot; <code>${fid}</code></div>
+    <div class="blk"><div class="lab">${f.label}</div><p>${f.detail}</p></div>
+    <div class="blk"><div class="lab">Endpoints</div><p>
+      <a href="#" class="complink" data-c="${f.from}">${COMP[f.from].name}</a> &rarr;
+      <a href="#" class="complink" data-c="${f.to}">${COMP[f.to].name}</a></p></div>
+    <div class="note">Click either endpoint to read that component.</div>
+  </div>`;
+  side.scrollTop=0;
+  wireLinks();
+}
+
+// make in-panel links (connections, endpoints, organism chips) navigable
+function wireLinks(){
+  side.querySelectorAll('.flowlink').forEach(a=>a.onclick=(ev)=>{ev.preventDefault();selectClear();showFlow(a.dataset.f);});
+  side.querySelectorAll('.complink').forEach(a=>a.onclick=(ev)=>{ev.preventDefault();selectClear();showComponent(a.dataset.c);});
+  side.querySelectorAll('.rec[data-o]').forEach(s=>s.onclick=()=>{
+    const chip=document.querySelector(`.chip[data-o="${s.dataset.o}"]`); if(chip)chip.click();
+  });
+}
+
+// component boxes: click for detail (clears any organism highlight)
+ALL.forEach(e=>e.addEventListener('click',()=>{selectClear();showComponent(e.id);}));
+
+// flows are thin — add a wide transparent hit-path over each, click for the connection
+const flowsG=document.getElementById('flows');
+FL.forEach(e=>{
+  const hit=e.cloneNode(false);
+  hit.removeAttribute('id');hit.removeAttribute('class');hit.removeAttribute('marker-end');
+  hit.setAttribute('stroke','transparent');hit.setAttribute('stroke-width','14');
+  hit.setAttribute('fill','none');hit.style.cursor='pointer';hit.style.pointerEvents='stroke';
+  hit.addEventListener('click',()=>{selectClear();showFlow(e.id);});
+  hit.addEventListener('mouseenter',()=>{if(!cur){e.classList.add('hit');e.style.setProperty('--hc','#5b6472')}});
+  hit.addEventListener('mouseleave',()=>{if(!cur&&!side.querySelector('.card'))e.classList.remove('hit')});
+  flowsG.appendChild(hit);
+});
 </script>
 </body>
 </html>
