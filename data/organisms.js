@@ -1041,9 +1041,28 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "gram": "positive",
+      "morphology": "short rod / coccobacillus",
+      "catalase": "positive",
+      "oxidase": null,
+      "coagulase": null,
+      "haemolysis": "beta (narrow)",
+      "lactose": null,
+      "note": "facultative anaerobe; tumbling motility at 22–25°C; CAMP-positive; grows at 4°C (cold enrichment) — a listeriosis clue"
+    },
+    "treatment": [
+      {
+        "class": "Amoxicillin / ampicillin (± gentamicin)",
+        "mechanism": "β-lactam inhibition of penicillin-binding proteins; the drug of choice. It is added to empirical meningitis cover in neonates, adults >50 and the immunocompromised because standard cephalosporin regimens miss Listeria. Gentamicin gives synergy in severe or CNS disease."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Intrinsic cephalosporin resistance",
+        "detail": "Listeria's penicillin-binding proteins (notably PBP3) have low affinity for cephalosporins, so all cephalosporins are ineffective — the reason a cephalosporin-based meningitis regimen must add amoxicillin/ampicillin whenever Listeria is possible."
+      }
+    ]
   },
   {
     "id": "rickettsia-orientia-tsutsugamushi",
