@@ -184,7 +184,7 @@ function show(o,n){
 /* Drop images/<id>-lifecycle.(jpg|jpeg|png) and it appears in the Life cycle block. */
 function mountLifecycle(o){
   const slot=side.querySelector('.lcimg'); if(!slot) return;
-  const paths=['jpg','jpeg','png'].map(e=>`../images/${o.id}-lifecycle.${e}`);
+  const paths=['jpg','jpeg','png','gif'].map(e=>`../images/${o.id}-lifecycle.${e}`);
   let i=0;
   (function tryNext(){ if(i>=paths.length) return;
     const src=paths[i++], img=new Image();

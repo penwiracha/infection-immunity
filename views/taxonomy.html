@@ -234,7 +234,7 @@ function showDetail(o, path){
    appears inside the Life cycle block. Falls back silently to the text. */
 function mountLifecycle(o){
   const slot=side.querySelector('.lcimg'); if(!slot) return;
-  const paths=['jpg','jpeg','png'].map(e=>`../images/${o.id}-lifecycle.${e}`);
+  const paths=['jpg','jpeg','png','gif'].map(e=>`../images/${o.id}-lifecycle.${e}`);
   let i=0;
   (function tryNext(){
     if(i>=paths.length) return;

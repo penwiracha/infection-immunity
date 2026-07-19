@@ -1,3 +1,9 @@
 images/*
 !README.md
 !.gitignore
+# Life-cycle diagrams are public-domain CDC DPDx works (see lifecycle-credits.md),
+# and are needed to rebuild the offline bundle — track them. Micrographs stay ignored.
+!lifecycle-credits.md
+!*-lifecycle.gif
+!*-lifecycle.jpg
+!*-lifecycle.png

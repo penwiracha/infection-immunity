@@ -18,6 +18,13 @@ it's in this folder.
 step can inline them as data-URIs; for now the bundle shows the schematics.
 
 ## Life-cycle diagrams
-Name a life-cycle image `<id>-lifecycle.jpg` (e.g. `plasmodium-falciparum-lifecycle.jpg`)
+Name a life-cycle image `<id>-lifecycle.<ext>` (e.g. `plasmodium-falciparum-lifecycle.gif`)
 and it appears inside the **Life cycle** block of the detail popup, above the text.
-CDC life-cycle diagrams (public domain) are ideal. Same fallback rule: no file → text only.
+`.gif`, `.jpg`, `.jpeg` and `.png` are auto-loaded, in that order. Same fallback rule:
+no file → text only.
+
+All 22 parasite life-cycle diagrams are already present, fetched from **CDC DPDx**
+(public domain). Full per-organism source URLs and the suggested citation are in
+[`lifecycle-credits.md`](lifecycle-credits.md). These are tracked in git (unlike
+user-supplied micrographs) because they're public-domain and needed to rebuild the
+offline bundle.
