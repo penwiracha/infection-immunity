@@ -135,9 +135,68 @@
     ]
   };
 
+  /* ============================================================
+     VIRUSES — Oxford Handbook Table 8.1 (Summary of viruses), p.370–4.
+     Structure: nucleic acid (DNA / RNA) → family → virus leaf.
+     ============================================================ */
+  const virusTree = {
+    label: "Viruses",
+    test: "nucleic acid, then family",
+    children: [
+      { label: "DNA viruses",
+        children: [
+          { label: "Herpesviridae", test: "enveloped, dsDNA; latency",
+            children: [
+              { organism: "herpes-simplex-virus" },
+              { organism: "varicella-zoster-virus" },
+              { organism: "cytomegalovirus" },
+              { organism: "epstein-barr-virus" },
+              { organism: "human-herpesvirus-6" }
+            ] },
+          { label: "Hepadnaviridae", children: [ { organism: "hepatitis-b-virus" } ] },
+          { label: "Papillomaviridae", children: [ { organism: "human-papillomavirus" } ] },
+          { label: "Parvoviridae", children: [ { organism: "parvovirus-b19" } ] }
+        ] },
+      { label: "RNA viruses",
+        children: [
+          { label: "Orthomyxoviridae", test: "enveloped, segmented −ssRNA",
+            children: [ { organism: "influenza-a" } ] },
+          { label: "Paramyxoviridae", test: "enveloped, non-segmented −ssRNA",
+            children: [
+              { organism: "measles-virus" },
+              { organism: "mumps-virus" },
+              { organism: "respiratory-syncytial-virus" },
+              { label: "Henipavirus", organism: "nipah-virus" }
+            ] },
+          { label: "Coronaviridae", children: [ { organism: "sars-cov-2" } ] },
+          { label: "Picornaviridae", test: "naked +ssRNA",
+            children: [
+              { organism: "poliovirus" },
+              { organism: "enteroviruses" },
+              { organism: "hepatitis-a-virus" }
+            ] },
+          { label: "Flaviviridae", test: "enveloped +ssRNA; arboviruses",
+            children: [
+              { organism: "dengue-virus" },
+              { organism: "zika-virus" },
+              { organism: "hepatitis-c-virus" }
+            ] },
+          { label: "Togaviridae",
+            children: [
+              { organism: "rubella-virus" },
+              { label: "Alphavirus", organism: "chikungunya-virus" }
+            ] },
+          { label: "Retroviridae", test: "enveloped +ssRNA; reverse transcriptase",
+            children: [ { organism: "hiv-1" } ] },
+          { label: "Rhabdoviridae", children: [ { organism: "rabies-virus" } ] },
+          { label: "Hepeviridae", children: [ { organism: "hepatitis-e-virus" } ] }
+        ] }
+    ]
+  };
+
   const TAXONOMY = {
     bacteria: { pending: false, source: "Oxford Handbook of ID & Microbiology, Figs 7.1–7.4 + p.223", tree: bacteriaTree },
-    virus:    { pending: true,  tree: {} },
+    virus:    { pending: false, source: "Oxford Handbook of ID & Microbiology, Table 8.1 (p.370–4)", tree: virusTree },
     fungus:   { pending: true,  tree: {} },   // seam — Oxford p.470–471 table is the model
     parasite: { pending: true,  tree: {} }    // seam — protozoa / helminth + subclass
   };

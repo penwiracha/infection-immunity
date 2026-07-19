@@ -1131,9 +1131,28 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "gram": null,
+      "morphology": "obligate intracellular bacterium (elementary & reticulate bodies)",
+      "catalase": null,
+      "oxidase": null,
+      "coagulase": null,
+      "haemolysis": null,
+      "lactose": null,
+      "note": "not usefully Gram-stained and cannot grow on ordinary media — an obligate intracellular organism with a biphasic life cycle and no classic peptidoglycan wall; diagnosed by NAAT; 15 serovars (A–C trachoma, D–K genital, L1–3 LGV)"
+    },
+    "treatment": [
+      {
+        "class": "Doxycycline or azithromycin",
+        "mechanism": "Both penetrate host cells to reach the intracellular organism — doxycycline (a tetracycline) blocks the 30S ribosome, azithromycin (a macrolide) the 50S. β-lactams are avoided because Chlamydia lacks a classic peptidoglycan target; LGV needs a longer doxycycline course."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "No significant acquired resistance",
+        "detail": "Clinically important antibiotic resistance is rare; apparent 'treatment failure' is usually reinfection or poor adherence — so partner treatment matters more than resistance."
+      }
+    ]
   },
   {
     "id": "haemophilus-ducreyi",
@@ -1204,9 +1223,28 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "gram": "variable",
+      "morphology": "coccobacillus",
+      "catalase": null,
+      "oxidase": null,
+      "coagulase": null,
+      "haemolysis": null,
+      "lactose": null,
+      "note": "Gram-variable on stain (EM cell wall reads as Gram-negative, Gram-positive or laminated); associated with bacterial vaginosis alongside mixed anaerobes ('clue cells'); usually vancomycin-susceptible"
+    },
+    "treatment": [
+      {
+        "class": "Metronidazole (or clindamycin) for bacterial vaginosis",
+        "mechanism": "BV is an anaerobic dysbiosis, not a single-pathogen infection: metronidazole generates DNA-damaging radicals in the anaerobes, clindamycin blocks their 50S ribosome — both shift the flora back toward lactobacilli rather than 'sterilising' Gardnerella."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Biofilm-associated recurrence, not classic resistance",
+        "detail": "Gardnerella forms a vaginal biofilm that tolerates antibiotics and drives frequent BV recurrence — a tolerance/dysbiosis problem more than acquired drug resistance."
+      }
+    ]
   },
   {
     "id": "mycobacterium-tuberculosis",
@@ -1247,9 +1285,36 @@
       "f_cd4_th1",
       "f_th1_mac"
     ],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": [],
+    "taxonomy": {
+      "gram": "acid-fast",
+      "morphology": "slender rod (bacillus)",
+      "catalase": "positive",
+      "oxidase": null,
+      "coagulase": null,
+      "haemolysis": null,
+      "lactose": null,
+      "note": "weakly Gram-positive but characterised by acid-fastness (Ziehl-Neelsen / auramine) from its mycolic-acid envelope; aerobic, non-motile, non-sporing; very slow-growing; culture is the diagnostic gold standard; ACDP hazard group 3"
+    },
+    "treatment": [
+      {
+        "class": "Standard 4-drug regimen — rifampicin, isoniazid, pyrazinamide, ethambutol ('RIPE')",
+        "mechanism": "Given together for 2 months, then rifampicin + isoniazid for 4 more. Isoniazid blocks mycolic-acid synthesis (InhA, after KatG activation); rifampicin inhibits RNA polymerase (rpoB); pyrazinamide disrupts membrane energetics in the acidic phagosome; ethambutol blocks arabinogalactan cell-wall synthesis. Multiple drugs prevent selection of resistant mutants in a large, slowly-dividing population."
+      },
+      {
+        "class": "Latent TB — isoniazid (6 months) or rifampicin + isoniazid (3 months)",
+        "mechanism": "Shorter regimens that sterilise the small dormant bacillary load before it can reactivate."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "MDR-TB (isoniazid + rifampicin resistance)",
+        "detail": "Chromosomal mutations — katG/inhA for isoniazid, rpoB for rifampicin — accumulate under monotherapy or poor adherence, defining multidrug-resistant TB (resistant to at least isoniazid and rifampicin)."
+      },
+      {
+        "mechanism": "XDR-TB",
+        "detail": "Extensively drug-resistant TB adds resistance to a fluoroquinolone and an injectable agent, leaving only reserve drugs — the reason directly-observed multidrug therapy and susceptibility testing are essential."
+      }
+    ],
     "mapNote": "Everything upstream works &mdash; TH1 forms, IFN-&#947; is secreted, macrophages are activated. The break is at the final step: the organism blocks phagosome&ndash;lysosome fusion, its mycolic acid coat resists lysosomal enzymes and catalase quenches the burst. It survives inside the very cell sent to kill it, so the response walls it off into a granuloma instead."
   },
   {
@@ -1274,9 +1339,28 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "gram": "acid-fast",
+      "morphology": "slender rod (bacillus)",
+      "catalase": null,
+      "oxidase": null,
+      "coagulase": null,
+      "haemolysis": null,
+      "lactose": null,
+      "note": "acid-fast; CANNOT be cultured in vitro (grown in armadillo / mouse footpad); obligate intracellular (Schwann cells, macrophages); diagnosed on slit-skin smear or biopsy; ACDP hazard group 3"
+    },
+    "treatment": [
+      {
+        "class": "WHO multidrug therapy (MDT) — rifampicin + dapsone (± clofazimine)",
+        "mechanism": "Rifampicin (RNA polymerase, rpoB) is the key bactericidal agent; dapsone blocks folate synthesis (dihydropteroate synthase); clofazimine (added for multibacillary disease) damages the membrane and generates reactive oxygen. Combination and long duration (6–12 months) prevent the dapsone resistance that emerged under monotherapy."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Dapsone resistance (historical) — basis for combination MDT",
+        "detail": "Widespread dapsone monotherapy resistance is why leprosy is now treated with multidrug therapy; rifampicin resistance (rpoB) also occurs. As M. leprae can't be cultured, resistance is detected molecularly."
+      }
+    ]
   },
   {
     "id": "legionella-pneumophila",
@@ -1435,9 +1519,32 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "gram": "negative",
+      "morphology": "tiny obligate intracellular coccobacilli",
+      "catalase": null,
+      "oxidase": null,
+      "coagulase": null,
+      "haemolysis": null,
+      "lactose": null,
+      "note": "obligate intracellular Gram-negative bacteria that replicate in endothelium; not cultured routinely (hazardous); diagnosed by serology / PCR; Orientia tsutsugamushi (scrub typhus) is inoculated by a chigger mite, often leaving an eschar"
+    },
+    "treatment": [
+      {
+        "class": "Doxycycline",
+        "mechanism": "A tetracycline (30S inhibition) that penetrates cells to reach the intracellular organism; the drug of choice for all rickettsioses and scrub typhus, and early therapy nearly eliminates fatal illness."
+      },
+      {
+        "class": "Azithromycin (pregnancy) / chloramphenicol (alternative)",
+        "mechanism": "Azithromycin (50S) where doxycycline is contraindicated; chloramphenicol is an older alternative."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "No significant classic resistance",
+        "detail": "Rickettsiae carry no important acquired resistance and doxycycline reliably works, though reduced doxycycline responsiveness in some scrub-typhus foci has been reported."
+      }
+    ]
   },
   {
     "id": "influenza-a",
@@ -3027,9 +3134,32 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "gram": "negative",
+      "morphology": "short coccobacillus with bipolar 'safety-pin' staining",
+      "catalase": "positive",
+      "oxidase": "negative",
+      "coagulase": null,
+      "haemolysis": "non-haemolytic",
+      "lactose": null,
+      "note": "non-motile, non-sporing, often capsulate at 37°C; bipolar (methylene-blue) staining; grows 14–37°C (optimal 27°C); F1 capsule and V/W antigens are antiphagocytic; ACDP hazard group 3"
+    },
+    "treatment": [
+      {
+        "class": "Aminoglycoside (streptomycin or gentamicin)",
+        "mechanism": "30S ribosomal inhibition; the drug of choice for plague, given promptly because pneumonic and septicaemic plague are rapidly fatal."
+      },
+      {
+        "class": "Doxycycline or ciprofloxacin (alternatives / post-exposure prophylaxis)",
+        "mechanism": "A tetracycline (30S) or fluoroquinolone (gyrase) for less severe disease and for prophylaxis of contacts."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Usually susceptible; rare plasmid MDR",
+        "detail": "Y. pestis is generally antibiotic-susceptible, but plasmid-mediated multidrug-resistant strains have been reported — a bioterrorism concern given how fast plague kills."
+      }
+    ]
   },
   {
     "id": "group-b-streptococcus",
