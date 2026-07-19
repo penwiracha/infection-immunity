@@ -66,27 +66,35 @@ const ids = new Map();
 const names = new Map();
 const usedFails = new Set();
 
+let refCount = 0;
 for (const o of ORGANISMS) {
   const label = `organism "${o && o.name || o && o.id || "?"}"`;
-  const req = ["id", "name", "kingdom", "niche", "tier", "sys", "fail", "sub", "panels"];
-  for (const k of req) if (o[k] === undefined || o[k] === null) err(`${label}: missing required field "${k}"`);
-  if (o.panels) for (const p of ["resp", "evade", "dis"])
-    if (!o.panels[p]) err(`${label}: missing panel "${p}"`);
 
+  // id / name uniqueness and kingdom apply to every entry, reference or not
   if (o.id) {
     if (ids.has(o.id)) err(`duplicate id "${o.id}" (${ids.get(o.id)} / ${o.name})`);
     ids.set(o.id, o.name);
-  }
+  } else err(`${label}: missing required field "id"`);
   if (o.name) {
     if (names.has(o.name)) err(`duplicate name "${o.name}"`);
     names.set(o.name, o.id);
-  }
-  if (o.kingdom && !kingdomSet.has(o.kingdom)) err(`${label}: unknown kingdom "${o.kingdom}"`);
+  } else err(`${label}: missing required field "name"`);
+  if (!o.kingdom) err(`${label}: missing required field "kingdom"`);
+  else if (!kingdomSet.has(o.kingdom)) err(`${label}: unknown kingdom "${o.kingdom}"`);
+  checkRefs(o, label);
+
+  // reference entries appear in the taxonomy browse only — they are exempt from
+  // the ศรว-specific clinical fields until promoted to full records.
+  if (o.reference) { refCount++; continue; }
+
+  const req = ["niche", "tier", "sys", "fail", "sub", "panels"];
+  for (const k of req) if (o[k] === undefined || o[k] === null) err(`${label}: missing required field "${k}"`);
+  if (o.panels) for (const p of ["resp", "evade", "dis"])
+    if (!o.panels[p]) err(`${label}: missing panel "${p}"`);
   if (o.fail) { if (!failSet.has(o.fail)) err(`${label}: fail "${o.fail}" not in canonical set`); else usedFails.add(o.fail); }
   if (![1, 2].includes(o.tier)) err(`${label}: tier must be 1 or 2 (got ${o.tier})`);
   for (const n of o.niche || []) if (!nicheSet.has(n)) err(`${label}: unknown niche "${n}"`);
   for (const s of o.sys || []) if (!sysSet.has(s)) err(`${label}: unknown system "${s}"`);
-  checkRefs(o, label);
 }
 
 /* orphaned failure-mode categories */
@@ -160,6 +168,7 @@ function report() {
     console.log(`\n✗ validation FAILED — ${errors.length} error(s):`);
     for (const e of errors) console.log("   - " + e);
   } else {
-    console.log(`\n✓ validation passed — ${ORGANISMS.length} organisms, ${HOST_DEFECTS.length} host defects, ${Object.keys(CASCADES || {}).length} cascade(s).`);
+    const full = ORGANISMS.length - refCount;
+    console.log(`\n✓ validation passed — ${full} organisms${refCount ? ` (+${refCount} reference)` : ""}, ${HOST_DEFECTS.length} host defects, ${Object.keys(CASCADES || {}).length} cascade(s).`);
   }
 }

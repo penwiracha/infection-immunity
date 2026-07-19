@@ -194,10 +194,61 @@
     ]
   };
 
+  /* ============================================================
+     FUNGI — Oxford Handbook Table 9.1 (Overview of fungi), p.470–1.
+     Structure: growth form (yeast / dimorphic / mould) → species leaf.
+     Some leaves are `reference:true` browse entries (classification only).
+     ============================================================ */
+  const fungusTree = {
+    label: "Fungi",
+    test: "growth form (yeast / dimorphic / mould)",
+    children: [
+      { label: "Yeasts", test: "phylum",
+        children: [
+          { label: "Ascomycota",
+            children: [
+              { organism: "candida-albicans" },
+              { label: "Pneumocystis (atypical)", organism: "pneumocystis-jirovecii" }
+            ] },
+          { label: "Basidiomycota",
+            children: [
+              { organism: "cryptococcus-neoformans" },
+              { organism: "trichosporon" },
+              { organism: "rhodotorula" },
+              { organism: "malassezia-furfur" }
+            ] }
+        ] },
+      { label: "Dimorphic fungi", test: "yeast at 37°C / mould at 25°C",
+        children: [
+          { organism: "histoplasma-capsulatum" },
+          { organism: "blastomyces-dermatitidis" },
+          { organism: "coccidioides-immitis" },
+          { organism: "paracoccidioides-brasiliensis" },
+          { organism: "sporothrix-schenckii" },
+          { label: "Talaromyces (Penicillium) marneffei", organism: "talaromyces-marneffei" }
+        ] },
+      { label: "Moulds", test: "hyphal septation",
+        children: [
+          { label: "Septate hyphae",
+            children: [
+              { organism: "aspergillus-fumigatus" },
+              { organism: "dermatophytes" },
+              { organism: "fusarium" },
+              { organism: "scedosporium" },
+              { organism: "mycetoma-agents" }
+            ] },
+          { label: "Aseptate (broad) hyphae — Zygomycota (Mucorales)",
+            children: [
+              { organism: "mucorales" }
+            ] }
+        ] }
+    ]
+  };
+
   const TAXONOMY = {
     bacteria: { pending: false, source: "Oxford Handbook of ID & Microbiology, Figs 7.1–7.4 + p.223", tree: bacteriaTree },
     virus:    { pending: false, source: "Oxford Handbook of ID & Microbiology, Table 8.1 (p.370–4)", tree: virusTree },
-    fungus:   { pending: true,  tree: {} },   // seam — Oxford p.470–471 table is the model
+    fungus:   { pending: false, source: "Oxford Handbook of ID & Microbiology, Table 9.1 (p.470–1)", tree: fungusTree },
     parasite: { pending: true,  tree: {} }    // seam — protozoa / helminth + subclass
   };
 
