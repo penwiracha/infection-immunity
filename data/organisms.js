@@ -1615,9 +1615,36 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "genome": "positive-sense ssRNA",
+      "envelope": "enveloped",
+      "segmentation": "non-segmented",
+      "note": "Coronaviridae (Betacoronavirus); largest RNA-virus genome; spike (S) binds ACE2. This specific virus postdates the source edition — treatment below is current standard knowledge"
+    },
+    "treatment": [
+      {
+        "class": "Supportive care ± oxygen (mainstay)",
+        "mechanism": "Most disease is self-limiting; oxygen and respiratory support carry the patient through the viral and inflammatory phases."
+      },
+      {
+        "class": "Antivirals — nirmatrelvir–ritonavir or remdesivir (early, high-risk)",
+        "mechanism": "Nirmatrelvir inhibits the viral main protease (Mpro/3CLpro) that cleaves the replicase polyprotein (ritonavir boosts its level); remdesivir is a nucleotide analogue that stalls the RNA-dependent RNA polymerase. Both act in the early replicative phase."
+      },
+      {
+        "class": "Immunomodulators for severe disease — dexamethasone, IL-6 blockade",
+        "mechanism": "Severe COVID-19 is immunopathology as viral load falls, so corticosteroids and IL-6-receptor blockade (tocilizumab) dampen the damaging host response — the opposite priority to early antivirals."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Spike antigenic drift (immune escape)",
+        "detail": "Accumulating spike mutations across variants erode neutralising antibody from prior infection, vaccination and monoclonal antibodies — which is why mAbs were repeatedly retired and vaccines updated."
+      },
+      {
+        "mechanism": "Antiviral-target mutations",
+        "detail": "Mutations in the main protease or RdRp can reduce nirmatrelvir or remdesivir activity — mainly a concern with prolonged replication in the immunocompromised."
+      }
+    ]
   },
   {
     "id": "respiratory-syncytial-virus",
@@ -1640,9 +1667,28 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "genome": "negative-sense ssRNA",
+      "envelope": "enveloped",
+      "segmentation": "non-segmented",
+      "note": "Pneumoviridae (formerly Paramyxoviridae); F (fusion) protein forms syncytia; poor durable immunity → lifelong reinfection"
+    },
+    "treatment": [
+      {
+        "class": "Supportive care (mainstay)",
+        "mechanism": "Bronchiolitis is managed with oxygen, hydration and feeding support; there is no routinely effective antiviral, and bronchodilators/steroids are generally unhelpful."
+      },
+      {
+        "class": "Palivizumab (prophylaxis for high-risk infants)",
+        "mechanism": "A monoclonal antibody against the RSV fusion (F) protein that blocks viral entry/fusion; given monthly in season to premature or cardiopulmonary-compromised infants to prevent severe disease — prophylaxis, not treatment."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Not a drug-resistance issue",
+        "detail": "With no mainstay antiviral, resistance is not clinically relevant; the challenge is weak natural immunity and repeat infection, addressed by passive prophylaxis rather than overcoming resistance."
+      }
+    ]
   },
   {
     "id": "measles-virus",
@@ -1667,9 +1713,28 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "genome": "negative-sense ssRNA",
+      "envelope": "enveloped",
+      "segmentation": "non-segmented",
+      "note": "Paramyxoviridae (Morbillivirus); single serotype (hence an effective vaccine); one of the most communicable infections; lifelong immunity after infection"
+    },
+    "treatment": [
+      {
+        "class": "Supportive care + vitamin A",
+        "mechanism": "No specific antiviral; supportive care plus vitamin A, which reduces measles morbidity and mortality (especially where deficiency is common)."
+      },
+      {
+        "class": "Prevention — live attenuated vaccine (MMR); post-exposure immunoglobulin",
+        "mechanism": "The live vaccine induces lifelong immunity to the single serotype; human normal immunoglobulin gives passive protection after exposure in the non-immune, pregnant, or immunocompromised."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Not applicable (no antiviral; one serotype)",
+        "detail": "Measles has a single stable serotype and no antiviral therapy, so neither drug resistance nor antigenic escape is a factor — control is entirely by vaccination."
+      }
+    ]
   },
   {
     "id": "rubella-virus",
@@ -2194,9 +2259,28 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "genome": "negative-sense ssRNA",
+      "envelope": "enveloped",
+      "segmentation": "non-segmented",
+      "note": "Paramyxoviridae; HN and F surface glycoproteins; salivary-gland tropism; single serotype — MMR-preventable"
+    },
+    "treatment": [
+      {
+        "class": "Supportive care",
+        "mechanism": "Self-limiting infection with no specific antiviral; analgesia and hydration, with attention to complications (orchitis, meningitis, pancreatitis)."
+      },
+      {
+        "class": "Prevention — live attenuated vaccine (MMR)",
+        "mechanism": "The live vaccine induces durable immunity; the resurgence in incompletely-vaccinated cohorts shows control is by immunisation, not treatment."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Not applicable (no antiviral)",
+        "detail": "No antiviral therapy, so drug resistance is irrelevant; outbreaks reflect vaccination gaps and waning immunity rather than resistance."
+      }
+    ]
   },
   {
     "id": "enteroviruses",
