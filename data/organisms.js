@@ -266,9 +266,36 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "gram": "negative",
+      "morphology": "coccobacillus",
+      "catalase": "positive",
+      "oxidase": "positive",
+      "coagulase": null,
+      "haemolysis": null,
+      "lactose": null,
+      "note": "fastidious — requires BOTH X (haemin) and V (NAD) factors; grows on chocolate agar; type b (PRP) capsule drives invasive disease"
+    },
+    "treatment": [
+      {
+        "class": "Third-generation cephalosporin (ceftriaxone / cefotaxime)",
+        "mechanism": "β-lactam inhibition of penicillin-binding proteins; bactericidal and CSF-penetrating — first-line for meningitis, epiglottitis and other severe invasive Hib disease."
+      },
+      {
+        "class": "Aminopenicillin / co-amoxiclav (non-invasive disease)",
+        "mechanism": "β-lactam PBP inhibition; co-amoxiclav adds clavulanate to defeat β-lactamase. Ampicillin alone fails against β-lactamase-producing strains."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "β-lactamase (TEM-1)",
+        "detail": "About 20% of strains carry a plasmid β-lactamase that hydrolyses ampicillin — overcome by a β-lactamase inhibitor (co-amoxiclav) or a stable cephalosporin."
+      },
+      {
+        "mechanism": "BLNAR — altered PBPs",
+        "detail": "β-lactamase-negative ampicillin-resistant strains have altered penicillin-binding proteins (ampicillin MIC ≥4) with no detectable β-lactamase; usually still ceftriaxone-sensitive."
+      }
+    ]
   },
   {
     "id": "corynebacterium-diphtheriae",
@@ -344,9 +371,32 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "gram": "negative",
+      "morphology": "coccobacillus",
+      "catalase": "positive",
+      "oxidase": "positive",
+      "coagulase": null,
+      "haemolysis": null,
+      "lactose": null,
+      "note": "strict aerobe, fastidious — needs special media (Bordet-Gengou or Regan-Lowe charcoal agar); produces pertussis toxin, adenylate cyclase toxin and tracheal cytotoxin"
+    },
+    "treatment": [
+      {
+        "class": "Macrolide (azithromycin or clarithromycin)",
+        "mechanism": "Binds the 50S ribosome to inhibit protein synthesis. Must be given early (catarrhal / first ~1–2 weeks): it mainly reduces transmission and clears carriage, and does little once paroxysms are established, because disease is then toxin-driven."
+      },
+      {
+        "class": "Co-trimoxazole (alternative)",
+        "mechanism": "Sequential blockade of folate synthesis (dihydropteroate synthase + dihydrofolate reductase); used when a macrolide is unsuitable."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Macrolide resistance — rare",
+        "detail": "Clinically significant macrolide resistance is uncommon; apparent 'failure' is usually late presentation, as antibiotics cannot reverse toxin-mediated paroxysms. Control rests on vaccination, whose immunity wanes over ~10 years."
+      }
+    ]
   },
   {
     "id": "clostridium-tetani",
@@ -868,9 +918,32 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "gram": "negative",
+      "morphology": "coccobacilli in 'shoal of fish' chains",
+      "catalase": null,
+      "oxidase": "positive",
+      "coagulase": null,
+      "haemolysis": null,
+      "lactose": null,
+      "note": "fastidious, requires X (haemin) factor; agent of chancroid; diagnosed from ulcer or bubo aspirate"
+    },
+    "treatment": [
+      {
+        "class": "Macrolide (azithromycin / erythromycin) or ceftriaxone",
+        "mechanism": "Macrolides bind the 50S ribosome to block protein synthesis; ceftriaxone is a β-lactam PBP inhibitor. Single-dose azithromycin or ceftriaxone is the modern first-line for chancroid."
+      },
+      {
+        "class": "Tetracycline or co-amoxiclav (alternatives)",
+        "mechanism": "Tetracyclines block the 30S ribosome; co-amoxiclav adds clavulanate to cover β-lactamase."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Plasmid β-lactamase",
+        "detail": "H. ducreyi commonly carries a plasmid β-lactamase, so plain penicillins/amoxicillin are unreliable — hence a macrolide, ceftriaxone, or a β-lactamase-inhibitor combination."
+      }
+    ]
   },
   {
     "id": "gardnerella-bv-flora",
@@ -1014,9 +1087,28 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "gram": "negative",
+      "morphology": "tiny coccobacilli / short rods",
+      "catalase": "positive",
+      "oxidase": "positive",
+      "coagulase": null,
+      "haemolysis": null,
+      "lactose": null,
+      "note": "aerobic, non-motile, non-capsulate; fastidious and very slow-growing (culture up to 8 weeks); facultative intracellular; hazard group 3 — alert the lab"
+    },
+    "treatment": [
+      {
+        "class": "Doxycycline + rifampicin (or + an aminoglycoside), prolonged",
+        "mechanism": "A tetracycline (30S) combined with rifampicin (RNA polymerase) or an aminoglycoside; both penetrate cells to reach the facultative intracellular organism. Combination and a long course (≈6 weeks) are needed because organisms surviving in granulomas otherwise relapse."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Relapse from intracellular persistence, not acquired resistance",
+        "detail": "Brucella has little clinically important acquired drug resistance; treatment failure is usually relapse from organisms sheltered inside macrophage granulomas — which is why therapy is combined and prolonged rather than escalated against 'resistance'."
+      }
+    ]
   },
   {
     "id": "listeria-monocytogenes",
