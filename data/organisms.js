@@ -2177,9 +2177,28 @@
       "f_th1_ctl",
       "f_tfh_b"
     ],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": [],
+    "taxonomy": {
+      "genome": "positive-sense ssRNA (diploid — two copies)",
+      "envelope": "enveloped",
+      "segmentation": "non-segmented (diploid)",
+      "note": "Retroviridae (Lentivirus); reverse-transcribes RNA into DNA that integrates as provirus; enters CD4 T cells via gp120–CD4/CCR5; integrated provirus in resting cells is a latent reservoir"
+    },
+    "treatment": [
+      {
+        "class": "Combination antiretroviral therapy (ART) — ≥3 drugs from ≥2 classes",
+        "mechanism": "HIV is controlled, not cured, by combining agents that hit different steps so the virus cannot escape all at once: NRTIs and NNRTIs block reverse transcriptase (NRTIs as chain-terminating nucleoside analogues, NNRTIs allosterically); integrase strand-transfer inhibitors ('-tegravir') stop proviral integration; protease inhibitors ('-navir') block maturation into infectious virions; entry inhibitors block gp41 fusion or the CCR5 co-receptor. Suppressing viral load restores CD4 counts but cannot clear the integrated latent reservoir."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Reverse-transcriptase mutations (e.g. M184V, K103N)",
+        "detail": "HIV's error-prone RT rapidly generates resistant variants under selective pressure — M184V (lamivudine/emtricitabine), K103N and others (NNRTIs). This is exactly why single-drug therapy fails and combination ART is mandatory."
+      },
+      {
+        "mechanism": "Protease / integrase mutations; NNRTI cross-resistance",
+        "detail": "Accumulating protease or integrase mutations give class resistance, and one NNRTI mutation often cross-resists the whole first-generation class — so resistance testing (e.g. the Stanford database) guides changes, and newer agents (darunavir, etravirine, dolutegravir) retain activity against many resistant strains."
+      }
+    ],
     "mapNote": "HIV breaks the hub itself. CD4 cells supply help to CTLs and to B cells, so destroying them degrades every downstream arm at once &mdash; cellular and humoral. Nef additionally downregulates MHC I to blunt CTL recognition, and integrated provirus in resting memory cells is invisible to any response."
   },
   {
@@ -2203,9 +2222,24 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "genome": "positive-sense ssRNA",
+      "envelope": "enveloped",
+      "segmentation": "non-segmented",
+      "note": "Flaviviridae (Flavivirus); four serotypes (DENV-1–4); Aedes-transmitted; antibody-dependent enhancement on secondary heterologous infection"
+    },
+    "treatment": [
+      {
+        "class": "Supportive care — careful fluid management",
+        "mechanism": "No specific antiviral; the danger is plasma leakage and shock at defervescence, so meticulous fluid balance (and avoiding over-transfusion) is the intervention that saves lives. Aspirin/NSAIDs are avoided because of bleeding risk."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Not a drug-resistance issue",
+        "detail": "There is no antiviral, so resistance is irrelevant; the analogous problem runs the other way — cross-reactive non-neutralising antibody from a prior serotype enhances the next infection (ADE), which also complicates vaccine design."
+      }
+    ]
   },
   {
     "id": "chikungunya-virus",
@@ -2229,9 +2263,24 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "genome": "positive-sense ssRNA",
+      "envelope": "enveloped",
+      "segmentation": "non-segmented",
+      "note": "Togaviridae (Alphavirus); Aedes-transmitted; persistent synovial antigen → chronic arthralgia; durable, likely lifelong immunity after infection"
+    },
+    "treatment": [
+      {
+        "class": "Supportive care — analgesia / anti-inflammatories",
+        "mechanism": "No specific antiviral; acute fever and the often-prolonged arthralgia are managed symptomatically (paracetamol acutely, NSAIDs for the post-viral arthritis once dengue co-infection is excluded)."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Not applicable (no antiviral)",
+        "detail": "No antiviral therapy, and immunity after infection is durable — so neither resistance nor reinfection is the issue; the burden is post-viral chronic arthritis."
+      }
+    ]
   },
   {
     "id": "zika-virus",
@@ -2255,9 +2304,24 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "genome": "positive-sense ssRNA",
+      "envelope": "enveloped",
+      "segmentation": "non-segmented",
+      "note": "Flaviviridae (Flavivirus); Aedes-transmitted (also sexual / vertical); neural-progenitor tropism → congenital Zika syndrome; serologically cross-reacts with dengue"
+    },
+    "treatment": [
+      {
+        "class": "Supportive care",
+        "mechanism": "Mild self-limiting illness in adults with no specific antiviral; management is supportive, the key measures being prevention of vertical transmission and mosquito-bite avoidance in pregnancy."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Not applicable (no antiviral)",
+        "detail": "No antiviral therapy; the clinical challenges are fetal protection and diagnostic cross-reactivity with dengue, not drug resistance."
+      }
+    ]
   },
   {
     "id": "rabies-virus",
