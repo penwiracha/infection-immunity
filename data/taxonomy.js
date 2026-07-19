@@ -245,11 +245,70 @@
     ]
   };
 
+  /* ============================================================
+     PARASITES — protozoa / helminth / ectoparasite, with subclass.
+     ============================================================ */
+  const parasiteTree = {
+    label: "Parasites",
+    test: "protozoa / helminth / ectoparasite",
+    children: [
+      { label: "Protozoa", test: "locomotion / phylum",
+        children: [
+          { label: "Amoebae",
+            children: [
+              { organism: "entamoeba-histolytica" },
+              { organism: "free-living-amoebae" }
+            ] },
+          { label: "Flagellates",
+            children: [
+              { organism: "giardia-lamblia" },
+              { organism: "trichomonas-vaginalis" },
+              { organism: "leishmania-species" }
+            ] },
+          { label: "Apicomplexa (sporozoa)",
+            children: [
+              { organism: "plasmodium-falciparum" },
+              { organism: "toxoplasma-gondii" }
+            ] }
+        ] },
+      { label: "Helminths", test: "phylum",
+        children: [
+          { label: "Nematodes (roundworms)",
+            children: [
+              { organism: "ascaris-lumbricoides" },
+              { organism: "hookworm" },
+              { organism: "strongyloides-stercoralis" },
+              { organism: "enterobius-vermicularis" },
+              { organism: "trichuris-trichiura" },
+              { organism: "trichinella-spiralis" },
+              { organism: "gnathostoma-spinigerum" },
+              { organism: "angiostrongylus-cantonensis" },
+              { organism: "wuchereria-bancrofti" },
+              { organism: "cutaneous-larva-migrans" }
+            ] },
+          { label: "Cestodes (tapeworms)",
+            children: [
+              { organism: "taenia-solium-cysticercosis" }
+            ] },
+          { label: "Trematodes (flukes)",
+            children: [
+              { organism: "opisthorchis-viverrini" },
+              { organism: "schistosoma-species" }
+            ] }
+        ] },
+      { label: "Ectoparasites (arthropods)",
+        children: [
+          { organism: "sarcoptes-scabiei" },
+          { organism: "pediculus-phthirus" }
+        ] }
+    ]
+  };
+
   const TAXONOMY = {
     bacteria: { pending: false, source: "Oxford Handbook of ID & Microbiology, Figs 7.1–7.4 + p.223", tree: bacteriaTree },
     virus:    { pending: false, source: "Oxford Handbook of ID & Microbiology, Table 8.1 (p.370–4)", tree: virusTree },
     fungus:   { pending: false, source: "Oxford Handbook of ID & Microbiology, Table 9.1 (p.470–1)", tree: fungusTree },
-    parasite: { pending: true,  tree: {} }    // seam — protozoa / helminth + subclass
+    parasite: { pending: false, source: "Classified by protozoa / helminth (nematode/cestode/trematode) / ectoparasite", tree: parasiteTree }
   };
 
   root.TAXONOMY = TAXONOMY;

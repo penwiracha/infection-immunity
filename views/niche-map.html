@@ -83,7 +83,7 @@ h1{margin:0 0 6px;font-size:22px}
 <script src="../data/organisms.js"></script>
 <script>
 // Views read from the data layer — no organism content lives here.
-const ORGS = ORGANISMS;                 // single source of truth
+const ORGS = ORGANISMS.filter(o=>!o.reference);  // ศรว core only (reference entries are taxonomy-browse-only)
 const NICHES = ENUMS.niches;            // shared niche vocabulary + effector prose
 const FAILS = ENUMS.failureModes;       // canonical failure-mode categories
 
