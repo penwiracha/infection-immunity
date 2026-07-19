@@ -48,9 +48,36 @@
       "f_c3b_phag",
       "f_ab_phag"
     ],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": [],
+    "taxonomy": {
+      "gram": "positive",
+      "morphology": "lancet-shaped diplococci / short chains",
+      "catalase": "negative",
+      "oxidase": null,
+      "coagulase": null,
+      "haemolysis": "alpha",
+      "lactose": null,
+      "note": "optochin-sensitive and bile-soluble (distinguishes it from viridans streptococci and GAS)"
+    },
+    "treatment": [
+      {
+        "class": "β-lactam (penicillin / aminopenicillin; ceftriaxone or cefotaxime for meningitis)",
+        "mechanism": "Inhibits penicillin-binding-protein transpeptidases, halting peptidoglycan cross-linking. Low-level penicillin resistance can be overcome by higher β-lactam concentrations, so the site of infection (CNS vs non-CNS) drives the choice."
+      },
+      {
+        "class": "Glycopeptide (vancomycin, ± rifampicin)",
+        "mechanism": "Binds the D-Ala-D-Ala terminus of cell-wall precursors; reserved for high-level penicillin-resistant strains (MIC >2) or pneumococcal meningitis where a β-lactam alone may be inadequate."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Altered penicillin-binding proteins (PBP2A / PBP2X)",
+        "detail": "Mosaic pbp genes lower β-lactam affinity — low-level resistance from PBP2A changes (overcome by higher doses), high-level from PBP2X mutations. There is no β-lactamase, unlike staphylococci."
+      },
+      {
+        "mechanism": "Macrolide resistance (ermB / mefA)",
+        "detail": "ermB encodes a ribosomal methylase that blocks macrolide binding (MLSb phenotype); mefA encodes an efflux pump."
+      }
+    ],
     "mapNote": "The capsule blocks C3b from reaching the bacterial surface and hides what does bind, so opsonisation and therefore phagocytosis fail. Plain capsular polysaccharide is T-independent, so it never engages Tfh help &mdash; IgM without class switch or memory. Conjugation to a carrier protein recruits T help and restores the memory arm."
   },
   {
@@ -76,9 +103,36 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "gram": "positive",
+      "morphology": "cocci in chains",
+      "catalase": "negative",
+      "oxidase": null,
+      "coagulase": null,
+      "haemolysis": "beta",
+      "lactose": null,
+      "note": "Lancefield group A; bacitracin-sensitive"
+    },
+    "treatment": [
+      {
+        "class": "Penicillin (phenoxymethyl- or benzylpenicillin)",
+        "mechanism": "β-lactam inhibition of penicillin-binding proteins; remains the drug of choice because S. pyogenes has retained full penicillin susceptibility."
+      },
+      {
+        "class": "Macrolide or clindamycin (penicillin allergy / severe disease)",
+        "mechanism": "Bind the 50S ribosomal subunit to inhibit protein synthesis; clindamycin additionally suppresses exotoxin and M-protein production, useful in necrotising or toxin-mediated disease."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "No penicillin resistance",
+        "detail": "S. pyogenes has never developed clinically significant penicillin or β-lactam resistance, so penicillin remains uniformly effective — a notable exception among the pyogenic bacteria."
+      },
+      {
+        "mechanism": "Macrolide resistance (erm / mef)",
+        "detail": "Where present, ribosomal methylation (erm, MLSb phenotype) or an efflux pump (mef) reduces macrolide activity — the reason macrolides stay second-line even in penicillin allergy."
+      }
+    ]
   },
   {
     "id": "staphylococcus-aureus",
@@ -162,9 +216,32 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "gram": "negative",
+      "morphology": "diplococci",
+      "catalase": "positive",
+      "oxidase": "positive",
+      "coagulase": null,
+      "haemolysis": "non-haemolytic",
+      "lactose": "negative",
+      "note": "ferments glucose AND maltose (maltose-positive distinguishes it from N. gonorrhoeae)"
+    },
+    "treatment": [
+      {
+        "class": "Third-generation cephalosporin (ceftriaxone / cefotaxime)",
+        "mechanism": "β-lactam PBP inhibition with good CSF penetration; used empirically because of reduced penicillin susceptibility. Benzylpenicillin is used where the strain is fully susceptible."
+      },
+      {
+        "class": "Chemoprophylaxis (ciprofloxacin; alt. rifampicin / ceftriaxone)",
+        "mechanism": "Eradicates nasopharyngeal carriage to interrupt transmission — ciprofloxacin inhibits DNA gyrase / topoisomerase IV. This is prophylaxis of contacts, not treatment of invasive disease."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Reduced penicillin susceptibility (altered PBP2 / penA)",
+        "detail": "Mosaic penA alleles lower the penicillin affinity of PBP2, giving intermediate susceptibility — the reason empirical therapy moved to a third-generation cephalosporin. Outright β-lactamase production is rare."
+      }
+    ]
   },
   {
     "id": "haemophilus-influenzae-b",
