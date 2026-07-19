@@ -16,3 +16,8 @@ it's in this folder.
 ## Single-file bundle
 `dist/infection-immunity.html` embeds data, not these image files. A later build
 step can inline them as data-URIs; for now the bundle shows the schematics.
+
+## Life-cycle diagrams
+Name a life-cycle image `<id>-lifecycle.jpg` (e.g. `plasmodium-falciparum-lifecycle.jpg`)
+and it appears inside the **Life cycle** block of the detail popup, above the text.
+CDC life-cycle diagrams (public domain) are ideal. Same fallback rule: no file → text only.

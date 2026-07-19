@@ -69,6 +69,9 @@ h1{margin:0 0 6px;font-size:22px}
 .rtag{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--txt);
  background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:3px 9px 3px 7px}
 .rtag .e{font-size:14px;line-height:1}
+.lcimg{margin-bottom:6px}
+.lcpic{width:100%;border-radius:8px;display:block;background:#fff}
+.lccap{font-size:11px;color:var(--dim);margin-top:5px}
 </style>
 </head>
 <body>
@@ -169,13 +172,24 @@ function show(o,n){
    <div class="meta"><span>กลุ่ม ${o.tier}</span>${o.sys.map(s=>`<span>${s}</span>`).join('')}</div>
    <div class="fail">${o.fail} · ${o.sub}</div>
    ${o.transmission?`<div class="blk"><div class="lab">Transmission — how it reaches humans</div>${routeTags(o)}<p>${o.transmission}</p></div>`:''}
-   ${o.lifecycle?`<div class="blk"><div class="lab">Life cycle</div><p>${o.lifecycle}</p></div>`:''}
+   ${o.lifecycle?`<div class="blk"><div class="lab">Life cycle</div><div class="lcimg"></div><p>${o.lifecycle}</p></div>`:''}
    <div class="blk"><div class="lab">1 · Response mounted</div><p>${o.panels.resp}</p></div>
    <div class="blk"><div class="lab">2 · Why it is not enough</div><p>${o.panels.evade}</p></div>
    <div class="blk"><div class="lab">3 · Resulting disease</div><p>${o.panels.dis}</p></div>
    <div class="note">Organisms listed under more than one branch occupy multiple niches — the effector arm needed changes with the stage of infection.</div>
   </div>`;
   side.scrollTop=0;
+  mountLifecycle(o);
+}
+/* Drop images/<id>-lifecycle.(jpg|jpeg|png) and it appears in the Life cycle block. */
+function mountLifecycle(o){
+  const slot=side.querySelector('.lcimg'); if(!slot) return;
+  const paths=['jpg','jpeg','png'].map(e=>`../images/${o.id}-lifecycle.${e}`);
+  let i=0;
+  (function tryNext(){ if(i>=paths.length) return;
+    const src=paths[i++], img=new Image();
+    img.onload=()=>{ slot.innerHTML=`<img class="lcpic" src="${src}" alt="Life cycle of ${o.name}"><div class="lccap">Life-cycle diagram.</div>`; };
+    img.onerror=tryNext; img.src=src; })();
 }
 render();
 </script>

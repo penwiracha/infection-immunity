@@ -3450,7 +3450,13 @@
         "mechanism": "Benzimidazole resistance (β-tubulin) — emerging",
         "detail": "β-tubulin mutations threaten mass-treatment programmes, as already seen in veterinary nematodes."
       }
-    ]
+    ],
+    "routes": [
+      "skin-penetration",
+      "soil"
+    ],
+    "transmission": "Skin penetration by filariform larvae in warm, moist soil contaminated with human faeces (walking barefoot); Ancylostoma can also infect by ingestion.",
+    "lifecycle": "Eggs in faeces → soil → rhabditiform then infective filariform larvae → penetrate skin → blood → lungs → coughed up and swallowed → adult worms attach to the small-bowel mucosa and suck blood → eggs passed in stool. A skin → lung → gut migration."
   },
   {
     "id": "strongyloides-stercoralis",
@@ -3491,7 +3497,13 @@
         "mechanism": "Not a resistance issue",
         "detail": "Failure reflects the autoinfective cycle and heavy burden (hyperinfection), not drug resistance; repeat/prolonged ivermectin is used."
       }
-    ]
+    ],
+    "routes": [
+      "skin-penetration",
+      "soil"
+    ],
+    "transmission": "Skin penetration by filariform larvae in contaminated soil; uniquely also autoinfection (larvae re-penetrate the gut or perianal skin), so infection can persist for decades.",
+    "lifecycle": "Free-living and parasitic cycles. A filariform larva penetrates skin → lungs → is swallowed → adult females in the small bowel produce larvae that either pass in stool or mature to filariform larvae in the gut and re-invade (autoinfection) — the basis of lifelong infection and, under steroids, hyperinfection."
   },
   {
     "id": "enterobius-vermicularis",
@@ -3530,7 +3542,12 @@
         "mechanism": "Reinfection, not resistance",
         "detail": "Recurrence is autoinfection/household reinfection rather than drug resistance."
       }
-    ]
+    ],
+    "routes": [
+      "faeco-oral"
+    ],
+    "transmission": "Faeco-oral — hand-to-mouth transfer of eggs from the perianal skin (scratching), fomites and bedding; eggs are infective within hours, so autoinfection and household spread are rapid.",
+    "lifecycle": "Eggs ingested → larvae hatch and mature to adults in the colon → the gravid female migrates at night to lay eggs on the perianal skin → eggs are picked up on fingers and re-ingested. Humans are the only host; no soil phase needed."
   },
   {
     "id": "trichuris-trichiura",
@@ -3569,7 +3586,13 @@
         "mechanism": "Low intrinsic benzimidazole susceptibility",
         "detail": "Whipworm is inherently harder to clear with single-dose benzimidazoles — an efficacy limit more than acquired resistance."
       }
-    ]
+    ],
+    "routes": [
+      "faeco-oral",
+      "soil"
+    ],
+    "transmission": "Faeco-oral — ingesting embryonated eggs from soil or food contaminated with human faeces (eggs mature in soil over weeks).",
+    "lifecycle": "Egg ingested → larva hatches in the small bowel → matures to an adult whipworm that threads its head into the colonic mucosa → eggs passed in stool embryonate in soil. No tissue-migration phase."
   },
   {
     "id": "taenia-solium-cysticercosis",
@@ -3614,7 +3637,14 @@
         "mechanism": "Not a resistance issue",
         "detail": "The therapeutic hazard is inflammation from dying cysts (managed with steroids), not drug resistance."
       }
-    ]
+    ],
+    "routes": [
+      "ingestion-meat",
+      "pig",
+      "faeco-oral"
+    ],
+    "transmission": "Taeniasis: eating undercooked pork containing cysticerci. Cysticercosis (incl. neurocysticercosis): faeco-oral ingestion of T. solium EGGS from a human carrier — the human then becomes an accidental intermediate host.",
+    "lifecycle": "The pig is the usual intermediate host: eggs in human faeces → pig ingests them → oncospheres form cysticerci in pig muscle → human eats undercooked pork → adult tapeworm in the gut sheds eggs. If a human ingests the eggs instead, cysticerci form in human tissue (brain → neurocysticercosis)."
   },
   {
     "id": "opisthorchis-viverrini",
@@ -3654,7 +3684,13 @@
         "mechanism": "Reinfection drives the cancer risk",
         "detail": "Praziquantel cures the infection, but repeated reinfection from continued raw-fish consumption sustains the chronic inflammation behind cholangiocarcinoma — an exposure problem, not drug resistance."
       }
-    ]
+    ],
+    "routes": [
+      "ingestion-fish",
+      "snail"
+    ],
+    "transmission": "Eating raw or undercooked freshwater cyprinid fish containing metacercariae; endemic in NE Thailand and Laos.",
+    "lifecycle": "Eggs in faeces → water → snail (1st intermediate host) → cercariae → encyst as metacercariae in freshwater fish (2nd intermediate host) → human eats the raw fish → adult flukes live in the bile ducts → eggs passed in stool. Decades of biliary inflammation → cholangiocarcinoma."
   },
   {
     "id": "schistosoma-species",
@@ -3708,7 +3744,13 @@
         "detail": "Reduced susceptibility is reported with heavy repeated use, and praziquantel is weak against immature worms — so re-treatment after maturation is sometimes needed."
       }
     ],
-    "mapNote": "The TH2 arm engages fully &mdash; IgE, mast cells, eosinophils &mdash; but the adult worm coats its tegument in host molecules including MHC, so it reads as self, and secretes protease inhibitors that block complement. It is also simply too large to phagocytose. The response then turns on trapped eggs instead."
+    "mapNote": "The TH2 arm engages fully &mdash; IgE, mast cells, eosinophils &mdash; but the adult worm coats its tegument in host molecules including MHC, so it reads as self, and secretes protease inhibitors that block complement. It is also simply too large to phagocytose. The response then turns on trapped eggs instead.",
+    "routes": [
+      "skin-penetration",
+      "snail"
+    ],
+    "transmission": "Skin penetration by cercariae released from freshwater snails, during contact with contaminated water (wading, swimming, farming).",
+    "lifecycle": "Eggs in urine/stool → water → miracidia infect snails (intermediate host) → cercariae emerge → penetrate human skin → mature to adult worm pairs in mesenteric or vesical veins → spined eggs trapped in tissue drive granulomatous disease, others pass out to reach snails again."
   },
   {
     "id": "trichinella-spiralis",
@@ -3748,7 +3790,13 @@
         "mechanism": "Encysted larvae are drug-inaccessible",
         "detail": "Established muscle larvae in their collagen capsule are largely beyond drug reach, so early treatment matters; this is sanctuary, not classic resistance."
       }
-    ]
+    ],
+    "routes": [
+      "ingestion-meat",
+      "pig"
+    ],
+    "transmission": "Eating undercooked meat (classically pork, also game/bear) containing encysted larvae.",
+    "lifecycle": "Ingested larvae excyst in the gut → mature to adults → females release new larvae that migrate via blood to striated muscle and encyst in collagen 'nurse cells' → the cycle continues only if that muscle is eaten. Humans are a dead-end host."
   },
   {
     "id": "gnathostoma-spinigerum",
@@ -3788,7 +3836,12 @@
         "mechanism": "Migratory larva evades localisation",
         "detail": "The constantly-moving larva can re-migrate after treatment, so repeat courses may be needed — a localisation problem, not drug resistance."
       }
-    ]
+    ],
+    "routes": [
+      "ingestion-fish"
+    ],
+    "transmission": "Eating raw or undercooked freshwater fish, frog or poultry containing larvae; endemic in Thailand (raw-fish dishes).",
+    "lifecycle": "Eggs → water → copepod (1st intermediate) → fish/frog (2nd intermediate) carry larvae → humans eat these raw → the larva cannot mature and instead migrates through tissues (subcutaneous, CNS). Humans are an accidental, dead-end host."
   },
   {
     "id": "angiostrongylus-cantonensis",
@@ -3827,7 +3880,13 @@
         "mechanism": "Not a drug-resistance issue",
         "detail": "Disease is the host inflammatory reaction to a dying larva; management is anti-inflammatory/supportive."
       }
-    ]
+    ],
+    "routes": [
+      "snail",
+      "rodent"
+    ],
+    "transmission": "Eating raw or undercooked snails/slugs, or contaminated raw produce carrying larvae — the rat lungworm.",
+    "lifecycle": "The rat is the definitive host (adults in the pulmonary arteries); larvae passed in rat faeces → snails/slugs (intermediate host) → humans eat these → larvae migrate to the CNS but die there (dead-end host) → eosinophilic meningitis."
   },
   {
     "id": "wuchereria-bancrofti",
@@ -3870,7 +3929,12 @@
         "mechanism": "Not a major resistance issue",
         "detail": "Programmatic limits are coverage and adult-worm persistence, not defined drug resistance."
       }
-    ]
+    ],
+    "routes": [
+      "mosquito"
+    ],
+    "transmission": "Bite of an infected mosquito (Culex / Anopheles / Aedes) inoculating larvae; nocturnal microfilaraemia matches mosquito feeding.",
+    "lifecycle": "The mosquito injects L3 larvae → they mature to adult worms living in the lymphatics → produce microfilariae that circulate (at night) → a feeding mosquito ingests them → larvae develop in the mosquito, completing the cycle. Adult-worm damage plus Wolbachia drive lymphoedema."
   },
   {
     "id": "sarcoptes-scabiei",
@@ -3909,7 +3973,12 @@
         "mechanism": "Pyrethroid tolerance / reinfestation",
         "detail": "Reduced permethrin susceptibility and reinfestation from untreated contacts cause apparent failure; crusted scabies needs repeated ivermectin."
       }
-    ]
+    ],
+    "routes": [
+      "skin-contact"
+    ],
+    "transmission": "Prolonged direct skin-to-skin contact (households, sexual); fomites (bedding/clothing) mainly matter in crusted scabies.",
+    "lifecycle": "The female mite burrows into the stratum corneum and lays eggs → larvae hatch and mature to adults on the skin → mate → the whole cycle (~2–3 weeks) is completed on one host. Itch is a hypersensitivity reaction appearing weeks after first infestation."
   },
   {
     "id": "pediculus-phthirus",
@@ -3948,7 +4017,13 @@
         "mechanism": "Widespread pyrethroid resistance",
         "detail": "Permethrin/pyrethroid resistance is common in head lice, driving the shift to physical agents (dimeticone, wet-combing) that resistance cannot defeat."
       }
-    ]
+    ],
+    "routes": [
+      "skin-contact",
+      "sexual"
+    ],
+    "transmission": "Direct head-to-head or body contact; shared combs/hats/bedding; pubic lice by sexual contact.",
+    "lifecycle": "The adult louse lays eggs (nits) cemented to hair shafts → nymphs hatch and mature on the skin surface, feeding on blood → the entire cycle is completed on the human host. Body lice live in clothing and transmit typhus and relapsing fever."
   },
   {
     "id": "cutaneous-larva-migrans",
@@ -3987,7 +4062,15 @@
         "mechanism": "Self-limiting; not a resistance issue",
         "detail": "The larva dies in this wrong host anyway; treatment is for symptom relief."
       }
-    ]
+    ],
+    "routes": [
+      "skin-penetration",
+      "soil",
+      "dog",
+      "cat"
+    ],
+    "transmission": "Skin contact with soil or sand contaminated by dog/cat faeces containing Ancylostoma braziliense larvae (walking barefoot, lying on beaches).",
+    "lifecycle": "An animal-hookworm larva that penetrates human skin but cannot complete its cycle in the wrong host — so it wanders in the epidermis (the serpiginous track) and eventually dies. Humans are a dead-end host."
   },
   {
     "id": "bacillus-anthracis",

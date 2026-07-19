@@ -66,6 +66,8 @@ h1{margin:0 0 6px;font-size:22px}
 .rtag{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--txt);
  background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:3px 9px 3px 7px}
 .rtag .e{font-size:14px;line-height:1}
+.lcimg{margin-bottom:6px}
+.lcpic{width:100%;border-radius:8px;display:block;background:#fff}
 </style>
 </head>
 <body>
@@ -220,11 +222,27 @@ function showDetail(o, path){
     ${o.resistance&&o.resistance.length?`<div class="blk"><div class="lab">Resistance — mechanism</div>
       <ul class="rx">${o.resistance.map(x=>`<li><b>${x.mechanism}</b> — <span>${x.detail}</span></li>`).join('')}</ul></div>`:''}
     ${o.transmission?`<div class="blk"><div class="lab">Transmission — how it reaches humans</div>${routeTags(o)}<p>${o.transmission}</p></div>`:''}
-    ${o.lifecycle?`<div class="blk"><div class="lab">Life cycle</div><p>${o.lifecycle}</p></div>`:''}
+    ${o.lifecycle?`<div class="blk"><div class="lab">Life cycle</div><div class="lcimg"></div><p>${o.lifecycle}</p></div>`:''}
     ${o.panels?`<div class="blk"><div class="lab">Resulting disease</div><p>${o.panels.dis}</p></div>`:''}
   </div>`;
   side.scrollTop=0;
   mountMicrograph(o);
+  mountLifecycle(o);
+}
+
+/* Drop a life-cycle diagram in as images/<id>-lifecycle.(jpg|jpeg|png) and it
+   appears inside the Life cycle block. Falls back silently to the text. */
+function mountLifecycle(o){
+  const slot=side.querySelector('.lcimg'); if(!slot) return;
+  const paths=['jpg','jpeg','png'].map(e=>`../images/${o.id}-lifecycle.${e}`);
+  let i=0;
+  (function tryNext(){
+    if(i>=paths.length) return;
+    const src=paths[i++], img=new Image();
+    img.onload=()=>{ slot.innerHTML=`<img class="lcpic" src="${src}" alt="Life cycle of ${o.name}"><div class="microcap">Life-cycle diagram.</div>`; };
+    img.onerror=tryNext;
+    img.src=src;
+  })();
 }
 
 /* Swap the schematic for a real light micrograph if one exists.
