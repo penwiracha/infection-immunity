@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Immune System Map — Addressable</title>
+<style>
+:root{
+  --bg:#0e1014; --ink:#e8eaee; --dim:#8d96a6; --line:#272c36;
+  --panel:#161a21; --panel2:#1c212a;
+  --extra:#e0603f; --vesic:#e0a83f; --cyto:#4fa3e3; --surf:#57b86b;
+  --innate:#6f7a8d; --host:#7a6cf0;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+ font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+header{padding:24px 30px 14px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--dim);margin-bottom:7px}
+h1{margin:0 0 7px;font-size:22px}
+.sub{color:var(--dim);font-size:13.5px;max-width:880px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:12px 30px;border-bottom:1px solid var(--line)}
+.gl{font-size:10.5px;letter-spacing:1.1px;text-transform:uppercase;color:var(--dim);margin-right:4px}
+.chip{font-size:12px;padding:5px 12px;border-radius:20px;border:1px solid var(--line);
+ background:var(--panel2);cursor:pointer;user-select:none;white-space:nowrap}
+.chip:hover{border-color:var(--dim)}
+.chip.on{background:var(--c,#4fa3e3);color:#0e1014;border-color:var(--c,#4fa3e3);font-weight:600}
+.clear{margin-left:auto;font-size:11.5px;color:var(--dim);cursor:pointer;text-decoration:underline}
+.wrap{display:grid;grid-template-columns:1fr minmax(320px,390px)}
+@media(max-width:980px){.wrap{grid-template-columns:1fr}}
+.stage{padding:14px 20px 50px;overflow:auto}
+.side{position:sticky;top:0;max-height:100vh;overflow:auto;background:var(--panel);
+ border-left:1px solid var(--line);padding:22px 22px 60px}
+svg{width:100%;height:auto;display:block}
+
+/* --- SVG component styling --- */
+.cmp{cursor:pointer}
+.cmp .box{fill:var(--panel2);stroke:var(--line);stroke-width:1.5;transition:all .18s}
+.cmp .lbl{fill:var(--ink);font-size:11px;font-weight:600;pointer-events:none}
+.cmp .sm{fill:var(--dim);font-size:8.5px;pointer-events:none}
+.cmp:hover .box{stroke:var(--dim)}
+.cmp.dim .box{opacity:.22}
+.cmp.dim .lbl,.cmp.dim .sm{opacity:.25}
+.cmp.hit .box{fill:var(--hc);stroke:var(--hc);stroke-width:2.5}
+.cmp.hit .lbl{fill:#0e1014}
+.cmp.hit .sm{fill:rgba(0,0,0,.62)}
+.flow{stroke:var(--line);stroke-width:1.5;fill:none;transition:all .18s}
+.flow.dim{opacity:.15}
+.flow.hit{stroke:var(--hc);stroke-width:2.5}
+.zone{fill:none;stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;rx:8}
+.zlab{fill:var(--dim);font-size:9px;letter-spacing:1.3px;text-transform:uppercase}
+.arm{font-size:9.5px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700}
+
+/* --- side panel --- */
+.empty{color:var(--dim);font-size:13.5px;text-align:center;padding-top:44px;line-height:1.75}
+.card h2{margin:0 0 3px;font-size:18px}
+.card .kick{font-size:11.5px;color:var(--k);margin-bottom:12px;font-weight:600}
+.blk{margin-bottom:11px;padding:11px 13px;background:var(--panel2);border-radius:8px;border-left:3px solid var(--k)}
+.blk .lab{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--dim);margin-bottom:4px}
+.blk p{margin:0;font-size:13px}
+.hits{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.hits span{font-size:10.5px;padding:3px 8px;border-radius:5px;background:#3a2530;color:#f0a8bd}
+.hits span.h{background:#2a2545;color:#b9aefc}
+.note{font-size:11.5px;color:var(--dim);margin-top:18px;border-top:1px solid var(--line);padding-top:11px}
+code{background:var(--panel2);padding:1px 5px;border-radius:4px;font-size:11.5px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Keystone diagram &middot; addressable</div>
+  <h1>The immune system, as one map</h1>
+  <div class="sub">Every component has a stable ID. Selecting an organism highlights exactly the parts it engages and the parts it breaks &mdash; this is the surface that organism records point at.</div>
+</header>
+
+<div class="bar">
+  <span class="gl">Highlight</span>
+  <div class="chip" data-o="spneumo" style="--c:var(--extra)">S. pneumoniae</div>
+  <div class="chip" data-o="tb" style="--c:var(--vesic)">M. tuberculosis</div>
+  <div class="chip" data-o="hiv" style="--c:var(--cyto)">HIV-1</div>
+  <div class="chip" data-o="hsv" style="--c:var(--cyto)">HSV</div>
+  <div class="chip" data-o="schisto" style="--c:var(--surf)">Schistosoma</div>
+  <div class="chip" data-o="candida" style="--c:var(--extra)">Candida</div>
+  <div class="chip" data-o="cgd" style="--c:var(--host)">CGD (host)</div>
+  <div class="chip" data-o="c59" style="--c:var(--host)">C5&ndash;9 def (host)</div>
+  <div class="clear" id="clr">clear</div>
+</div>
+
+<div class="wrap">
+  <div class="stage">
+<svg id="map" viewBox="0 0 1000 720" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#3a4150"/>
+    </marker>
+  </defs>
+
+  <!-- ===== ZONES ===== -->
+  <rect class="zone" x="14" y="34" width="176" height="200"/>
+  <text class="zlab" x="22" y="28">Entry &amp; barrier</text>
+  <rect class="zone" x="206" y="34" width="250" height="330"/>
+  <text class="zlab" x="214" y="28">Innate recognition</text>
+  <rect class="zone" x="206" y="382" width="250" height="304"/>
+  <text class="zlab" x="214" y="376">Innate effectors</text>
+  <rect class="zone" x="472" y="34" width="170" height="230"/>
+  <text class="zlab" x="480" y="28">Antigen presentation</text>
+  <rect class="zone" x="472" y="282" width="170" height="404"/>
+  <text class="zlab" x="480" y="276">T-helper polarisation</text>
+  <rect class="zone" x="658" y="34" width="328" height="652"/>
+  <text class="zlab" x="666" y="28">Effector arms &amp; memory</text>
+
+  <!-- ===== FLOWS ===== -->
+  <g id="flows">
+    <path class="flow" id="f_barrier_prr" d="M190,120 H206" marker-end="url(#ar)"/>
+    <path class="flow" id="f_prr_c3"   d="M330,132 V166" marker-end="url(#ar)"/>
+    <path class="flow" id="f_c3_c3b"   d="M300,232 V266" marker-end="url(#ar)"/>
+    <path class="flow" id="f_c3_c5"    d="M372,232 V266" marker-end="url(#ar)"/>
+    <path class="flow" id="f_c3b_phag" d="M300,318 V418" marker-end="url(#ar)"/>
+    <path class="flow" id="f_c5_mac"   d="M372,318 V418" marker-end="url(#ar)"/>
+    <path class="flow" id="f_phag_burst" d="M300,470 V520" marker-end="url(#ar)"/>
+    <path class="flow" id="f_prr_dc"   d="M456,110 H472" marker-end="url(#ar)"/>
+    <path class="flow" id="f_dc_mhc2"  d="M557,110 V146" marker-end="url(#ar)"/>
+    <path class="flow" id="f_dc_mhc1"  d="M557,110 V146" marker-end="url(#ar)"/>
+    <path class="flow" id="f_mhc2_cd4" d="M530,198 V318" marker-end="url(#ar)"/>
+    <path class="flow" id="f_mhc1_cd8" d="M600,198 C660,198 700,220 700,240" marker-end="url(#ar)"/>
+    <path class="flow" id="f_cd4_th1"  d="M530,370 V400" marker-end="url(#ar)"/>
+    <path class="flow" id="f_cd4_th2"  d="M545,370 V470" marker-end="url(#ar)"/>
+    <path class="flow" id="f_cd4_th17" d="M515,370 V540" marker-end="url(#ar)"/>
+    <path class="flow" id="f_cd4_tfh"  d="M560,370 V610" marker-end="url(#ar)"/>
+    <path class="flow" id="f_th1_mac"  d="M642,420 H700" marker-end="url(#ar)"/>
+    <path class="flow" id="f_th1_ctl"  d="M600,400 C640,380 660,320 690,300" marker-end="url(#ar)"/>
+    <path class="flow" id="f_th2_ige"  d="M642,490 H700" marker-end="url(#ar)"/>
+    <path class="flow" id="f_th17_neut" d="M642,560 H700" marker-end="url(#ar)"/>
+    <path class="flow" id="f_tfh_b"    d="M642,630 H700" marker-end="url(#ar)"/>
+    <path class="flow" id="f_b_ab"     d="M830,630 H852" marker-end="url(#ar)"/>
+    <path class="flow" id="f_ab_c3"    d="M880,600 C880,250 500,196 404,196" marker-end="url(#ar)" stroke-dasharray="4 4"/>
+    <path class="flow" id="f_ab_phag"  d="M866,600 C820,560 420,500 356,444" marker-end="url(#ar)" stroke-dasharray="4 4"/>
+  </g>
+
+  <!-- ===== BARRIER ===== -->
+  <g class="cmp" id="c_barrier"><rect class="box" x="26" y="52" width="152" height="46" rx="7"/>
+    <text class="lbl" x="40" y="74">Epithelium &amp; mucus</text><text class="sm" x="40" y="88">cilia, acid, flow</text></g>
+  <g class="cmp" id="c_flora"><rect class="box" x="26" y="110" width="152" height="46" rx="7"/>
+    <text class="lbl" x="40" y="132">Commensal flora</text><text class="sm" x="40" y="146">colonisation resistance</text></g>
+  <g class="cmp" id="c_amp"><rect class="box" x="26" y="168" width="152" height="46" rx="7"/>
+    <text class="lbl" x="40" y="190">Antimicrobial peptides</text><text class="sm" x="40" y="204">defensins, lysozyme</text></g>
+
+  <!-- ===== INNATE RECOGNITION ===== -->
+  <g class="cmp" id="c_prr"><rect class="box" x="222" y="52" width="218" height="46" rx="7"/>
+    <text class="lbl" x="236" y="74">PRRs &mdash; TLR, NLR, MBL</text><text class="sm" x="236" y="88">pattern recognition of PAMPs</text></g>
+  <g class="cmp" id="c_ifn1"><rect class="box" x="222" y="110" width="218" height="46" rx="7"/>
+    <text class="lbl" x="236" y="132">Type I interferon</text><text class="sm" x="236" y="146">IFN-&#945;/&#946; &mdash; antiviral state</text></g>
+  <g class="cmp" id="c_c3"><rect class="box" x="222" y="172" width="218" height="56" rx="7"/>
+    <text class="lbl" x="236" y="194">Complement C3</text><text class="sm" x="236" y="208">classical (C1,C4,C2) &middot; lectin &middot; alternative</text>
+    <text class="sm" x="236" y="220">the amplification hub</text></g>
+  <g class="cmp" id="c_c3b"><rect class="box" x="222" y="272" width="104" height="46" rx="7"/>
+    <text class="lbl" x="234" y="294">C3b</text><text class="sm" x="234" y="308">opsonin</text></g>
+  <g class="cmp" id="c_c5a"><rect class="box" x="336" y="272" width="104" height="46" rx="7"/>
+    <text class="lbl" x="348" y="294">C3a / C5a</text><text class="sm" x="348" y="308">anaphylatoxin</text></g>
+
+  <!-- ===== INNATE EFFECTORS ===== -->
+  <g class="cmp" id="c_phago"><rect class="box" x="222" y="424" width="104" height="46" rx="7"/>
+    <text class="lbl" x="234" y="446">Phagocytosis</text><text class="sm" x="234" y="460">CR1/CR3, Fc&#947;R</text></g>
+  <g class="cmp" id="c_mac"><rect class="box" x="336" y="424" width="104" height="46" rx="7"/>
+    <text class="lbl" x="348" y="446">MAC C5&ndash;9</text><text class="sm" x="348" y="460">direct lysis</text></g>
+  <g class="cmp" id="c_burst"><rect class="box" x="222" y="524" width="218" height="52" rx="7"/>
+    <text class="lbl" x="236" y="546">Phagolysosome &amp; oxidative burst</text><text class="sm" x="236" y="560">NADPH oxidase, proteases, low pH</text></g>
+  <g class="cmp" id="c_nk"><rect class="box" x="222" y="592" width="218" height="46" rx="7"/>
+    <text class="lbl" x="236" y="614">NK cells</text><text class="sm" x="236" y="628">kill cells with low MHC I</text></g>
+  <g class="cmp" id="c_inflam"><rect class="box" x="222" y="646" width="218" height="30" rx="7"/>
+    <text class="lbl" x="236" y="666">Inflammation &mdash; IL-1, IL-6, TNF</text></g>
+
+  <!-- ===== ANTIGEN PRESENTATION ===== -->
+  <g class="cmp" id="c_dc"><rect class="box" x="486" y="52" width="142" height="46" rx="7"/>
+    <text class="lbl" x="498" y="74">Dendritic cell</text><text class="sm" x="498" y="88">uptake &amp; migration</text></g>
+  <g class="cmp" id="c_mhc2"><rect class="box" x="486" y="152" width="66" height="46" rx="7"/>
+    <text class="lbl" x="496" y="172">MHC II</text><text class="sm" x="496" y="186">vesicular</text></g>
+  <g class="cmp" id="c_mhc1"><rect class="box" x="562" y="152" width="66" height="46" rx="7"/>
+    <text class="lbl" x="572" y="172">MHC I</text><text class="sm" x="572" y="186">cytosolic</text></g>
+  <g class="cmp" id="c_tap"><rect class="box" x="486" y="210" width="142" height="40" rx="7"/>
+    <text class="lbl" x="498" y="228">TAP &amp; proteasome</text><text class="sm" x="498" y="241">peptide loading</text></g>
+
+  <!-- ===== T HELPER ===== -->
+  <g class="cmp" id="c_cd4"><rect class="box" x="486" y="300" width="142" height="46" rx="7"/>
+    <text class="lbl" x="498" y="322">CD4 T cell</text><text class="sm" x="498" y="336">the help hub</text></g>
+  <g class="cmp" id="c_th1"><rect class="box" x="486" y="396" width="142" height="46" rx="7"/>
+    <text class="lbl" x="498" y="416">TH1 &mdash; IFN-&#947;</text><text class="sm" x="498" y="430">IL-12 driven &middot; T-bet</text></g>
+  <g class="cmp" id="c_th2"><rect class="box" x="486" y="466" width="142" height="46" rx="7"/>
+    <text class="lbl" x="498" y="486">TH2 &mdash; IL-4/5/13</text><text class="sm" x="498" y="500">GATA3</text></g>
+  <g class="cmp" id="c_th17"><rect class="box" x="486" y="536" width="142" height="46" rx="7"/>
+    <text class="lbl" x="498" y="556">TH17 &mdash; IL-17</text><text class="sm" x="498" y="570">IL-23 driven &middot; ROR&#947;t</text></g>
+  <g class="cmp" id="c_tfh"><rect class="box" x="486" y="606" width="142" height="46" rx="7"/>
+    <text class="lbl" x="498" y="626">Tfh / germinal centre</text><text class="sm" x="498" y="640">class switch, affinity</text></g>
+
+  <!-- ===== EFFECTOR ARMS ===== -->
+  <text class="arm" x="672" y="252" fill="var(--cyto)">Type 1 &middot; intracellular</text>
+  <g class="cmp" id="c_ctl"><rect class="box" x="672" y="262" width="158" height="52" rx="7"/>
+    <text class="lbl" x="684" y="284">CD8 CTL</text><text class="sm" x="684" y="298">perforin, granzyme, Fas</text></g>
+  <g class="cmp" id="c_macact"><rect class="box" x="672" y="396" width="158" height="52" rx="7"/>
+    <text class="lbl" x="684" y="418">Activated macrophage</text><text class="sm" x="684" y="432">NO, phagolysosome, granuloma</text></g>
+  <text class="arm" x="672" y="386" fill="var(--vesic)">Type 1 &middot; vesicular</text>
+
+  <text class="arm" x="672" y="456" fill="var(--surf)">Type 2 &middot; surface</text>
+  <g class="cmp" id="c_ige"><rect class="box" x="672" y="466" width="158" height="52" rx="7"/>
+    <text class="lbl" x="684" y="488">IgE &middot; mast &middot; eosinophil</text><text class="sm" x="684" y="502">mucus, contraction, expulsion</text></g>
+
+  <text class="arm" x="672" y="526" fill="var(--extra)">Type 3 &middot; extracellular</text>
+  <g class="cmp" id="c_neut"><rect class="box" x="672" y="536" width="158" height="52" rx="7"/>
+    <text class="lbl" x="684" y="558">Neutrophils</text><text class="sm" x="684" y="572">phagocytosis, NETs, AMPs</text></g>
+
+  <g class="cmp" id="c_bcell"><rect class="box" x="672" y="606" width="158" height="52" rx="7"/>
+    <text class="lbl" x="684" y="628">B cell / plasma cell</text><text class="sm" x="684" y="642">IgM &rarr; IgG, IgA, IgE</text></g>
+  <g class="cmp" id="c_ab"><rect class="box" x="852" y="606" width="120" height="52" rx="7"/>
+    <text class="lbl" x="862" y="628">Antibody</text><text class="sm" x="862" y="642">neutralise, opsonise</text></g>
+  <g class="cmp" id="c_mem"><rect class="box" x="852" y="536" width="120" height="52" rx="7"/>
+    <text class="lbl" x="862" y="558">Memory</text><text class="sm" x="862" y="572">B and T &middot; recall</text></g>
+</svg>
+  </div>
+
+  <div class="side" id="side">
+    <div class="empty">Select an organism above.<br>Highlighted components are the ones it engages or breaks.</div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   SCHEMA — the handoff contract.
+   Every organism record points at component IDs in this SVG.
+     engages[]  components the response normally uses
+     breaks[]   components the organism (or defect) disables
+     flows[]    optional flow-path IDs to light up
+   Component IDs are stable: c_barrier, c_flora, c_amp, c_prr,
+   c_ifn1, c_c3, c_c3b, c_c5a, c_phago, c_mac, c_burst, c_nk,
+   c_inflam, c_dc, c_mhc1, c_mhc2, c_tap, c_cd4, c_th1, c_th2,
+   c_th17, c_tfh, c_ctl, c_macact, c_ige, c_neut, c_bcell,
+   c_ab, c_mem
+   ============================================================ */
+const MAP = {
+ spneumo:{name:"Streptococcus pneumoniae",arm:"extra",
+  engages:["c_prr","c_c3","c_c3b","c_c5a","c_phago","c_neut","c_tfh","c_bcell","c_ab","c_mem"],
+  breaks:["c_c3b","c_phago","c_mem"],
+  flows:["f_prr_c3","f_c3_c3b","f_c3b_phag","f_ab_phag"],
+  why:"The capsule blocks C3b from reaching the bacterial surface and hides what does bind, so opsonisation and therefore phagocytosis fail. Plain capsular polysaccharide is T-independent, so it never engages Tfh help &mdash; IgM without class switch or memory. Conjugation to a carrier protein recruits T help and restores the memory arm.",
+  dis:"Lobar pneumonia, otitis media, meningitis. Overwhelming sepsis after splenectomy, because the spleen is what filters opsonised encapsulated organisms."},
+
+ tb:{name:"Mycobacterium tuberculosis",arm:"vesic",
+  engages:["c_prr","c_dc","c_mhc2","c_cd4","c_th1","c_macact","c_inflam"],
+  breaks:["c_burst","c_macact"],
+  flows:["f_dc_mhc2","f_mhc2_cd4","f_cd4_th1","f_th1_mac"],
+  why:"Everything upstream works &mdash; TH1 forms, IFN-&#947; is secreted, macrophages are activated. The break is at the final step: the organism blocks phagosome&ndash;lysosome fusion, its mycolic acid coat resists lysosomal enzymes and catalase quenches the burst. It survives inside the very cell sent to kill it, so the response walls it off into a granuloma instead.",
+  dis:"Primary TB, latency, post-primary cavitary disease, miliary spread, TB meningitis. Cavitation is TNF-driven immunopathology &mdash; hence reactivation on anti-TNF therapy and with HIV."},
+
+ hiv:{name:"HIV-1",arm:"cyto",
+  engages:["c_ifn1","c_dc","c_mhc1","c_cd4","c_ctl","c_th1","c_tfh","c_bcell","c_mem"],
+  breaks:["c_cd4","c_th1","c_tfh","c_mem","c_mhc1"],
+  flows:["f_mhc2_cd4","f_cd4_th1","f_cd4_tfh","f_th1_ctl","f_tfh_b"],
+  why:"HIV breaks the hub itself. CD4 cells supply help to CTLs and to B cells, so destroying them degrades every downstream arm at once &mdash; cellular and humoral. Nef additionally downregulates MHC I to blunt CTL recognition, and integrated provirus in resting memory cells is invisible to any response.",
+  dis:"Acute seroconversion, latency, then AIDS defined by whichever arm has failed &mdash; PCP and cryptococcus (TH1), pneumococcal bacteraemia (Tfh/antibody), CMV and TB (CTL). The opportunist list is a map of the arms lost."},
+
+ hsv:{name:"Herpes simplex virus",arm:"cyto",
+  engages:["c_ifn1","c_dc","c_tap","c_mhc1","c_ctl","c_nk","c_ab"],
+  breaks:["c_tap","c_mhc1"],
+  flows:["f_dc_mhc1","f_mhc1_cd8"],
+  why:"ICP47 blocks TAP, so viral peptides never reach MHC I and the infected cell displays nothing for CTLs to see. NK cells partly rescue this by killing cells with low MHC I &mdash; which is exactly why that backup exists. Latency in sensory ganglia then sits beyond the reach of either arm.",
+  dis:"Gingivostomatitis, herpes labialis, genital herpes, keratitis, eczema herpeticum, HSV encephalitis, neonatal herpes. Reactivation whenever T-cell control dips."},
+
+ schisto:{name:"Schistosoma species",arm:"surf",
+  engages:["c_dc","c_cd4","c_th2","c_ige","c_inflam"],
+  breaks:["c_ige","c_c3"],
+  flows:["f_cd4_th2","f_th2_ige"],
+  why:"The TH2 arm engages fully &mdash; IgE, mast cells, eosinophils &mdash; but the adult worm coats its tegument in host molecules including MHC, so it reads as self, and secretes protease inhibitors that block complement. It is also simply too large to phagocytose. The response then turns on trapped eggs instead.",
+  dis:"Katayama fever, then granulomatous fibrosis around eggs &mdash; periportal fibrosis and portal hypertension, or bladder fibrosis and squamous carcinoma. The pathology is the TH2 response, not the worm."},
+
+ candida:{name:"Candida albicans",arm:"extra",
+  engages:["c_barrier","c_flora","c_prr","c_dc","c_cd4","c_th17","c_neut","c_amp"],
+  breaks:["c_barrier","c_flora"],
+  flows:["f_cd4_th17","f_th17_neut","f_barrier_prr"],
+  why:"The textbook TH17 organism: IL-23 from dendritic cells drives TH17, IL-17 recruits neutrophils and induces epithelial antimicrobial peptides. Candida does not evade this so much as wait for it to lapse &mdash; loss of barrier, loss of competing flora, or loss of neutrophils. Hyphal switching then resists phagocytosis.",
+  dis:"Thrush, intertrigo, vulvovaginal candidiasis. Chronic mucocutaneous candidiasis in IL-17 pathway defects; oesophagitis in HIV; candidaemia in neutropenia &mdash; each maps to the arm that failed."},
+
+ cgd:{name:"Chronic granulomatous disease",arm:"host",
+  engages:["c_prr","c_c3","c_c3b","c_phago","c_neut","c_macact"],
+  breaks:["c_burst"],
+  flows:["f_c3b_phag","f_phag_burst"],
+  why:"A host defect at the same point TB attacks from outside. Recognition, opsonisation, chemotaxis and ingestion all work perfectly &mdash; the phagosome forms and closes. NADPH oxidase then generates no superoxide, so catalase-positive organisms survive inside and the response walls them off into granulomas.",
+  dis:"Recurrent abscesses of skin, liver and node with Staph aureus, Serratia, Burkholderia, Nocardia, Aspergillus. Diagnosed by dihydrorhodamine flow cytometry."},
+
+ c59:{name:"Terminal complement deficiency (C5&ndash;9)",arm:"host",
+  engages:["c_prr","c_c3","c_c3b","c_phago","c_neut","c_ab"],
+  breaks:["c_mac"],
+  flows:["f_c3_c5","f_c5_mac"],
+  why:"A single-arm lesion, and the cleanest one in immunology. Opsonisation and phagocytosis are untouched, so almost everything is handled normally. Only Neisseria genuinely requires direct lysis by the membrane attack complex &mdash; so only Neisseria gets through.",
+  dis:"Recurrent meningococcal disease, often unusual serogroups and, counterintuitively, milder episodes. Test complement in anyone with a second episode. Properdin deficiency behaves similarly."}
+};
+
+const ARMC={extra:'var(--extra)',vesic:'var(--vesic)',cyto:'var(--cyto)',surf:'var(--surf)',host:'var(--host)'};
+const svg=document.getElementById('map'),side=document.getElementById('side');
+const ALL=[...svg.querySelectorAll('.cmp')],FL=[...svg.querySelectorAll('.flow')];
+let cur=null;
+
+function reset(){
+  ALL.forEach(e=>{e.classList.remove('dim','hit');e.style.removeProperty('--hc')});
+  FL.forEach(e=>e.classList.remove('dim','hit'));
+}
+function apply(key){
+  const d=MAP[key];reset();
+  const col=ARMC[d.arm];
+  const on=new Set([...d.engages,...d.breaks]);
+  ALL.forEach(e=>{
+    if(!on.has(e.id)){e.classList.add('dim');return}
+    e.classList.add('hit');
+    e.style.setProperty('--hc', d.breaks.includes(e.id)?col:'#39414f');
+    if(!d.breaks.includes(e.id)){e.querySelector('.lbl').style.fill='var(--ink)';
+      e.querySelector('.sm').style.fill='var(--dim)';}
+    else{e.querySelector('.lbl').style.fill='';e.querySelector('.sm').style.fill='';}
+  });
+  const fs=new Set(d.flows||[]);
+  FL.forEach(e=>{if(fs.has(e.id)){e.classList.add('hit');e.style.setProperty('--hc',col)}else e.classList.add('dim')});
+  side.innerHTML=`<div class="card" style="--k:${col}">
+    <h2>${d.name}</h2>
+    <div class="kick">${d.arm==='host'?'Host defect':'Pathogen'}</div>
+    <div class="blk"><div class="lab">Breaks</div>
+      <div class="hits">${d.breaks.map(b=>`<span class="${d.arm==='host'?'h':''}">${label(b)}</span>`).join('')}</div></div>
+    <div class="blk"><div class="lab">Why the response is not enough</div><p>${d.why}</p></div>
+    <div class="blk"><div class="lab">Resulting disease</div><p>${d.dis}</p></div>
+    <div class="note">Solid colour = broken. Grey = engaged and working. Dimmed = not involved.</div>
+  </div>`;
+  side.scrollTop=0;
+}
+function label(id){const e=document.getElementById(id);return e?e.querySelector('.lbl').textContent:id}
+
+document.querySelectorAll('.chip[data-o]').forEach(c=>{
+  c.onclick=()=>{
+    const k=c.dataset.o;
+    document.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));
+    if(cur===k){cur=null;reset();side.innerHTML='<div class="empty">Select an organism above.<br>Highlighted components are the ones it engages or breaks.</div>';return}
+    cur=k;c.classList.add('on');apply(k);
+  };
+});
+document.getElementById('clr').onclick=()=>{cur=null;reset();
+  document.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));
+  side.innerHTML='<div class="empty">Select an organism above.<br>Highlighted components are the ones it engages or breaks.</div>';};
+
+// clicking a component shows what it is
+ALL.forEach(e=>e.addEventListener('click',()=>{
+  if(cur)return;
+  side.innerHTML=`<div class="card" style="--k:var(--innate)">
+   <h2>${label(e.id)}</h2><div class="kick">component &middot; <code>${e.id}</code></div>
+   <div class="blk"><div class="lab">Address</div><p>Organism records reference this component by its ID. Add <code>${e.id}</code> to a record's <code>engages</code> or <code>breaks</code> array and it lights up here.</p></div>
+  </div>`;
+}));
+</script>
+</body>
+</html>

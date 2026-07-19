@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Infection &amp; Defence — Niche Map</title>
+<style>
+:root{
+  --bg:#0f1115; --panel:#171a21; --panel2:#1e222b; --line:#2b303b;
+  --txt:#e6e8ec; --dim:#9aa3b2;
+  --extra:#e0603f; --vesic:#e0a83f; --cyto:#4fa3e3; --surf:#57b86b;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);
+ font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+header{padding:22px 28px 14px;border-bottom:1px solid var(--line)}
+h1{margin:0 0 6px;font-size:22px}
+.sub{color:var(--dim);font-size:13.5px;max-width:900px}
+.bar{display:flex;flex-wrap:wrap;gap:14px;padding:12px 28px 14px;
+ border-bottom:1px solid var(--line);align-items:center}
+.grp{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.grp .gl{font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-right:2px}
+.chip{font-size:12px;padding:4px 10px;border-radius:20px;border:1px solid var(--line);
+ background:var(--panel2);cursor:pointer;user-select:none;white-space:nowrap}
+.chip .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+.chip.off{opacity:.32}
+#q{background:var(--panel2);border:1px solid var(--line);color:var(--txt);
+ padding:6px 12px;border-radius:20px;font-size:12.5px;width:190px;outline:none}
+.count{font-size:11.5px;color:var(--dim);margin-left:auto}
+.wrap{display:grid;grid-template-columns:minmax(340px,1fr) minmax(370px,450px)}
+@media(max-width:900px){.wrap{grid-template-columns:1fr}}
+.tree{padding:20px 28px 60px}
+.side{position:sticky;top:0;max-height:100vh;overflow:auto;
+ border-left:1px solid var(--line);padding:22px 24px 60px;background:var(--panel)}
+.branch{margin:16px 0 0;border-left:3px solid var(--c);padding-left:16px}
+.branch h2{font-size:14.5px;margin:0 0 2px;color:var(--c)}
+.branch .eff{font-size:12.5px;color:var(--dim);margin:0 0 10px}
+.orgs{display:flex;flex-wrap:wrap;gap:6px}
+.org{font-size:12.5px;padding:5px 10px;border-radius:7px;background:var(--panel2);
+ border:1px solid var(--line);cursor:pointer;transition:.12s;display:flex;align-items:center;gap:6px}
+.org:hover{border-color:var(--c);transform:translateY(-1px)}
+.org.active{background:var(--c);color:#0f1115;border-color:var(--c);font-weight:600}
+.t{font-size:9.5px;padding:1px 5px;border-radius:4px;font-weight:700;letter-spacing:.4px}
+.t1{background:#2d4a35;color:#7fd39b}
+.t2{background:#463a24;color:#e3bc72}
+.org.active .t{background:rgba(0,0,0,.22);color:inherit}
+.card h3{margin:0 0 3px;font-size:19px}
+.card .tag{font-size:11.5px;color:var(--dim);margin-bottom:12px}
+.card .tag b{color:var(--c2)}
+.meta{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px}
+.meta span{font-size:10.5px;padding:3px 8px;border-radius:5px;background:var(--panel2);color:var(--dim)}
+.blk{margin-bottom:13px;padding:12px 14px;background:var(--panel2);
+ border-radius:8px;border-left:3px solid var(--c2)}
+.blk .lab{font-size:10.5px;letter-spacing:1.1px;text-transform:uppercase;
+ color:var(--dim);margin-bottom:5px}
+.blk p{margin:0;font-size:13.5px}
+.fail{display:inline-block;font-size:11px;padding:3px 9px;border-radius:5px;
+ background:#3a2530;color:#f0a8bd;margin-bottom:10px}
+.empty{color:var(--dim);font-size:13.5px;padding-top:40px;text-align:center}
+.note{font-size:11.5px;color:var(--dim);margin-top:22px;border-top:1px solid var(--line);padding-top:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Infection &amp; Defence — Niche Map</h1>
+  <div class="sub">Branching by <b>where the pathogen lives</b>, because niche &mdash; not taxonomy &mdash; determines which effector arm responds. Coverage keyed to the &#3624;&#3619;&#3623;. national licensing requirement list (&#3585;&#3621;&#3640;&#3656;&#3617; 1 = diagnose &amp; manage independently; &#3585;&#3621;&#3640;&#3656;&#3617; 2 = diagnose, initiate, refer).</div>
+</header>
+<div class="bar">
+  <div class="grp" id="nb"><span class="gl">Niche</span></div>
+  <div class="grp" id="tb"><span class="gl">Tier</span></div>
+  <div class="grp" id="fb"><span class="gl">Failure mode</span></div>
+  <input id="q" placeholder="Search organism or disease...">
+  <div class="count" id="ct"></div>
+</div>
+<div class="wrap">
+  <div class="tree" id="tree"></div>
+  <div class="side" id="side"><div class="empty">Select an organism from the tree.</div></div>
+</div>
+<script>
+// Tiers: 1 = ศรว group 1 (must diagnose & manage independently)
+//        2 = ศรว group 2 (must diagnose, initiate, refer)
+//        0 = supporting / mechanistically important, not separately listed
+const ORGS = [
+
+/* ============ EXTRACELLULAR — pyogenic bacteria ============ */
+{n:"Streptococcus pneumoniae", niche:["extra"], tier:1, sys:["Resp","CNS","ENT"], fail:"Capsule / anti-phagocytic", sub:"capsule",
+ resp:"Alternative and MBL complement pathways deposit C3b; neutrophils phagocytose. Anti-capsular IgG is the only reliably protective response.",
+ evade:"Thick polysaccharide capsule resists C3b deposition and blocks phagocyte receptor engagement. Polysaccharide is T-independent, so infants under 2 mount IgM-only responses with no memory — hence conjugate vaccines.",
+ dis:"Lobar pneumonia, otitis media, meningitis. Overwhelming sepsis in hyposplenism (loss of marginal-zone B cells and splenic filtration)."},
+
+{n:"Streptococcus pyogenes (GAS)", niche:["extra"], tier:1, sys:["Skin","ENT","Rheum"], fail:"Molecular mimicry", sub:"molecular mimicry",
+ resp:"Complement and neutrophils; type-specific anti-M protein antibody.",
+ evade:"M protein binds factor H to block opsonisation and shows >200 types, so immunity is type-specific. C5a peptidase cleaves the chemotactic signal. Superantigens (SpeA/C) cause massive non-specific T-cell activation.",
+ dis:"Pharyngitis, impetigo, erysipelas, necrotising fasciitis, scarlet fever, streptococcal TSS. Post-infectious rheumatic fever and glomerulonephritis are pure immunopathology from antibody cross-reacting with heart and glomerular antigens."},
+
+{n:"Staphylococcus aureus", niche:["extra"], tier:1, sys:["Skin","MSK","CVS"], fail:"Direct immune subversion", sub:"subversion",
+ resp:"Neutrophil recruitment and oxidative burst; abscess walling-off.",
+ evade:"Protein A binds IgG Fc backwards, blocking opsonisation. Catalase and staphyloxanthin quench the respiratory burst; leukocidins lyse neutrophils; coagulase builds a fibrin shield. Biofilm on prosthetic material.",
+ dis:"Impetigo, abscess, cellulitis, osteomyelitis, septic arthritis, pyomyositis, infective endocarditis, TSS. Devastating in chronic granulomatous disease."},
+
+{n:"Neisseria meningitidis", niche:["extra"], tier:1, sys:["CNS"], fail:"Capsule / anti-phagocytic", sub:"capsule + mimicry",
+ resp:"Membrane attack complex (C5–C9) lysis is dominant, plus bactericidal antibody.",
+ evade:"Capsular sialic acid recruits factor H, shutting down alternative pathway amplification. Group B capsule mimics human neural NCAM, so it is invisible to B cells — no polysaccharide vaccine possible for group B.",
+ dis:"Meningococcal meningitis, purpura fulminans, Waterhouse–Friderichsen. Terminal complement (C5–9) or properdin deficiency causes recurrent, often milder, meningococcaemia."},
+
+{n:"Haemophilus influenzae b", niche:["extra"], tier:1, sys:["CNS","Resp","ENT"], fail:"Capsule / anti-phagocytic", sub:"capsule",
+ resp:"Anti-PRP capsular antibody plus complement opsonisation.",
+ evade:"Polyribosylribitol phosphate capsule blocks phagocytosis and is poorly immunogenic in infancy. IgA protease cleaves mucosal antibody.",
+ dis:"Epiglottitis, meningitis, pneumonia in under-5s. Near-eliminated by protein conjugation converting the response to T-dependent."},
+
+{n:"Corynebacterium diphtheriae", niche:["extra"], tier:1, sys:["ENT","CVS"], fail:"Toxin-mediated", sub:"toxin",
+ resp:"Neutralising antitoxin antibody; the organism itself is barely invasive.",
+ evade:"Disease is entirely from phage-encoded diphtheria toxin blocking EF-2 and halting protein synthesis. Toxin dose is lethal below the threshold that primes good immunity — only toxoid works.",
+ dis:"Pseudomembranous pharyngitis with airway obstruction, bull neck, myocarditis, palatal palsy and polyneuropathy."},
+
+{n:"Bordetella pertussis", niche:["extra"], tier:1, sys:["Resp"], fail:"Toxin-mediated", sub:"toxin + waning immunity",
+ resp:"Mucosal IgA and cell-mediated responses to pertussis toxin, FHA, pertactin.",
+ evade:"Pertussis toxin ADP-ribosylates Gi, blocking chemokine signalling and causing lymphocytosis. Tracheal cytotoxin destroys ciliated epithelium. Both natural and vaccine immunity wane within ~10 years — hence adolescent resurgence and the need for maternal boosting.",
+ dis:"Whooping cough: catarrhal, then paroxysmal cough with whoop and post-tussive vomiting. Apnoea and death in young infants."},
+
+{n:"Clostridium tetani", niche:["extra"], tier:1, sys:["CNS"], fail:"Toxin-mediated", sub:"toxin potency",
+ resp:"Neutralising antitoxin antibody.",
+ evade:"A lethal dose of tetanospasmin is far below the amount needed to prime B cells — surviving natural tetanus confers no immunity. Spores germinate in anaerobic wound tissue where perfusion and immune access are poor.",
+ dis:"Trismus, risus sardonicus, opisthotonus, autonomic instability. Tetanus neonatorum from unclean cord care."},
+
+{n:"Clostridium botulinum", niche:["extra"], tier:1, sys:["CNS","GI"], fail:"Toxin-mediated", sub:"preformed toxin",
+ resp:"Essentially none in foodborne disease — the toxin is ingested preformed.",
+ evade:"No infection occurs in the classic foodborne form, so there is no antigen exposure to respond to. Toxin cleaves SNARE proteins, blocking acetylcholine release.",
+ dis:"Symmetrical descending flaccid paralysis, bulbar palsies, dilated pupils, respiratory failure. Infant botulism from intestinal colonisation (honey)."},
+
+{n:"Clostridium perfringens", niche:["extra"], tier:2, sys:["Skin","GI"], fail:"Size / inaccessible niche", sub:"anaerobic niche",
+ resp:"Neutrophils, but they cannot function in devitalised anoxic tissue.",
+ evade:"Alpha-toxin (lecithinase) destroys membranes and leukocytes; theta-toxin blocks neutrophil chemotaxis. Grows in tissue with no blood supply and therefore no immune delivery.",
+ dis:"Gas gangrene (clostridial myonecrosis) with crepitus and rapid systemic toxicity; also food-poisoning diarrhoea."},
+
+{n:"Vibrio cholerae", niche:["extra"], tier:1, sys:["GI"], fail:"Toxin-mediated", sub:"non-invasive toxin",
+ resp:"Secretory IgA in the gut lumen is the only relevant defence.",
+ evade:"Never invades, so systemic immunity is irrelevant; disease is entirely a secreted AB toxin raising enterocyte cAMP. Immunity is short-lived and serogroup-specific.",
+ dis:"Profuse rice-water diarrhoea, hypovolaemic shock, acute kidney injury."},
+
+{n:"Shigella / EIEC", niche:["extra","cyto"], tier:1, sys:["GI"], fail:"Intracellular survival", sub:"cytosolic spread",
+ resp:"Mucosal IgA; neutrophil influx into colonic mucosa.",
+ evade:"Invades via M cells, escapes the vacuole into cytosol and spreads cell-to-cell using actin tails, never re-entering extracellular space where antibody works. Very low infectious dose.",
+ dis:"Bacillary dysentery with bloody mucoid stool and tenesmus; HUS with Shiga toxin; febrile convulsions in children."},
+
+{n:"Salmonella (non-typhoidal)", niche:["vesic","extra"], tier:1, sys:["GI"], fail:"Intracellular survival", sub:"intracellular survival",
+ resp:"Neutrophils and mucosal IgA for gut disease; TH1 for invasive disease.",
+ evade:"SPI-2 remodels the Salmonella-containing vacuole to prevent lysosomal fusion. Gastric acid loss markedly increases risk by raising the inoculum reaching the gut.",
+ dis:"Gastroenteritis; bacteraemia and osteomyelitis in sickle cell disease and infants; endovascular seeding."},
+
+{n:"Salmonella Typhi", niche:["vesic"], tier:1, sys:["GI"], fail:"Intracellular survival", sub:"survives in phagocyte",
+ resp:"TH1 macrophage activation; Vi capsular antibody.",
+ evade:"Vi capsule reduces complement deposition and TLR recognition; travels to the reticuloendothelial system inside macrophages, shielded from antibody throughout.",
+ dis:"Enteric fever with stepwise fever, relative bradycardia, rose spots, ileal perforation. Chronic gallbladder carriage in biofilm on gallstones."},
+
+{n:"Campylobacter jejuni", niche:["extra"], tier:1, sys:["GI","Neuro"], fail:"Molecular mimicry", sub:"molecular mimicry",
+ resp:"Mucosal IgA and neutrophils; usually self-limiting.",
+ evade:"Lipo-oligosaccharide mimics human ganglioside GM1. The response that clears the organism cross-reacts with peripheral nerve.",
+ dis:"Bloody diarrhoea with severe cramps; the leading antecedent of Guillain–Barré syndrome and a cause of reactive arthritis."},
+
+{n:"Escherichia coli (UPEC/ETEC)", niche:["extra"], tier:1, sys:["GU","GI"], fail:"Weak / short-lived immunity", sub:"adhesins + short memory",
+ resp:"Neutrophils, complement, Tamm–Horsfall protein and urine flow in the urinary tract.",
+ evade:"P and type 1 fimbriae anchor against flushing; capsule and LPS variation give many serotypes so reinfection is common. Intracellular bacterial communities in bladder epithelium form a reservoir.",
+ dis:"Cystitis, pyelonephritis, urosepsis; traveller's diarrhoea (ETEC); HUS (STEC O157)."},
+
+{n:"Pseudomonas aeruginosa", niche:["extra"], tier:2, sys:["Resp","Skin","GU"], fail:"Size / inaccessible niche", sub:"biofilm",
+ resp:"Neutrophils are the essential defence.",
+ evade:"Alginate biofilm physically excludes phagocytes and antibody; type III secretion injects cytotoxins directly into immune cells; intrinsic multidrug efflux.",
+ dis:"Hospital-acquired and ventilator pneumonia, burn wound sepsis, otitis externa, ecthyma gangrenosum in neutropenia, chronic colonisation in bronchiectasis."},
+
+{n:"Burkholderia pseudomallei", niche:["vesic","cyto"], tier:1, sys:["Resp","Skin","MSK"], fail:"Intracellular survival", sub:"intracellular latency",
+ resp:"TH1 IFN-γ-activated macrophages; neutrophils.",
+ evade:"Escapes the phagosome into cytosol, spreads via actin tails and induces cell fusion into multinucleated giant cells, avoiding extracellular exposure. Can lie dormant for years.",
+ dis:"Melioidosis — the great mimicker. Pneumonia, abscesses in liver/spleen/prostate, parotitis in children, septicaemia. Strongly linked to diabetes; endemic in NE Thailand and a rice-paddy exposure."},
+
+{n:"Leptospira interrogans", niche:["extra"], tier:1, sys:["GU","Liver","Resp"], fail:"Latency / sanctuary site", sub:"immune-privileged sites",
+ resp:"Serovar-specific agglutinating antibody eventually clears blood.",
+ evade:"Binds factor H to resist complement; after the leptospiraemic phase it hides in the renal proximal tubule lumen — an immunologically privileged compartment — and is shed in urine long after clearance elsewhere.",
+ dis:"Biphasic illness; Weil's disease with jaundice, renal failure and pulmonary haemorrhage. Immune phase (aseptic meningitis) is antibody-mediated. Rodent-urine and flood exposure."},
+
+{n:"Treponema pallidum", niche:["extra"], tier:1, sys:["STI","CNS","Skin"], fail:"Antigenic variation", sub:"antigenically inert surface",
+ resp:"Antibody and cell-mediated infiltrate clears lesions of each stage.",
+ evade:"Almost no surface proteins exposed, coated in host molecules — an 'immunologically silent' outer membrane. TprK antigenic variation. Reaches CNS early where it persists.",
+ dis:"Primary chancre, secondary rash (palms/soles) and condylomata lata, latency, tertiary gumma, cardiovascular and neurosyphilis. Congenital syphilis."},
+
+{n:"Neisseria gonorrhoeae", niche:["extra"], tier:1, sys:["STI"], fail:"Antigenic variation", sub:"antigenic variation",
+ resp:"Vigorous neutrophil influx — the pus is the immune response.",
+ evade:"Pilin antigenic variation by recombination from silent loci; Opa phase variation; IgA1 protease cleaves mucosal IgA; sialylation blocks complement. Protective memory is essentially never established.",
+ dis:"Urethritis, cervicitis, PID, epididymo-orchitis, disseminated gonococcal infection with arthritis-dermatitis, ophthalmia neonatorum. Reinfection is the rule."},
+
+{n:"Chlamydia trachomatis", niche:["vesic"], tier:1, sys:["STI","Eye"], fail:"Intracellular survival", sub:"inclusion body + immunopathology",
+ resp:"TH1 IFN-γ; antibody has limited effect on an intracellular organism.",
+ evade:"Replicates inside a modified non-fusogenic inclusion; can enter a persistent aberrant form under IFN-γ pressure rather than dying.",
+ dis:"Non-gonococcal urethritis, cervicitis, PID and tubal infertility, LGV, neonatal conjunctivitis and pneumonia, trachoma. Scarring is driven by repeated immune responses, not the organism."},
+
+{n:"Haemophilus ducreyi", niche:["extra"], tier:1, sys:["STI"], fail:"Weak / short-lived immunity", sub:"neutrophil resistance",
+ resp:"Neutrophils and macrophages recruited heavily to the ulcer.",
+ evade:"Cytolethal distending toxin and LspA proteins resist phagocytic killing; no protective immunity develops.",
+ dis:"Chancroid — painful ragged genital ulcer with tender suppurative inguinal buboes."},
+
+{n:"Gardnerella / BV flora", niche:["extra"], tier:1, sys:["GU"], fail:"Host defect / opportunist", sub:"dysbiosis, not invasion",
+ resp:"Minimal inflammatory response — a key diagnostic feature.",
+ evade:"Displaces protective lactobacilli and raises vaginal pH; polymicrobial biofilm evades rather than provokes.",
+ dis:"Bacterial vaginosis with fishy discharge, clue cells; associated with preterm labour and PID risk."},
+
+/* ============ MYCOBACTERIA & VESICULAR ============ */
+{n:"Mycobacterium tuberculosis", niche:["vesic"], tier:1, sys:["Resp","CNS","MSK"], fail:"Intracellular survival", sub:"phagosome arrest + immunopathology",
+ resp:"CD4 TH1 cells secrete IFN-γ, activating macrophages to fuse phagosome with lysosome and generate nitric oxide. Granuloma formation contains but does not sterilise.",
+ evade:"Blocks phagosome–lysosome fusion; waxy mycolic acid coat resists lysosomal enzymes; catalase inactivates the respiratory burst. It survives inside the very cell meant to kill it.",
+ dis:"Primary TB, latency (Ghon focus), post-primary cavitary disease, miliary spread, TB meningitis, Pott's disease. Cavitation and caseation are TNF-driven immunopathology — hence reactivation with anti-TNF agents and with HIV."},
+
+{n:"Mycobacterium leprae", niche:["vesic"], tier:2, sys:["Skin","Neuro"], fail:"Immunopathology (response causes disease)", sub:"TH1/TH2 balance",
+ resp:"TH1 with IFN-γ controls the organism; response strength varies enormously between hosts.",
+ evade:"Grows in Schwann cells and macrophages at cool sites. Where the host skews TH2, bacilli proliferate unchecked.",
+ dis:"Tuberculoid leprosy (strong TH1, few bacilli, nerve damage from the response itself) versus lepromatous (TH2, teeming bacilli, leonine facies). The clearest human example of response type dictating disease phenotype. Type 1 and 2 lepra reactions are immunological events."},
+
+{n:"Legionella pneumophila", niche:["vesic"], tier:2, sys:["Resp"], fail:"Intracellular survival", sub:"replicative vacuole",
+ resp:"IFN-γ-activated alveolar macrophages.",
+ evade:"Dot/Icm secretion converts the phagosome into an ER-derived replicative niche that never acidifies.",
+ dis:"Legionnaires' disease with confusion, hyponatraemia, diarrhoea. Impaired cell-mediated immunity is the main risk factor."},
+
+{n:"Brucella species", niche:["vesic"], tier:2, sys:["MSK","Systemic"], fail:"Intracellular survival", sub:"stealth LPS",
+ resp:"TH1 macrophage activation and granulomas.",
+ evade:"Non-canonical LPS is a poor TLR4 agonist, so innate recognition is muted and the infection is 'quiet'. Survives in the ER-derived brucellosome.",
+ dis:"Undulant fever, sacroiliitis, orchitis, hepatosplenomegaly, endocarditis. Zoonosis from unpasteurised dairy."},
+
+{n:"Listeria monocytogenes", niche:["cyto","vesic"], tier:2, sys:["CNS","Neonatal"], fail:"Intracellular survival", sub:"phagosomal escape",
+ resp:"Begins as a TH1 problem and becomes a CD8 CTL problem once cytosolic.",
+ evade:"Listeriolysin O perforates the phagolysosome, letting the bacterium escape into cytosol away from proteolytic enzymes; ActA actin tails allow direct cell-to-cell spread without extracellular exposure.",
+ dis:"Neonatal sepsis and granulomatosis infantiseptica, meningitis in the elderly and immunosuppressed, materno-fetal infection. Risk in pregnancy from the physiological TH2 shift."},
+
+{n:"Rickettsia / Orientia tsutsugamushi", niche:["cyto"], tier:2, sys:["Systemic","Skin"], fail:"Intracellular survival", sub:"endothelial cytosol",
+ resp:"CD8 CTL and IFN-γ acting on infected endothelium.",
+ evade:"Escapes the phagosome to replicate free in endothelial cytosol; Orientia has extreme strain antigenic diversity so reinfection with a different strain is common.",
+ dis:"Scrub typhus with eschar, fever, lymphadenopathy; murine typhus; spotted fevers. Vasculitic rash reflects endothelial infection. Common cause of undifferentiated fever in Thailand."},
+
+/* ============ VIRUSES — cytosolic ============ */
+{n:"Influenza A", niche:["cyto"], tier:1, sys:["Resp"], fail:"Antigenic variation", sub:"drift and shift",
+ resp:"Type I IFN early; neutralising anti-haemagglutinin IgA/IgG; CD8 CTL clears infected epithelium.",
+ evade:"Error-prone RNA polymerase drives drift in HA/NA epitopes; reassortment of the segmented genome causes shift and pandemics. NS1 antagonises interferon. Memory is real but targets last year's antigen.",
+ dis:"Seasonal influenza; primary viral and secondary bacterial pneumonia (S. aureus, pneumococcus). Requires annual reformulated vaccine."},
+
+{n:"SARS-CoV-2", niche:["cyto"], tier:2, sys:["Resp","Systemic"], fail:"Direct immune subversion", sub:"IFN antagonism + immunopathology",
+ resp:"Type I/III interferon, CTL, neutralising anti-spike antibody.",
+ evade:"Multiple ORF proteins block interferon induction and signalling, delaying the innate response; spike mutation erodes neutralising antibody between variants.",
+ dis:"COVID-19. Severe disease is largely immunopathology — cytokine release, endothelial injury, thrombosis — occurring as viral load falls. MIS-C and long COVID are post-infectious immune phenomena."},
+
+{n:"Respiratory syncytial virus", niche:["cyto"], tier:1, sys:["Resp"], fail:"Weak / short-lived immunity", sub:"weak memory",
+ resp:"Mucosal IgA and CTL, both short-lived.",
+ evade:"NS1/NS2 degrade STAT2 to block interferon; secreted G protein acts as an antibody decoy. Poor durable memory means lifelong reinfection.",
+ dis:"Bronchiolitis in infants, exacerbations in the elderly. Formalin-inactivated vaccine caused TH2-skewed enhanced disease — a landmark immunological failure."},
+
+{n:"Measles virus", niche:["cyto"], tier:1, sys:["Systemic","Resp","CNS"], fail:"Weak / short-lived immunity", sub:"immune amnesia",
+ resp:"Lifelong sterilising immunity in survivors — a single serotype, hence an effective vaccine.",
+ evade:"Infects CD150+ memory lymphocytes and deletes the pre-existing memory repertoire, erasing immunity to previously encountered pathogens for years.",
+ dis:"Fever, coryza, conjunctivitis, Koplik spots, rash; pneumonia, otitis, encephalitis, and SSPE years later. Prolonged post-measles mortality from unrelated infections."},
+
+{n:"Rubella virus", niche:["cyto"], tier:1, sys:["Systemic","Neonatal"], fail:"Immature / absent host immunity", sub:"fetal tolerance",
+ resp:"Robust lifelong immunity after infection or vaccine.",
+ evade:"Mild in the host but crosses the placenta; the fetus, lacking mature immunity, cannot clear it and becomes persistently infected.",
+ dis:"Rubella with posterior auricular lymphadenopathy; congenital rubella syndrome — cataract, deafness, PDA — when infection occurs in the first trimester."},
+
+{n:"Varicella zoster virus", niche:["cyto"], tier:1, sys:["Skin","Neuro"], fail:"Latency / sanctuary site", sub:"ganglionic latency",
+ resp:"CTL and NK cells control primary infection; cell-mediated immunity keeps latency in check.",
+ evade:"Establishes lifelong latency in dorsal root and cranial ganglia, sites adaptive immunity cannot sterilise. Downregulates MHC I on infected cells.",
+ dis:"Chickenpox, then zoster when VZV-specific T-cell immunity wanes with age or immunosuppression. Post-herpetic neuralgia, ophthalmic zoster, Ramsay Hunt, disseminated zoster."},
+
+{n:"Herpes simplex virus", niche:["cyto"], tier:1, sys:["Skin","STI","CNS"], fail:"Latency / sanctuary site", sub:"latency + MHC I blockade",
+ resp:"CD8 CTL and NK cells; antibody limits spread but does not clear.",
+ evade:"ICP47 blocks TAP peptide transport so infected cells display few viral peptides on MHC I and escape CTL. NK cells partly compensate by sensing missing MHC. Latency in sensory ganglia is beyond adaptive reach.",
+ dis:"Gingivostomatitis, herpes labialis, genital herpes, herpetic whitlow, keratitis, eczema herpeticum, HSV encephalitis, neonatal herpes."},
+
+{n:"Cytomegalovirus", niche:["cyto"], tier:2, sys:["Systemic","Eye","Neonatal"], fail:"Latency / sanctuary site", sub:"multi-level MHC I evasion",
+ resp:"CTL and NK; a large fraction of the elderly memory CD8 repertoire is CMV-specific.",
+ evade:"Multiple US gene products degrade or retain MHC I; UL18 decoy engages NK inhibitory receptors; viral IL-10 homologue dampens local responses. Lifelong latency in myeloid cells.",
+ dis:"Silent in the immunocompetent. Retinitis and colitis in AIDS, pneumonitis post-transplant, congenital CMV with sensorineural deafness and periventricular calcification."},
+
+{n:"Epstein–Barr virus", niche:["cyto"], tier:1, sys:["Systemic","Onc"], fail:"Latency / sanctuary site", sub:"B-cell latency",
+ resp:"Massive CD8 expansion — the atypical lymphocytes of glandular fever are the response, not the virus.",
+ evade:"BHRF1/BALF1 are viral Bcl-2 homologues blocking apoptosis; latency programmes express minimal antigen; persists in the memory B-cell compartment.",
+ dis:"Infectious mononucleosis (symptoms largely immunopathology), Burkitt and Hodgkin lymphoma, nasopharyngeal carcinoma, PTLD when T-cell control is removed."},
+
+{n:"Hepatitis A virus", niche:["cyto"], tier:1, sys:["Liver"], fail:"Immunopathology (response causes disease)", sub:"immunopathology",
+ resp:"CTL against infected hepatocytes; lifelong immunity after one infection.",
+ evade:"Little active evasion — it is cleared. The virus is non-cytopathic, so hepatocyte damage is caused by the CTL response itself.",
+ dis:"Acute hepatitis, faeco-oral. Symptomatic severity rises with age because the immune response is more vigorous — children are often asymptomatic. No chronicity."},
+
+{n:"Hepatitis B virus", niche:["cyto"], tier:1, sys:["Liver","Onc"], fail:"Immunopathology (response causes disease)", sub:"immunopathology + tolerance",
+ resp:"CD8 CTL against infected hepatocytes; anti-HBs is protective and is the vaccine basis.",
+ evade:"Non-cytopathic. A weak response gives chronic carriage; a vigorous one destroys liver tissue. Secreted HBeAg tolerises the neonatal immune system; cccDNA persists in the nucleus indefinitely.",
+ dis:"Acute hepatitis (severity tracks CTL vigour, not viral load), chronic hepatitis, cirrhosis, hepatocellular carcinoma. Perinatal infection → tolerance → ~90% chronicity versus <5% in adults. Also PAN and membranous nephropathy from immune complexes."},
+
+{n:"Hepatitis C virus", niche:["cyto"], tier:2, sys:["Liver","Onc"], fail:"Antigenic variation", sub:"quasispecies escape",
+ resp:"CTL and neutralising antibody; only ~25% clear spontaneously.",
+ evade:"Error-prone replication generates a swarm of quasispecies that outruns each CTL clone; hypervariable region 1 of E2 mutates away from neutralising antibody; NS3/4A cleaves MAVS to block interferon induction.",
+ dis:"Usually silent acute infection, then chronic hepatitis in ~75%, cirrhosis, hepatocellular carcinoma. Also cryoglobulinaemic vasculitis."},
+
+{n:"Hepatitis E virus", niche:["cyto"], tier:2, sys:["Liver"], fail:"Immature / absent host immunity", sub:"pregnancy-associated severity",
+ resp:"Antibody and CTL; usually self-limiting.",
+ evade:"Limited evasion in the immunocompetent, but chronicity occurs in transplant recipients on calcineurin inhibitors.",
+ dis:"Acute hepatitis, faeco-oral. Notably high mortality (~20%) in the third trimester of pregnancy, linked to altered immune and hormonal state."},
+
+{n:"HIV-1", niche:["cyto"], tier:1, sys:["Systemic","STI"], fail:"Direct immune subversion", sub:"subverts the responding cell",
+ resp:"Strong CTL and neutralising antibody responses are generated — and partially effective early.",
+ evade:"Infects and destroys the CD4 TH cell needed to sustain both CTL help and B-cell help. Extreme intra-host mutation outruns each CTL clone; heavily glycosylated env shields epitopes; Nef downregulates MHC I; integrated provirus in resting memory cells is invisible.",
+ dis:"Acute seroconversion illness, prolonged latency, then AIDS defined by opportunists appearing as CD4 falls — PCP, cryptococcus, CMV, TB, toxoplasmosis, penicilliosis. The master key to the whole opportunistic list."},
+
+{n:"Dengue virus", niche:["cyto"], tier:1, sys:["Systemic"], fail:"Immunopathology (response causes disease)", sub:"antibody-dependent enhancement",
+ resp:"Type-specific neutralising antibody protects against the homologous serotype only.",
+ evade:"Cross-reactive but non-neutralising antibody from a prior serotype opsonises virus into FcγR-bearing monocytes, increasing infected cell number. Immunity to one serotype worsens the next. NS1 disrupts endothelial glycocalyx.",
+ dis:"Dengue fever; severe dengue with plasma leakage, haemoconcentration and shock at defervescence — typically on secondary heterologous infection. Central to Thai practice and to vaccine strategy."},
+
+{n:"Chikungunya virus", niche:["cyto"], tier:1, sys:["Systemic","MSK"], fail:"Immunopathology (response causes disease)", sub:"persistent synovial antigen",
+ resp:"Neutralising antibody gives durable, likely lifelong, protection.",
+ evade:"Viral RNA and antigen persist in joint macrophages and synovium after clearance from blood, sustaining an inflammatory response.",
+ dis:"Abrupt fever with severe symmetrical polyarthralgia and rash; chronic post-chikungunya arthritis lasting months to years — an immunological sequel, not ongoing replication."},
+
+{n:"Zika virus", niche:["cyto"], tier:1, sys:["Systemic","Neonatal"], fail:"Immature / absent host immunity", sub:"fetal neurotropism",
+ resp:"Neutralising antibody; mild self-limiting illness in adults.",
+ evade:"Crosses the placenta and infects neural progenitor cells in a fetus with no competent immune system. Cross-reacts with dengue antibody, complicating both serology and ADE risk.",
+ dis:"Mild fever, rash, conjunctivitis; congenital Zika syndrome with microcephaly; Guillain–Barré syndrome."},
+
+{n:"Rabies virus", niche:["cyto"], tier:2, sys:["CNS"], fail:"Latency / sanctuary site", sub:"immune-privileged CNS",
+ resp:"Post-exposure vaccine plus immunoglobulin works only before CNS entry.",
+ evade:"Travels retrogradely inside axons, never entering extracellular space where antibody could neutralise it. Once in the CNS it is behind the blood–brain barrier in an immune-privileged site. Suppresses local interferon.",
+ dis:"Hydrophobia, aerophobia, encephalitic or paralytic rabies. Essentially 100% fatal once symptomatic — the definitive argument for prompt PEP."},
+
+{n:"Poliovirus", niche:["cyto"], tier:2, sys:["CNS"], fail:"Immature / absent host immunity", sub:"anterior horn cell tropism",
+ resp:"Mucosal IgA blocks gut replication; serotype-specific neutralising IgG prevents viraemia.",
+ evade:"Little sophisticated evasion; the problem is that in <1% the virus reaches and destroys motor neurons before antibody contains the viraemia. Three serotypes require trivalent coverage.",
+ dis:"Mostly asymptomatic or minor illness; aseptic meningitis; asymmetric flaccid paralysis with intact sensation; post-polio syndrome."},
+
+{n:"Mumps virus", niche:["cyto"], tier:1, sys:["ENT","Systemic"], fail:"Immature / absent host immunity", sub:"glandular tropism",
+ resp:"Lifelong immunity after infection or vaccine.",
+ evade:"V protein blocks STAT signalling and interferon responses; targets glandular and CNS tissue early before adaptive immunity engages.",
+ dis:"Parotitis, orchitis with subfertility risk, aseptic meningitis, pancreatitis, sensorineural deafness."},
+
+{n:"Enteroviruses (EV71, Coxsackie)", niche:["cyto"], tier:1, sys:["Skin","CNS"], fail:"Antigenic variation", sub:"many serotypes",
+ resp:"Serotype-specific neutralising antibody.",
+ evade:"Dozens of non-cross-protective serotypes mean repeated infection through childhood; proteases cleave innate signalling adaptors.",
+ dis:"Hand, foot and mouth disease, herpangina, aseptic meningitis, myocarditis. EV71 causes brainstem encephalitis and neurogenic pulmonary oedema."},
+
+{n:"Parvovirus B19", niche:["cyto"], tier:1, sys:["Skin","Haem"], fail:"Immunopathology (response causes disease)", sub:"immunopathology + erythroid arrest",
+ resp:"IgM then IgG to the capsid clears viraemia and gives lifelong immunity.",
+ evade:"Destroys erythroid progenitors via P antigen before antibody appears. The rash and arthralgia are immune-complex phenomena occurring after viraemia has resolved — patients are no longer infectious when they look unwell.",
+ dis:"Erythema infectiosum (slapped cheek); transient aplastic crisis in haemolytic anaemia; pure red cell aplasia in immunodeficiency; hydrops fetalis."},
+
+{n:"Human herpesvirus 6", niche:["cyto"], tier:1, sys:["Skin","Neuro"], fail:"Latency / sanctuary site", sub:"latency",
+ resp:"Primary infection in infancy is controlled and gives lifelong latency.",
+ evade:"Infects CD4 cells and integrates into telomeres; downregulates MHC I; reactivates under immunosuppression.",
+ dis:"Roseola infantum (exanthem subitum) — high fever for 3–5 days then rash as fever falls; febrile convulsions; encephalitis and marrow suppression post-transplant."},
+
+{n:"Human papillomavirus", niche:["cyto"], tier:1, sys:["STI","Onc"], fail:"Weak / short-lived immunity", sub:"epithelial immune evasion",
+ resp:"Eventually cell-mediated clearance in ~90% within 2 years.",
+ evade:"Replicates only in differentiating keratinocytes with no viraemia, no cytolysis and no inflammation, so antigen barely reaches lymph nodes. E6/E7 degrade p53 and Rb and suppress interferon. Natural antibody responses are weak — vaccine works far better than infection.",
+ dis:"Anogenital warts (6/11); cervical, anal, vulval and oropharyngeal carcinoma (16/18); recurrent respiratory papillomatosis."},
+
+{n:"Nipah virus", niche:["cyto"], tier:2, sys:["CNS","Resp"], fail:"Immature / absent host immunity", sub:"endothelial and neural tropism",
+ resp:"Antibody, but the illness outpaces it.",
+ evade:"V and W proteins block STAT1 and interferon signalling; infects endothelium and neurons directly, causing vasculitis before adaptive immunity engages.",
+ dis:"Encephalitis with high mortality, respiratory involvement; relapsing encephalitis months later. Bat-borne zoonosis."},
+
+/* ============ FUNGI ============ */
+{n:"Candida albicans", niche:["extra","surf"], tier:1, sys:["Skin","GU","Systemic"], fail:"Host defect / opportunist", sub:"commensal overgrowth",
+ resp:"TH17 → IL-17 → neutrophil recruitment and epithelial antimicrobial peptides. The textbook TH17 exemplar.",
+ evade:"Hyphal switching resists phagocytosis and candidalysin damages epithelium; the organism exploits any lapse in barrier, flora or neutrophil number rather than actively hiding.",
+ dis:"Thrush, denture stomatitis, intertrigo, vulvovaginal candidiasis, oesophagitis, candidaemia. Chronic mucocutaneous candidiasis in IL-17 pathway defects; invasive disease in neutropenia."},
+
+{n:"Cryptococcus neoformans", niche:["extra","vesic"], tier:2, sys:["CNS","Resp"], fail:"Capsule / anti-phagocytic", sub:"capsule + T-cell dependence",
+ resp:"TH1-activated macrophages and granuloma formation.",
+ evade:"Glucuronoxylomannan capsule is anti-phagocytic and actively immunosuppressive, shed in quantity to absorb opsonins. Survives and replicates within macrophages and uses them as a Trojan horse across the blood–brain barrier.",
+ dis:"Cryptococcal meningitis, typically CD4 <100. Raised intracranial pressure with strikingly little CSF inflammation. IRIS on starting ART."},
+
+{n:"Talaromyces (Penicillium) marneffei", niche:["vesic"], tier:2, sys:["Systemic","Skin"], fail:"Intracellular survival", sub:"intracellular yeast phase",
+ resp:"TH1 IFN-γ-activated macrophages.",
+ evade:"Converts to a yeast form that survives and divides inside macrophages; requires intact CD4 immunity for control.",
+ dis:"Disseminated talaromycosis with fever, umbilicated molluscum-like skin lesions, hepatosplenomegaly and anaemia in advanced HIV. An AIDS-defining illness specific to SE Asia — high yield for Thai practice."},
+
+{n:"Aspergillus fumigatus", niche:["extra"], tier:2, sys:["Resp"], fail:"Host defect / opportunist", sub:"neutrophil-dependent",
+ resp:"Alveolar macrophages kill conidia; neutrophils kill hyphae — the critical step.",
+ evade:"Conidial melanin and hydrophobin mask PAMPs from recognition; gliotoxin impairs phagocyte function; rapid hyphal growth outpaces defence once neutrophils are gone.",
+ dis:"Invasive aspergillosis in prolonged neutropenia; aspergilloma in old cavities; ABPA — where the disease is a TH2 hypersensitivity to the fungus rather than invasion."},
+
+{n:"Mucorales (mucormycosis)", niche:["extra"], tier:2, sys:["ENT","Resp"], fail:"Host defect / opportunist", sub:"angioinvasion in acidosis",
+ resp:"Neutrophils and macrophages; iron sequestration is a key innate defence.",
+ evade:"Thrives when free iron rises and phagocyte function falls — diabetic ketoacidosis is the classic setting. Invades vessels causing thrombosis and infarction, cutting off immune delivery to infected tissue.",
+ dis:"Rhino-orbito-cerebral mucormycosis with black eschar, pulmonary and cutaneous forms. Requires surgical debridement because no blood supply means no drug or cell delivery."},
+
+{n:"Pneumocystis jirovecii", niche:["extra"], tier:1, sys:["Resp"], fail:"Host defect / opportunist", sub:"opportunist — needs CD4",
+ resp:"CD4 T cells coordinating alveolar macrophage clearance.",
+ evade:"Requires no sophisticated evasion; controlled entirely by intact CD4 immunity and appears the moment that is lost. Major surface glycoprotein undergoes antigenic variation.",
+ dis:"PCP with dry cough, exertional desaturation, raised LDH and bilateral interstitial infiltrates with a clear-ish chest exam. Defining illness of advanced HIV; steroids indicated in hypoxia because the damage is inflammatory."},
+
+{n:"Dermatophytes (Trichophyton etc.)", niche:["surf"], tier:1, sys:["Skin"], fail:"Size / inaccessible niche", sub:"keratin niche",
+ resp:"Delayed-type hypersensitivity; TH1 responses clear infection.",
+ evade:"Confined to non-living keratin — stratum corneum, hair, nail — a compartment with no vasculature and minimal immune surveillance. Mannans suppress local lymphocyte responses.",
+ dis:"Tinea corporis, cruris, pedis, capitis, unguium. Kerion and id reactions are hypersensitivity phenomena."},
+
+/* ============ PROTOZOA ============ */
+{n:"Plasmodium falciparum", niche:["cyto","extra"], tier:1, sys:["Systemic","Haem"], fail:"Antigenic variation", sub:"variation + sequestration",
+ resp:"Antibody to merozoite surface antigens; splenic clearance of infected red cells.",
+ evade:"Switches var gene expression so PfEMP1 changes constantly; PfEMP1 also mediates cytoadherence to endothelium, sequestering parasites away from splenic filtration. Erythrocytes lack MHC, so infected cells are invisible to CTL.",
+ dis:"Cyclical fever, severe anaemia, cerebral malaria, blackwater fever. Immunity is partial premunition — lost without repeated exposure, which is why returning expatriates lose protection. P. vivax adds hypnozoite relapse."},
+
+{n:"Entamoeba histolytica", niche:["extra"], tier:1, sys:["GI","Liver"], fail:"Direct immune subversion", sub:"kills the responders",
+ resp:"Mucosal IgA and neutrophils; cell-mediated immunity limits invasion.",
+ evade:"Contact-dependent cytolysis and trogocytosis kill neutrophils and epithelium directly; cysteine proteases degrade IgA and C3; surface lectin resists complement lysis.",
+ dis:"Amoebic colitis with flask-shaped ulcers and bloody diarrhoea; amoebic liver abscess with anchovy-paste content (largely liquefied host cells)."},
+
+{n:"Giardia lamblia", niche:["surf"], tier:1, sys:["GI"], fail:"Weak / short-lived immunity", sub:"luminal + variation",
+ resp:"Secretory IgA and TH17 at the mucosal surface.",
+ evade:"Remains attached to the luminal surface, never invading, so systemic immunity is irrelevant. Variant surface protein switching evades IgA. IgA deficiency predisposes to chronic infection.",
+ dis:"Malabsorptive diarrhoea, steatorrhoea, bloating, weight loss, lactose intolerance and growth faltering in children."},
+
+{n:"Toxoplasma gondii", niche:["vesic"], tier:2, sys:["CNS","Eye","Neonatal"], fail:"Latency / sanctuary site", sub:"latency in privileged tissue",
+ resp:"IFN-γ from TH1 cells is essential and normally controls infection completely.",
+ evade:"Non-fusogenic parasitophorous vacuole; ROP/GRA effectors block IFN-γ-inducible killing; forms bradyzoite cysts in brain and muscle persisting for life under continuous T-cell surveillance.",
+ dis:"Asymptomatic or glandular illness in the immunocompetent. Reactivation encephalitis with ring-enhancing lesions when CD4 <100; congenital toxoplasmosis with chorioretinitis, hydrocephalus and intracranial calcification."},
+
+{n:"Trichomonas vaginalis", niche:["surf"], tier:1, sys:["STI"], fail:"Weak / short-lived immunity", sub:"luminal + protease",
+ resp:"Local neutrophils and IgA; no protective immunity.",
+ evade:"Cysteine proteases degrade IgA and complement; adheres to squamous epithelium without invading.",
+ dis:"Frothy malodorous discharge, strawberry cervix, urethritis; increases HIV transmission risk. Partner treatment essential as reinfection is universal."},
+
+{n:"Leishmania species", niche:["vesic"], tier:2, sys:["Skin","Systemic"], fail:"Immunopathology (response causes disease)", sub:"TH1/TH2 balance",
+ resp:"TH1 IFN-γ activating macrophages is curative; TH2 permits dissemination.",
+ evade:"Survives in the macrophage phagolysosome; LPG inhibits phagosome maturation and the oxidative burst; drives IL-10 and regulatory responses. The classic TH1/TH2 experimental paradigm.",
+ dis:"Cutaneous leishmaniasis (self-limiting with good TH1), mucocutaneous, and visceral kala-azar with pancytopenia and massive splenomegaly."},
+
+{n:"Free-living amoebae (Naegleria, Acanthamoeba)", niche:["extra"], tier:2, sys:["CNS","Eye"], fail:"Host defect / opportunist", sub:"CNS access + cyst form",
+ resp:"Neutrophils and complement; largely ineffective once in CNS.",
+ evade:"Naegleria enters directly via the cribriform plate, bypassing systemic immunity. Acanthamoeba forms resistant cysts and causes indolent granulomatous disease in the immunosuppressed.",
+ dis:"Primary amoebic meningoencephalitis (fresh water, near-uniformly fatal); granulomatous amoebic encephalitis; Acanthamoeba keratitis in contact lens wearers."},
+
+/* ============ HELMINTHS & ECTOPARASITES ============ */
+{n:"Ascaris lumbricoides", niche:["surf"], tier:1, sys:["GI","Resp"], fail:"Size / inaccessible niche", sub:"size + immunomodulation",
+ resp:"IL-4/IL-5/IL-13 drive mucus hypersecretion, goblet cell hyperplasia and smooth-muscle contraction — 'weep and sweep'; IgE and eosinophils.",
+ evade:"Secretes immunomodulators inducing regulatory T cells; adult worms are far too large for any cellular killing mechanism; cuticle resists complement.",
+ dis:"Often asymptomatic; malnutrition and growth failure; bolus intestinal or biliary obstruction; Löffler pneumonitis during pulmonary larval migration."},
+
+{n:"Hookworm (Necator, Ancylostoma)", niche:["surf"], tier:1, sys:["GI","Haem"], fail:"Direct immune subversion", sub:"active immunosuppression",
+ resp:"TH2 with IgE and eosinophils; some protection develops with repeated exposure.",
+ evade:"Secretes anticoagulants and proteins that suppress local inflammation and induce Tregs — so effectively that hookworm therapy is trialled for autoimmune disease.",
+ dis:"Iron-deficiency anaemia from blood loss, hypoproteinaemia, growth and cognitive impairment in children; ground itch at penetration site."},
+
+{n:"Strongyloides stercoralis", niche:["surf","cyto"], tier:1, sys:["GI","Resp"], fail:"Host defect / opportunist", sub:"autoinfection under steroids",
+ resp:"TH2 and eosinophils normally restrain the autoinfective cycle indefinitely.",
+ evade:"Uniquely completes its life cycle within the host. Corticosteroids suppress the TH2/eosinophil brake and directly resemble parasite ecdysteroids, triggering explosive autoinfection.",
+ dis:"Chronic larva currens and vague GI symptoms for decades; hyperinfection and disseminated strongyloidiasis with Gram-negative sepsis and meningitis when immunosuppressed. Screen before steroids — a classic exam and clinical trap."},
+
+{n:"Enterobius vermicularis", niche:["surf"], tier:1, sys:["GI"], fail:"Weak / short-lived immunity", sub:"perianal reinfection",
+ resp:"Minimal — the worm barely engages the immune system.",
+ evade:"Nocturnal perianal egg-laying with immediate hand-to-mouth reinfection outpaces any slow adaptive response.",
+ dis:"Nocturnal pruritus ani, sleep disturbance, vulvovaginitis in girls. Household treatment required."},
+
+{n:"Trichuris trichiura", niche:["surf"], tier:1, sys:["GI"], fail:"Size / inaccessible niche", sub:"mucosal anchoring",
+ resp:"TH2 responses; heavy burdens correlate with poor TH2 polarisation.",
+ evade:"Threads its anterior end into colonic epithelium, physically embedded in the tissue it is meant to be expelled from.",
+ dis:"Trichuris dysentery syndrome, rectal prolapse and growth stunting in heavily infected children."},
+
+{n:"Taenia solium / cysticercosis", niche:["surf","vesic"], tier:2, sys:["CNS","MSK"], fail:"Immunopathology (response causes disease)", sub:"immunological silence then immunopathology",
+ resp:"Live cysticerci are barely recognised; the response begins only when the larva dies.",
+ evade:"Live cyst secretes taeniaestatin and paramyosin, inhibiting complement and inducing Tregs — a state of active immunological silence.",
+ dis:"Taeniasis from pork. Neurocysticercosis: seizures appear when cysts degenerate and the surrounding inflammatory response develops — treatment can precipitate seizures for the same reason, hence concurrent steroids."},
+
+{n:"Opisthorchis viverrini", niche:["surf"], tier:2, sys:["Liver","Onc"], fail:"Immunopathology (response causes disease)", sub:"chronic inflammation → cancer",
+ resp:"TH2 and IgE; largely ineffective against an adult fluke in the bile duct.",
+ evade:"Lives in bile ducts, secreting granulin-like growth factors that drive epithelial proliferation while suppressing effective local immunity.",
+ dis:"Cholangitis, biliary obstruction, and cholangiocarcinoma from decades of chronic inflammation. Endemic in NE Thailand from raw cyprinid fish — a leading regional cancer cause."},
+
+{n:"Schistosoma species", niche:["surf"], tier:2, sys:["GI","GU","Onc"], fail:"Size / inaccessible niche", sub:"host antigen camouflage",
+ resp:"TH2 with IgE, eosinophils and mast cells; eosinophil ADCC against schistosomula.",
+ evade:"Adult worms coat their tegument in host molecules including MHC, becoming immunologically self. Secrete protease inhibitors and are too large to phagocytose.",
+ dis:"Katayama fever; chronic disease is granulomatous fibrosis around trapped eggs — periportal 'pipe-stem' fibrosis and portal hypertension, or bladder fibrosis and squamous carcinoma. The pathology is entirely the TH2 granulomatous response."},
+
+{n:"Trichinella spiralis", niche:["surf","cyto"], tier:2, sys:["MSK"], fail:"Intracellular survival", sub:"nurse cell formation",
+ resp:"Intense eosinophilia and IgE; expels adults from gut effectively.",
+ evade:"Larvae reprogramme skeletal muscle cells into a collagen-encased 'nurse cell' with its own blood supply, an intracellular sanctuary the response cannot dismantle.",
+ dis:"Diarrhoea, then fever, periorbital oedema, myositis and marked eosinophilia. Myocarditis and encephalitis in heavy infection. Raw pork."},
+
+{n:"Gnathostoma spinigerum", niche:["surf"], tier:2, sys:["Skin","CNS"], fail:"Size / inaccessible niche", sub:"migratory larva",
+ resp:"Marked eosinophilia and IgE; unable to kill a motile migrating larva.",
+ evade:"Never settles — continuously migrates through tissue planes so no localised effector response can be organised.",
+ dis:"Intermittent migratory subcutaneous swellings; eosinophilic meningitis, myelitis and radiculopathy when the larva enters the CNS. Raw freshwater fish — endemic in Thailand."},
+
+{n:"Angiostrongylus cantonensis", niche:["surf"], tier:2, sys:["CNS"], fail:"Immunopathology (response causes disease)", sub:"dies in the CNS",
+ resp:"Eosinophilic CSF response.",
+ evade:"The larva reaches the CNS and dies there; the resulting eosinophilic inflammation is what causes the illness.",
+ dis:"Eosinophilic meningitis with severe headache and paraesthesiae, from raw snails or contaminated vegetables. Common in SE Asia."},
+
+{n:"Wuchereria bancrofti (filariasis)", niche:["surf"], tier:2, sys:["Lymph"], fail:"Size / inaccessible niche", sub:"lymphatic damage + tolerance",
+ resp:"TH2 and IgE; most endemic patients are immunologically tolerant with high microfilaraemia and few symptoms.",
+ evade:"Adults live in lymphatics and induce strong regulatory responses; Wolbachia endosymbionts released on worm death drive the inflammation.",
+ dis:"Acute filarial lymphangitis, chronic lymphoedema and elephantiasis, hydrocele, tropical pulmonary eosinophilia. Pathology reflects the response to dying worms plus lymphatic obstruction."},
+
+{n:"Sarcoptes scabiei", niche:["surf"], tier:1, sys:["Skin"], fail:"Size / inaccessible niche", sub:"inaccessible burrow",
+ resp:"Delayed hypersensitivity to mite antigen and faeces.",
+ evade:"Lives within the stratum corneum, an avascular compartment beyond effective cellular reach; secretes complement inhibitors.",
+ dis:"Scabies — itch appears only 4–6 weeks after first infestation, when sensitisation develops, and within days on reinfestation. Crusted (Norwegian) scabies with thousands of mites where cellular immunity fails — highly contagious."},
+
+{n:"Pediculus / Phthirus (lice)", niche:["surf"], tier:1, sys:["Skin"], fail:"Size / inaccessible niche", sub:"ectoparasite — no immune target",
+ resp:"Hypersensitivity to salivary antigen causes the pruritus.",
+ evade:"Lives entirely on the skin surface and hair shaft, outside any immune compartment.",
+ dis:"Head, body and pubic lice with pruritus and excoriation; body lice transmit epidemic typhus and relapsing fever."},
+
+{n:"Cutaneous larva migrans (Ancylostoma braziliense)", niche:["surf"], tier:2, sys:["Skin"], fail:"Size / inaccessible niche", sub:"wrong host",
+ resp:"Eosinophilic and hypersensitivity response to migrating larva.",
+ evade:"An animal hookworm larva that cannot complete its cycle in humans, so it wanders in the epidermis until it dies — no effective targeting is possible against a moving track.",
+ dis:"Intensely itchy serpiginous advancing track, usually on feet or buttocks after beach or soil contact."},
+
+/* ============ ZOONOSES & OTHERS ============ */
+{n:"Bacillus anthracis", niche:["extra"], tier:2, sys:["Skin","Resp"], fail:"Capsule / anti-phagocytic", sub:"capsule + toxins",
+ resp:"Neutrophils and antibody to protective antigen.",
+ evade:"Poly-D-glutamic acid capsule resists phagocytosis and is poorly immunogenic; lethal toxin cleaves MAPKK to kill macrophages; oedema toxin raises cAMP and impairs neutrophil function.",
+ dis:"Cutaneous anthrax with painless black eschar; inhalational anthrax with haemorrhagic mediastinitis; gastrointestinal anthrax."},
+
+{n:"Yersinia pestis", niche:["extra","vesic"], tier:2, sys:["Lymph","Resp"], fail:"Direct immune subversion", sub:"silences innate response",
+ resp:"Neutrophils and macrophages — both actively disabled.",
+ evade:"Type III secretion injects Yops that block phagocytosis and cytokine signalling; low-temperature LPS is a poor TLR4 agonist so the early innate alarm never sounds. Buys the time it needs to overwhelm the host.",
+ dis:"Bubonic plague with painful buboes; septicaemic and pneumonic plague. Rapidly fatal without early treatment."},
+
+{n:"Group B Streptococcus", niche:["extra"], tier:1, sys:["Neonatal"], fail:"Immature / absent host immunity", sub:"neonatal antibody gap",
+ resp:"Maternal type-specific IgG crossing the placenta is the key protection.",
+ evade:"Sialylated capsule binds factor H and mimics host sialic acid. Mothers lacking type-specific antibody transfer none, leaving the neonate defenceless.",
+ dis:"Early-onset neonatal sepsis, pneumonia and meningitis; late-onset meningitis. Basis for intrapartum antibiotic prophylaxis."},
+
+{n:"Helicobacter pylori", niche:["extra"], tier:1, sys:["GI","Onc"], fail:"Weak / short-lived immunity", sub:"persistent despite response",
+ resp:"Vigorous local antibody and TH1/TH17 gastritis — which never clears the organism.",
+ evade:"Urease neutralises acid; lives in the mucus layer just off the epithelium; VacA induces regulatory T cells and inhibits T-cell proliferation, actively dampening the response it provokes.",
+ dis:"Chronic gastritis, peptic ulcer, gastric adenocarcinoma and MALT lymphoma — the latter often regressing on eradication, showing the tumour was antigen-driven."},
+
+{n:"Clostridioides difficile", niche:["extra"], tier:2, sys:["GI"], fail:"Host defect / opportunist", sub:"flora disruption",
+ resp:"Anti-toxin A/B antibody determines whether disease occurs; colonisation is common and often silent.",
+ evade:"Spores resist everything including alcohol gel; exploits antibiotic-induced loss of colonisation resistance rather than evading immunity directly. Poor anti-toxin responders relapse repeatedly.",
+ dis:"Antibiotic-associated diarrhoea, pseudomembranous colitis, toxic megacolon. Faecal transplant works by restoring flora, not immunity."}
+];
+
+const NICHES=[
+ {id:"extra",name:"EXTRACELLULAR \u2014 interstitium, blood, mucosal lumen",col:"var(--extra)",
+  eff:"Type 3 \u00b7 Complement + neutrophils + TH17/IL-17 \u00b7 IgM/IgG/IgA opsonisation. Antibody is the decisive arm."},
+ {id:"vesic",name:"INTRACELLULAR \u2014 vesicular (phagosome)",col:"var(--vesic)",
+  eff:"Type 1 \u00b7 MHC II \u2192 CD4 TH1 \u2192 IFN-\u03b3 \u2192 macrophage activation. Antibody cannot reach the organism."},
+ {id:"cyto",name:"INTRACELLULAR \u2014 cytosolic",col:"var(--cyto)",
+  eff:"Type 1 \u00b7 Type I IFN + NK early; MHC I \u2192 CD8 CTL kills the infected cell. Killing the host cell is the only option."},
+ {id:"surf",name:"SURFACE / MULTICELLULAR \u2014 too large to phagocytose",col:"var(--surf)",
+  eff:"Type 2 \u00b7 TH2 \u2192 IL-4/IL-5/IL-13 \u00b7 IgE + mast cells + eosinophils \u00b7 mucus, contraction, expulsion."}
+];
+const FAILS=[...new Set(ORGS.map(o=>o.fail))].sort();
+const S={niche:{},tier:{1:true,2:true},fail:{},q:""};
+NICHES.forEach(n=>S.niche[n.id]=true);
+FAILS.forEach(f=>S.fail[f]=true);
+
+function chip(host,label,on,dot){
+  const c=document.createElement('div');c.className='chip'+(on?'':' off');
+  c.innerHTML=(dot?`<span class="dot" style="background:${dot}"></span>`:'')+label;
+  host.appendChild(c);return c;
+}
+const nb=document.getElementById('nb'),tb=document.getElementById('tb'),fb=document.getElementById('fb');
+NICHES.forEach(n=>{const lbl={extra:'Extracellular',vesic:'Vesicular',cyto:'Cytosolic',surf:'Surface'}[n.id];
+  const c=chip(nb,lbl,true,n.col);c.onclick=()=>{S.niche[n.id]=!S.niche[n.id];c.classList.toggle('off');render();};});
+[1,2].forEach(t=>{const c=chip(tb,'\u0e01\u0e25\u0e38\u0e48\u0e21 '+t,true);
+  c.onclick=()=>{S.tier[t]=!S.tier[t];c.classList.toggle('off');render();};});
+FAILS.forEach(f=>{const c=chip(fb,f,true);
+  c.onclick=()=>{S.fail[f]=!S.fail[f];c.classList.toggle('off');render();};});
+document.getElementById('q').oninput=e=>{S.q=e.target.value.toLowerCase();render();};
+
+const tree=document.getElementById('tree'),side=document.getElementById('side'),ct=document.getElementById('ct');
+function pass(o){
+  if(!S.tier[o.tier]&&o.tier)return false;
+  if(!S.fail[o.fail])return false;
+  if(S.q){const h=(o.n+' '+o.dis+' '+o.sys.join(' ')+' '+o.fail+' '+o.sub+' '+o.evade).toLowerCase();
+    if(!h.includes(S.q))return false;}
+  return true;
+}
+function render(){
+  tree.innerHTML='';let seen=new Set();
+  NICHES.forEach(n=>{
+    if(!S.niche[n.id])return;
+    const list=ORGS.filter(o=>o.niche.includes(n.id)&&pass(o));
+    if(!list.length)return;
+    const d=document.createElement('div');d.className='branch';d.style.setProperty('--c',n.col);
+    d.innerHTML=`<h2>${n.name}</h2><p class="eff">${n.eff}</p>`;
+    const box=document.createElement('div');box.className='orgs';
+    list.forEach(o=>{seen.add(o.n);
+      const b=document.createElement('div');b.className='org';
+      b.innerHTML=`<span>${o.n}</span><span class="t t${o.tier}">${o.tier}</span>`;
+      b.onclick=()=>{show(o,n);document.querySelectorAll('.org').forEach(x=>x.classList.remove('active'));b.classList.add('active');};
+      box.appendChild(b);});
+    d.appendChild(box);tree.appendChild(d);
+  });
+  ct.textContent=seen.size+' of '+ORGS.length+' organisms';
+  if(!seen.size)tree.innerHTML='<div class="empty">No organisms match these filters.</div>';
+}
+function show(o,n){
+  const others=o.niche.filter(x=>x!==n.id).map(x=>NICHES.find(y=>y.id===x).name.split('\u2014')[0].trim());
+  side.innerHTML=`<div class="card" style="--c2:${n.col}">
+   <h3>${o.n}</h3>
+   <div class="tag">Niche: <b>${n.name.split('\u2014')[0].trim()}</b>${others.length?' \u00b7 also '+others.join(', '):''}</div>
+   <div class="meta"><span>\u0e01\u0e25\u0e38\u0e48\u0e21 ${o.tier}</span>${o.sys.map(s=>`<span>${s}</span>`).join('')}</div>
+   <div class="fail">${o.fail} \u00b7 ${o.sub}</div>
+   <div class="blk"><div class="lab">1 \u00b7 Response mounted</div><p>${o.resp}</p></div>
+   <div class="blk"><div class="lab">2 \u00b7 Why it is not enough</div><p>${o.evade}</p></div>
+   <div class="blk"><div class="lab">3 \u00b7 Resulting disease</div><p>${o.dis}</p></div>
+   <div class="note">Organisms listed under more than one branch occupy multiple niches \u2014 the effector arm needed changes with the stage of infection.</div>
+  </div>`;
+  side.scrollTop=0;
+}
+render();
+</script>
+</body>
+</html>

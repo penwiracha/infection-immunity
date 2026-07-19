@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Extracellular Cascade — Where It Breaks</title>
+<style>
+:root{
+  --bg:#0e1014; --ink:#e8eaee; --dim:#8d96a6; --line:#272c36;
+  --panel:#161a21; --panel2:#1c212a;
+  --arm:#e0603f;           /* extracellular branch colour */
+  --host:#7a6cf0;          /* host-side defects */
+  --ok:#4a8f68;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+ font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+a{color:inherit}
+
+header{padding:26px 30px 16px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--arm);margin-bottom:7px}
+h1{margin:0 0 7px;font-size:23px;letter-spacing:.2px}
+.sub{color:var(--dim);font-size:13.5px;max-width:860px}
+
+.bar{display:flex;flex-wrap:wrap;gap:16px;align-items:center;
+ padding:12px 30px;border-bottom:1px solid var(--line)}
+.gl{font-size:10.5px;letter-spacing:1.1px;text-transform:uppercase;color:var(--dim);margin-right:4px}
+.chip{font-size:12px;padding:4px 11px;border-radius:20px;border:1px solid var(--line);
+ background:var(--panel2);cursor:pointer;user-select:none}
+.chip.off{opacity:.32}
+.chip .sw{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;vertical-align:1px}
+.count{margin-left:auto;font-size:11.5px;color:var(--dim)}
+
+.wrap{display:grid;grid-template-columns:minmax(420px,1fr) minmax(360px,430px)}
+@media(max-width:940px){.wrap{grid-template-columns:1fr}}
+.stage{padding:26px 30px 70px}
+.side{position:sticky;top:0;max-height:100vh;overflow:auto;background:var(--panel);
+ border-left:1px solid var(--line);padding:24px 24px 70px}
+
+/* ---- cascade spine ---- */
+.step{position:relative;padding:0 0 4px 46px;margin-bottom:2px}
+.step:before{content:"";position:absolute;left:15px;top:26px;bottom:-6px;width:2px;background:var(--line)}
+.step:last-of-type:before{display:none}
+.node{position:absolute;left:6px;top:5px;width:20px;height:20px;border-radius:50%;
+ background:var(--panel2);border:2px solid var(--arm);display:flex;align-items:center;
+ justify-content:center;font-size:10px;font-weight:700;color:var(--arm)}
+.step h3{margin:2px 0 2px;font-size:15px;letter-spacing:.1px}
+.step .desc{font-size:12.5px;color:var(--dim);margin:0 0 9px;max-width:620px}
+
+.lesions{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.lz{font-size:12px;padding:5px 10px;border-radius:6px;cursor:pointer;
+ border:1px solid var(--line);background:var(--panel2);transition:.12s;
+ display:flex;align-items:center;gap:7px;line-height:1.3}
+.lz:hover{transform:translateY(-1px)}
+.lz .bar2{width:3px;align-self:stretch;border-radius:2px;background:var(--arm)}
+.lz.host .bar2{background:var(--host)}
+.lz.on{background:var(--arm);color:#0e1014;border-color:var(--arm);font-weight:600}
+.lz.host.on{background:var(--host);color:#fff;border-color:var(--host)}
+.lz.on .bar2{background:rgba(0,0,0,.3)}
+.lz .t{font-size:9.5px;font-weight:700;padding:1px 5px;border-radius:4px;background:#2d4a35;color:#7fd39b}
+.lz .t.t2{background:#463a24;color:#e3bc72}
+.lz.on .t{background:rgba(0,0,0,.22);color:inherit}
+
+.outcome{margin-top:18px;padding:14px 16px;border-radius:9px;
+ background:linear-gradient(180deg,rgba(74,143,104,.12),rgba(74,143,104,.04));
+ border:1px solid rgba(74,143,104,.3)}
+.outcome .lab{font-size:10.5px;letter-spacing:1.1px;text-transform:uppercase;color:var(--ok);margin-bottom:4px}
+.outcome p{margin:0;font-size:13px;color:var(--dim)}
+
+/* ---- detail panel ---- */
+.empty{color:var(--dim);font-size:13.5px;text-align:center;padding-top:50px;line-height:1.7}
+.card h2{margin:0 0 4px;font-size:19px}
+.card .where{font-size:11.5px;color:var(--dim);margin-bottom:13px}
+.card .where b{color:var(--k)}
+.meta{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px}
+.meta span{font-size:10.5px;padding:3px 8px;border-radius:5px;background:var(--panel2);color:var(--dim)}
+.blk{margin-bottom:12px;padding:12px 14px;background:var(--panel2);border-radius:8px;
+ border-left:3px solid var(--k)}
+.blk .lab{font-size:10.5px;letter-spacing:1.1px;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
+.blk p{margin:0;font-size:13.5px}
+.note{font-size:11.5px;color:var(--dim);margin-top:20px;border-top:1px solid var(--line);padding-top:12px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Branch 1 of 4 &middot; Extracellular</div>
+  <h1>The extracellular cascade &mdash; and where it breaks</h1>
+  <div class="sub">Every organism here meets the same chain: recognise &rarr; opsonise &rarr; recruit &rarr; ingest &rarr; kill &rarr; remember. Each marker sits on the step it disables. Pathogens break it from outside <span style="color:var(--arm)">&#9632;</span>; host defects break the identical step from inside <span style="color:var(--host)">&#9632;</span> &mdash; which is why they produce the same infections.</div>
+</header>
+
+<div class="bar">
+  <span class="gl">Show</span>
+  <div class="chip" id="cP"><span class="sw" style="background:var(--arm)"></span>Pathogen evasion</div>
+  <div class="chip" id="cH"><span class="sw" style="background:var(--host)"></span>Host defect</div>
+  <span class="gl" style="margin-left:8px">Tier</span>
+  <div class="chip" id="c1">&#3585;&#3621;&#3640;&#3656;&#3617; 1</div>
+  <div class="chip" id="c2">&#3585;&#3621;&#3640;&#3656;&#3617; 2</div>
+  <div class="count" id="ct"></div>
+</div>
+
+<div class="wrap">
+  <div class="stage" id="stage"></div>
+  <div class="side" id="side">
+    <div class="empty">Select any marker on the cascade.<br>Red = pathogen evasion. Purple = host defect.</div>
+  </div>
+</div>
+
+<script>
+const STEPS = [
+{k:"S1", t:"Barrier and colonisation resistance",
+ d:"Intact epithelium, mucus and cilia, gastric acid, urine flow, and a normal commensal flora that occupies the niche first."},
+{k:"S2", t:"Recognition &mdash; PRRs and complement activation",
+ d:"TLRs and mannan-binding lectin detect conserved patterns. C3 is activated by the lectin and alternative pathways within minutes, long before any antibody exists."},
+{k:"S3", t:"Opsonisation &mdash; C3b and IgG coat the surface",
+ d:"C3b is the dominant opsonin and binds complement receptors on phagocytes. IgG binds Fc receptors. This is the step antibody was made for."},
+{k:"S4", t:"Recruitment &mdash; anaphylatoxins and chemotaxis",
+ d:"C3a and C5a raise vascular permeability, upregulate adhesion molecules and draw neutrophils down the gradient. TH17 and IL-17 sustain the influx and drive epithelial antimicrobial peptides."},
+{k:"S5", t:"Ingestion &mdash; phagocytosis",
+ d:"The opsonised organism is bound by CR1/CR3 or Fc&gamma;R and drawn into a phagosome. Requires the organism to be both coated and small enough to swallow."},
+{k:"S6", t:"Killing &mdash; oxidative burst and phagolysosome",
+ d:"NADPH oxidase generates the respiratory burst; the phagosome fuses with the lysosome delivering proteases, defensins and low pH."},
+{k:"S7", t:"Direct lysis &mdash; membrane attack complex",
+ d:"C5&ndash;C9 assemble a pore in the target membrane. In humans this matters almost solely for Neisseria &mdash; everything else is killed by phagocytes."},
+{k:"S8", t:"Memory &mdash; T-dependent antibody and durable protection",
+ d:"Germinal centre reaction, class switching, affinity maturation, memory B cells and long-lived plasma cells. The step that decides whether it ever happens again."}
+];
+
+const L = [
+/* ---------- S1 barrier ---------- */
+{s:"S1",n:"Gardnerella / BV flora",tier:1,how:"Displaces the protective barrier",
+ m:"Lactobacilli that keep vaginal pH low are displaced by a polymicrobial biofilm. There is no invasion and strikingly little inflammatory response &mdash; the absence of neutrophils on the smear is itself diagnostic.",
+ o:"Bacterial vaginosis: fishy discharge, clue cells, raised pH. Associated with preterm labour and increased PID and HIV acquisition risk."},
+{s:"S1",n:"Clostridioides difficile",tier:2,how:"Exploits antibiotic-stripped flora",
+ m:"Spores resist alcohol gel and survive in the environment. The organism does not evade immunity so much as wait for antibiotics to remove colonisation resistance. Whether disease follows depends on anti-toxin A/B antibody &mdash; poor responders relapse repeatedly.",
+ o:"Antibiotic-associated diarrhoea, pseudomembranous colitis, toxic megacolon. Faecal transplant works by restoring flora, not immunity."},
+{s:"S1",n:"Vibrio cholerae",tier:1,how:"Passes the barrier, never crosses it",
+ m:"Requires a large inoculum to survive gastric acid, then adheres to the mucosal surface without invading. Systemic immunity is irrelevant; only luminal secretory IgA matters, and it is short-lived and serogroup-specific.",
+ o:"Profuse rice-water diarrhoea, hypovolaemic shock, acute kidney injury. Disease is entirely a secreted toxin raising enterocyte cAMP."},
+{s:"S1",n:"Escherichia coli (UPEC)",tier:1,how:"Anchors against mechanical flushing",
+ m:"P and type 1 fimbriae grip the urothelium so urine flow cannot wash the organism out. Intracellular bacterial communities within bladder epithelium form a reservoir seeding recurrence. Many capsular serotypes mean little cross-protection.",
+ o:"Cystitis, pyelonephritis, urosepsis. Recurrent UTI in women reflects reinfection from a persistent reservoir rather than failed treatment."},
+{s:"S1",n:"Helicobacter pylori",tier:1,how:"Neutralises the acid barrier",
+ m:"Urease converts urea to ammonia, creating a neutral microenvironment; the organism then burrows into the mucus layer just off the epithelium, out of reach while provoking vigorous but futile gastritis.",
+ o:"Chronic gastritis, peptic ulcer, gastric adenocarcinoma, MALT lymphoma &mdash; the last often regressing on eradication, proving the tumour was antigen-driven."},
+{s:"S1",n:"Mucorales",tier:2,how:"Enters when tissue chemistry changes",
+ m:"Acidosis releases iron from transferrin and simultaneously impairs phagocyte function. The fungus then invades vessels, causing thrombosis and infarction that cuts off delivery of both immune cells and drugs to the infected tissue.",
+ o:"Rhino-orbito-cerebral mucormycosis with black necrotic eschar, in diabetic ketoacidosis. Surgical debridement is mandatory because dead tissue has no blood supply."},
+{s:"S1",n:"Candida albicans",tier:1,how:"Commensal that overgrows on any lapse",
+ m:"Present as normal flora; disease follows loss of competing bacteria, epithelial breach, or a fall in neutrophils. Hyphal switching then resists phagocytosis and candidalysin damages epithelium.",
+ o:"Thrush, intertrigo, vulvovaginal candidiasis, oesophagitis in HIV, candidaemia in the neutropenic or line-bearing patient."},
+{s:"S1",n:"Free-living amoebae",tier:2,how:"Bypasses the barrier anatomically",
+ m:"Naegleria ascends the olfactory nerve directly through the cribriform plate, entering the CNS without ever passing a systemic checkpoint. Acanthamoeba forms resistant cysts that survive both disinfectants and immune attack.",
+ o:"Primary amoebic meningoencephalitis after fresh-water diving &mdash; near-uniformly fatal. Acanthamoeba keratitis in contact lens wearers."},
+{s:"S1",n:"Barrier loss: burns, catheters, lines",host:1,tier:0,how:"Host defect &mdash; breached surface",
+ m:"Any device or wound bypasses the epithelium entirely. Biofilm forms on plastic where neither antibody nor phagocytes penetrate well. This is the commonest immunodeficiency in any hospital and it is iatrogenic.",
+ o:"Line sepsis, catheter-associated UTI, burn wound sepsis &mdash; Staph aureus, coagulase-negative staphylococci, Pseudomonas, Candida."},
+{s:"S1",n:"Cystic fibrosis / bronchiectasis",host:1,tier:0,how:"Host defect &mdash; failed mucociliary clearance",
+ m:"Thick dehydrated mucus cannot be cleared by cilia, so organisms sit in a nutrient-rich stagnant compartment. Neutrophils arrive in enormous numbers and cause much of the lung damage themselves.",
+ o:"Chronic Pseudomonas and Staph aureus colonisation, Burkholderia, recurrent exacerbations, progressive airway destruction."},
+
+/* ---------- S2 recognition ---------- */
+{s:"S2",n:"Yersinia pestis",tier:2,how:"Silences the alarm before it sounds",
+ m:"At 26&deg;C in the flea the LPS is a potent TLR4 agonist, but at 37&deg;C in humans it is remodelled into a poor agonist &mdash; so the innate alarm never properly sounds. Yop effectors then block cytokine signalling. The delay is exactly what it needs to overwhelm the host.",
+ o:"Bubonic plague with agonisingly tender buboes; septicaemic and pneumonic plague. Rapidly fatal without early treatment."},
+{s:"S2",n:"Brucella species",tier:2,how:"Stealth LPS avoids recognition",
+ m:"Non-canonical LPS is a weak TLR4 agonist, so the infection proceeds quietly with minimal early inflammation, buying time to reach an intracellular niche.",
+ o:"Undulant fever, sacroiliitis, orchitis, hepatosplenomegaly, endocarditis. Zoonosis from unpasteurised dairy."},
+{s:"S2",n:"MBL deficiency",host:1,tier:0,how:"Host defect &mdash; lectin pathway absent",
+ m:"Mannan-binding lectin is one of three routes to C3 activation. Deficiency is common and usually silent because the alternative pathway compensates &mdash; it matters mainly in infants between loss of maternal antibody and maturation of their own.",
+ o:"Increased frequency of pyogenic respiratory infection in early childhood; a cofactor rather than a cause of severe disease."},
+
+/* ---------- S3 opsonisation ---------- */
+{s:"S3",n:"Streptococcus pneumoniae",tier:1,how:"Capsule blocks C3b deposition",
+ m:"The polysaccharide capsule prevents C3b reaching the bacterial surface and hides any that does bind from phagocyte receptors. Only anti-capsular IgG restores opsonisation &mdash; and plain polysaccharide is T-independent, giving IgM without memory in children under two. Protein conjugation converts it to a T-dependent response.",
+ o:"Lobar pneumonia, otitis media, meningitis. Overwhelming post-splenectomy sepsis because the spleen filters opsonised encapsulated organisms."},
+{s:"S3",n:"Neisseria meningitidis",tier:1,how:"Recruits factor H to switch complement off",
+ m:"Capsular sialic acid binds factor H, the host's own alternative-pathway brake, so amplification is shut down on the bacterial surface. Group B capsule additionally mimics neural NCAM and is therefore treated as self &mdash; no polysaccharide vaccine is possible against it.",
+ o:"Meningococcal meningitis, purpura fulminans, Waterhouse&ndash;Friderichsen syndrome."},
+{s:"S3",n:"Haemophilus influenzae b",tier:1,how:"Capsule plus IgA protease",
+ m:"PRP capsule blocks phagocytosis and is poorly immunogenic in infancy; secreted IgA protease cleaves mucosal antibody at the point of entry.",
+ o:"Epiglottitis, meningitis, pneumonia in under-5s &mdash; near-eliminated by conjugate vaccination."},
+{s:"S3",n:"Staphylococcus aureus",tier:1,how:"Protein A inverts antibody",
+ m:"Protein A binds IgG by its Fc region &mdash; backwards &mdash; so the antibody points the wrong way and cannot engage phagocyte Fc receptors. Coagulase then builds a fibrin shield around the organism.",
+ o:"Abscess, cellulitis, osteomyelitis, septic arthritis, endocarditis, toxic shock syndrome."},
+{s:"S3",n:"Streptococcus pyogenes",tier:1,how:"M protein binds factor H",
+ m:"M protein recruits factor H to block opsonisation, and exists in over 200 types so immunity is type-specific and reinfection is normal. C5a peptidase destroys the chemotactic signal at source.",
+ o:"Pharyngitis, impetigo, erysipelas, necrotising fasciitis, scarlet fever. Post-streptococcal rheumatic fever and glomerulonephritis follow from cross-reactive antibody, not persistent infection."},
+{s:"S3",n:"Bacillus anthracis",tier:2,how:"Poly-D-glutamate capsule",
+ m:"A capsule made of D-glutamic acid resists phagocytosis and, being a repetitive non-protein polymer, is poorly immunogenic. Lethal toxin then cleaves MAPKK and kills the macrophages that do respond.",
+ o:"Cutaneous anthrax with painless black eschar; inhalational anthrax with haemorrhagic mediastinitis."},
+{s:"S3",n:"Cryptococcus neoformans",tier:2,how:"Sheds capsule to absorb opsonins",
+ m:"Glucuronoxylomannan is anti-phagocytic and actively immunosuppressive, and is shed in large quantity into tissue where it mops up opsonins before they reach the organism &mdash; the reason antigen testing is so sensitive.",
+ o:"Cryptococcal meningitis at CD4 &lt;100, with raised intracranial pressure and remarkably little CSF inflammation. IRIS on starting ART."},
+{s:"S3",n:"Treponema pallidum",tier:1,how:"Presents almost nothing to bind",
+ m:"The outer membrane carries very few exposed proteins and is coated in host molecules &mdash; an immunologically silent surface. TprK varies antigenically. The organism reaches the CNS early and persists there.",
+ o:"Chancre, secondary rash on palms and soles, latency, gumma, cardiovascular and neurosyphilis, congenital syphilis."},
+{s:"S3",n:"Group B Streptococcus",host:1,tier:1,how:"Neonate has no antibody to give",
+ m:"Protection depends on maternal type-specific IgG crossing the placenta. If the mother lacks it, none is transferred and the neonate faces a sialylated capsule that binds factor H with no adaptive tool at all. A host gap, not a pathogen trick.",
+ o:"Early-onset neonatal sepsis, pneumonia and meningitis; late-onset meningitis. The rationale for intrapartum prophylaxis."},
+{s:"S3",n:"Asplenia / hyposplenism",host:1,tier:0,how:"Host defect &mdash; no filtration, no marginal zone",
+ m:"The spleen removes opsonised encapsulated organisms from blood and houses marginal-zone B cells that make rapid IgM against polysaccharide. Without it, encapsulated bacteria multiply unchecked in the bloodstream.",
+ o:"Overwhelming post-splenectomy infection &mdash; pneumococcus, meningococcus, Hib, capnocytophaga. Vaccinate and counsel; sickle cell disease causes functional asplenia."},
+{s:"S3",n:"X-linked agammaglobulinaemia",host:1,tier:0,how:"Host defect &mdash; no antibody at all",
+ m:"BTK mutation halts B-cell development, so no immunoglobulin of any class is made. Complement still works but the antibody-dependent half of opsonisation is absent. Presents after maternal IgG wanes at around 6 months.",
+ o:"Recurrent pyogenic sinopulmonary infection with pneumococcus and Haemophilus; enteroviral meningoencephalitis; Giardia. Treated with immunoglobulin replacement."},
+{s:"S3",n:"Selective IgA deficiency",host:1,tier:0,how:"Host defect &mdash; no mucosal antibody",
+ m:"The commonest primary immunodeficiency and usually asymptomatic. Where it matters, the mucosal surface has no secretory IgA to neutralise adherence.",
+ o:"Recurrent sinopulmonary infection, chronic giardiasis, coeliac association, and anaphylaxis risk with blood products containing IgA."},
+
+/* ---------- S4 recruitment ---------- */
+{s:"S4",n:"Streptococcus pyogenes (C5a peptidase)",tier:1,how:"Destroys the chemotactic gradient",
+ m:"C5a peptidase cleaves C5a directly, so neutrophils are never told where to go. Combined with M protein this disables both the signal and the tag.",
+ o:"Rapidly spreading soft-tissue infection; necrotising fasciitis where spread outpaces any cellular response."},
+{s:"S4",n:"Bordetella pertussis",tier:1,how:"Blocks chemokine signalling",
+ m:"Pertussis toxin ADP-ribosylates the Gi protein that chemokine receptors depend on, so lymphocytes cannot leave the circulation &mdash; producing the characteristic marked lymphocytosis. Tracheal cytotoxin destroys ciliated cells.",
+ o:"Whooping cough with paroxysmal cough and post-tussive vomiting; apnoea in young infants. Immunity wanes within a decade, hence adolescent boosters and maternal vaccination."},
+{s:"S4",n:"Clostridium perfringens",tier:2,how:"Grows where cells cannot follow",
+ m:"Theta-toxin blocks neutrophil chemotaxis, and the organism grows in anoxic devitalised tissue with no perfusion &mdash; so even a competent response cannot be delivered. Alpha-toxin lyses those cells that do arrive.",
+ o:"Gas gangrene with crepitus, disproportionate pain and rapid systemic toxicity. Debridement is the treatment because the compartment is unreachable."},
+{s:"S4",n:"Leukocyte adhesion deficiency",host:1,tier:0,how:"Host defect &mdash; neutrophils cannot exit vessels",
+ m:"Absent CD18 integrin means neutrophils circulate but cannot adhere to endothelium and transmigrate. The blood count is high while the tissue count is zero.",
+ o:"Delayed umbilical cord separation, recurrent bacterial infection with no pus formation, poor wound healing, severe periodontitis."},
+
+/* ---------- S5 ingestion ---------- */
+{s:"S5",n:"Pseudomonas aeruginosa",tier:2,how:"Biofilm excludes phagocytes",
+ m:"Alginate biofilm is a physical matrix that neither neutrophils nor antibody penetrate effectively; type III secretion then injects cytotoxins directly into immune cells that approach.",
+ o:"Ventilator pneumonia, burn sepsis, otitis externa, ecthyma gangrenosum in neutropenia, chronic bronchiectasis colonisation."},
+{s:"S5",n:"Entamoeba histolytica",tier:1,how:"Eats the phagocytes",
+ m:"Reverses the encounter &mdash; contact-dependent cytolysis and trogocytosis kill neutrophils and epithelial cells outright. Cysteine proteases degrade IgA and C3, and the surface lectin resists complement lysis.",
+ o:"Amoebic colitis with flask-shaped ulcers and bloody diarrhoea; liver abscess whose anchovy-paste contents are largely liquefied host cells."},
+{s:"S5",n:"Neutropenia",host:1,tier:0,how:"Host defect &mdash; no phagocyte present",
+ m:"Chemotherapy, marrow failure or drug reaction removes the effector cell entirely. Every upstream step still works &mdash; recognition, opsonisation, chemotaxis &mdash; and achieves nothing, because nothing arrives to ingest the organism. Signs of infection are muted for the same reason.",
+ o:"Neutropenic sepsis with Gram-negatives, Staph aureus, Candida and Aspergillus. Fever alone is an emergency; there may be no pus, no infiltrate and no localising sign."},
+
+/* ---------- S6 killing ---------- */
+{s:"S6",n:"Staphylococcus aureus (burst evasion)",tier:1,how:"Quenches the respiratory burst",
+ m:"Catalase degrades hydrogen peroxide and the golden pigment staphyloxanthin scavenges free radicals, so the organism survives inside the phagosome. Leukocidins kill the neutrophil from within.",
+ o:"Recurrent abscesses; the archetypal organism of chronic granulomatous disease, where the host cannot generate the burst in the first place."},
+{s:"S6",n:"Haemophilus ducreyi",tier:1,how:"Resists phagocytic killing",
+ m:"Cytolethal distending toxin and LspA proteins allow survival despite heavy neutrophil recruitment. No protective immunity develops.",
+ o:"Chancroid &mdash; painful ragged genital ulcer with tender suppurative inguinal buboes."},
+{s:"S6",n:"Chronic granulomatous disease",host:1,tier:0,how:"Host defect &mdash; no oxidative burst",
+ m:"NADPH oxidase deficiency means the phagosome forms and closes normally but generates no superoxide. Catalase-positive organisms that would have been destroyed now survive inside the phagocyte, so infection is walled off into granulomas instead of cleared.",
+ o:"Recurrent abscesses of skin, liver and lymph node with Staph aureus, Serratia, Burkholderia, Nocardia and Aspergillus. Diagnosed by dihydrorhodamine flow cytometry."},
+{s:"S6",n:"Chediak-Higashi syndrome",host:1,tier:0,how:"Host defect &mdash; no phagolysosome fusion",
+ m:"Defective lysosomal trafficking produces giant granules that cannot fuse with the phagosome, so killing enzymes are never delivered to the organism.",
+ o:"Recurrent pyogenic infection, partial oculocutaneous albinism, peripheral neuropathy, and a haemophagocytic accelerated phase."},
+
+/* ---------- S7 MAC ---------- */
+{s:"S7",n:"Neisseria gonorrhoeae",tier:1,how:"Sialylation blocks MAC assembly",
+ m:"Sialylated LOS recruits factor H and prevents lytic complement attack &mdash; the one defence that genuinely matters against Neisseria. Pilin and Opa variation simultaneously defeat antibody, so memory is essentially never established.",
+ o:"Urethritis, cervicitis, PID, disseminated infection with arthritis-dermatitis, ophthalmia neonatorum. Reinfection is the rule, not the exception."},
+{s:"S7",n:"Terminal complement deficiency (C5&ndash;C9)",host:1,tier:0,how:"Host defect &mdash; no membrane attack complex",
+ m:"The mirror image of the step above. Opsonisation and phagocytosis remain intact, so most organisms are handled normally &mdash; but Neisseria specifically requires direct lysis, and without it the host cannot clear it.",
+ o:"Recurrent meningococcal disease, often with unusual serogroups and, counterintuitively, milder episodes than in complement-sufficient patients. Also seen with properdin deficiency &mdash; test complement in anyone with a second episode."},
+
+/* ---------- S8 memory ---------- */
+{s:"S8",n:"Neisseria gonorrhoeae (no memory)",tier:1,how:"Varies faster than memory forms",
+ m:"Pilin is recombined from silent loci and Opa proteins phase-vary, so each infection presents a new antigenic face. Whatever memory forms is directed at an organism that no longer exists.",
+ o:"Repeated gonorrhoea despite full treatment and full immunocompetence &mdash; the reason partner notification, not immunity, controls transmission."},
+{s:"S8",n:"Streptococcus pneumoniae (T-independent)",tier:1,how:"Polysaccharide gives no memory",
+ m:"Plain capsular polysaccharide crosslinks the B-cell receptor without T-cell help, giving IgM, no class switch, no affinity maturation and no memory. Children under two respond barely at all. Conjugating to a carrier protein recruits T help and creates the memory that was missing.",
+ o:"The immunological reason PCV works in infants and PPV23 does not &mdash; the single clearest demonstration of T-dependent versus T-independent antibody in clinical practice."},
+{s:"S8",n:"Bordetella pertussis (waning)",tier:1,how:"Memory decays within a decade",
+ m:"Both natural infection and acellular vaccine generate immunity that fades in roughly ten years, leaving adolescents and adults susceptible and infectious &mdash; usually with a mild atypical cough, while transmitting to unvaccinated infants.",
+ o:"Adolescent and adult resurgence, and the rationale for cocooning and third-trimester maternal vaccination to transfer antibody directly."},
+{s:"S8",n:"Clostridium tetani",tier:1,how:"Lethal dose precedes immunisation",
+ m:"Tetanospasmin is so potent that a fatal quantity is far below the antigenic dose needed to prime a B-cell response. Surviving tetanus confers no immunity whatever &mdash; toxoid is the only route to protection.",
+ o:"Trismus, opisthotonus, autonomic instability, tetanus neonatorum. Every wound presentation is a vaccination opportunity."},
+{s:"S8",n:"Corynebacterium diphtheriae",tier:1,how:"Toxin acts before immunity forms",
+ m:"Disease is caused by a phage-encoded toxin blocking EF-2 and halting protein synthesis. Like tetanus, the effective dose is sub-immunogenic, so protection comes only from toxoid.",
+ o:"Pseudomembranous pharyngitis with airway obstruction, bull neck, myocarditis, palatal palsy and polyneuropathy."},
+{s:"S8",n:"Common variable immunodeficiency",host:1,tier:0,how:"Host defect &mdash; memory never consolidates",
+ m:"B cells are present but fail to differentiate into memory and plasma cells, so IgG and IgA are low and vaccine responses poor. Presents in adulthood, often after years of attributing infections to bad luck.",
+ o:"Recurrent sinopulmonary infection, bronchiectasis, Giardia, and a paradoxical excess of autoimmunity and lymphoma. Test vaccine responses, not just levels."},
+{s:"S8",n:"Advanced HIV (loss of CD4 help)",host:1,tier:0,how:"Host defect &mdash; no T help for B cells",
+ m:"Extracellular defence looks like a B-cell problem, but class switching and memory require CD4 help. Losing CD4 cells therefore degrades antibody quality as well as cellular immunity &mdash; which is why pyogenic bacterial infection rises early in HIV, long before the classic opportunists appear.",
+ o:"Recurrent pneumococcal pneumonia and bacteraemia, salmonella septicaemia, and poor vaccine responses &mdash; vaccinate early, while CD4 is still high."}
+];
+
+const S={p:true,h:true,t1:true,t2:true,sel:null};
+const stage=document.getElementById('stage'),side=document.getElementById('side'),ct=document.getElementById('ct');
+function tog(id,key){const e=document.getElementById(id);
+  const set=()=>e.classList.toggle('off',!S[key]);set();
+  e.onclick=()=>{S[key]=!S[key];set();draw();};}
+tog('cP','p');tog('cH','h');tog('c1','t1');tog('c2','t2');
+
+function vis(l){
+  if(l.host&&!S.h)return false;
+  if(!l.host&&!S.p)return false;
+  if(l.tier===1&&!S.t1)return false;
+  if(l.tier===2&&!S.t2)return false;
+  return true;
+}
+function draw(){
+  stage.innerHTML='';let n=0;
+  STEPS.forEach((st,i)=>{
+    const items=L.filter(l=>l.s===st.k&&vis(l));
+    const d=document.createElement('div');d.className='step';
+    d.innerHTML=`<div class="node">${i+1}</div><h3>${st.t}</h3><p class="desc">${st.d}</p>`;
+    const box=document.createElement('div');box.className='lesions';
+    items.forEach(l=>{n++;
+      const b=document.createElement('div');
+      b.className='lz'+(l.host?' host':'')+(S.sel===l.n+l.s?' on':'');
+      b.innerHTML=`<span class="bar2"></span><span>${l.n}</span>`+
+        (l.tier?`<span class="t${l.tier===2?' t2':''}">${l.tier}</span>`:'');
+      b.onclick=()=>{S.sel=l.n+l.s;show(l,st);draw();};
+      box.appendChild(b);});
+    if(items.length)d.appendChild(box);
+    stage.appendChild(d);
+  });
+  const o=document.createElement('div');o.className='outcome';
+  o.innerHTML=`<div class="lab">If every step holds</div><p>The organism is cleared, tissue is repaired, and durable class-switched antibody prevents the next encounter becoming an illness. Every marker above is a place where that chain gives way &mdash; and the resulting disease is largely predictable from which link failed.</p>`;
+  stage.appendChild(o);
+  ct.textContent=n+' break-points shown';
+}
+function show(l,st){
+  const col=l.host?'var(--host)':'var(--arm)';
+  side.innerHTML=`<div class="card" style="--k:${col}">
+    <h2>${l.n}</h2>
+    <div class="where">Breaks at step ${STEPS.indexOf(st)+1} &mdash; <b>${st.t}</b></div>
+    <div class="meta">
+      <span>${l.host?'Host defect':'Pathogen evasion'}</span>
+      ${l.tier?`<span>&#3585;&#3621;&#3640;&#3656;&#3617; ${l.tier}</span>`:''}
+      <span>${l.how}</span>
+    </div>
+    <div class="blk"><div class="lab">Mechanism at this step</div><p>${l.m}</p></div>
+    <div class="blk"><div class="lab">Resulting disease</div><p>${l.o}</p></div>
+    <div class="note">Pathogen evasion and host defect at the same step produce overlapping infections &mdash; compare the markers sharing this step to see why.</div>
+  </div>`;
+  side.scrollTop=0;
+}
+draw();
+</script>
+</body>
+</html>
