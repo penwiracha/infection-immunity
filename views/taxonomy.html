@@ -14,83 +14,219 @@ header{padding:22px 28px 14px;border-bottom:1px solid var(--line)}
 h1{margin:0 0 6px;font-size:22px}
 .sub{color:var(--dim);font-size:13.5px;max-width:900px}
 .sub a{color:var(--dim)}
-.wrap{padding:20px 28px 60px;max-width:1000px}
-.kings{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}
-.king{padding:8px 14px;border-radius:20px;border:1px solid var(--line);background:var(--panel2);
+.kings{display:flex;gap:8px;flex-wrap:wrap;padding:12px 28px;border-bottom:1px solid var(--line)}
+.king{padding:7px 13px;border-radius:20px;border:1px solid var(--line);background:var(--panel2);
  font-weight:600;font-size:13px;cursor:pointer;user-select:none}
 .king small{color:var(--dim);font-weight:400;margin-left:6px}
 .king.on{background:var(--c);color:#0f1115;border-color:var(--c)}
+.king.on small{color:rgba(0,0,0,.55)}
 .king.seam{opacity:.5}
-.src{font-size:11.5px;color:var(--dim);margin:0 0 16px}
-.node{margin-left:18px;border-left:1px solid var(--line);padding-left:14px;margin-top:3px}
+.wrap{display:grid;grid-template-columns:minmax(320px,1fr) minmax(360px,440px)}
+@media(max-width:900px){.wrap{grid-template-columns:1fr}}
+.tree{padding:16px 28px 60px}
+.side{position:sticky;top:0;max-height:100vh;overflow:auto;background:var(--panel);
+ border-left:1px solid var(--line);padding:22px 24px 60px}
+.src{font-size:11.5px;color:var(--dim);margin:0 0 12px}
+.node{margin-left:16px;border-left:1px solid var(--line);padding-left:14px;margin-top:2px}
 .nlabel{font-size:13px;padding:3px 0}
 .ntest{font-size:11px;color:var(--dim);font-style:italic;margin-left:6px}
 .nnote{font-size:11px;color:var(--dim);margin-left:6px}
 .leaf{display:inline-block;font-size:12.5px;padding:4px 10px;border-radius:7px;margin:3px 0;
- background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--surf)}
+ background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--surf);cursor:pointer;transition:.12s}
+.leaf:hover{transform:translateY(-1px);border-color:var(--dim)}
+.leaf.active{background:var(--surf);color:#0f1115;border-color:var(--surf);font-weight:600}
 .leaf b{font-weight:600}
 .root>.node{border-left:none;margin-left:0;padding-left:0}
 .pending{color:var(--dim);font-size:13.5px;max-width:640px;line-height:1.7;
  border-left:3px solid var(--line);padding-left:16px}
-code{background:var(--panel2);padding:1px 5px;border-radius:4px;font-size:12px}
+.empty{color:var(--dim);font-size:13.5px;text-align:center;padding-top:44px;line-height:1.7}
+/* detail panel */
+.card h2{margin:0 0 3px;font-size:19px}
+.card .kick{font-size:11.5px;color:var(--dim);margin-bottom:12px}
+.badges{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px}
+.badges span{font-size:10.5px;padding:3px 8px;border-radius:5px;background:var(--panel2);color:var(--dim)}
+.badges .n{color:#0f1115;font-weight:600}
+.scope{font-size:11px;color:var(--dim);margin:-6px 0 14px}
+.scope b{color:var(--txt)}
+.micro{margin:0 0 14px}
+.microcap{font-size:11px;color:var(--dim);margin-top:6px;line-height:1.5}
+.microcap code{background:var(--panel2);padding:1px 5px;border-radius:4px}
+.blk{margin-bottom:11px;padding:11px 13px;background:var(--panel2);border-radius:8px;border-left:3px solid var(--k,var(--surf))}
+.blk .lab{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
+.blk p{margin:0;font-size:13px}
+.tax{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;font-size:12.5px}
+.tax dt{color:var(--dim)}
+.tax dd{margin:0}
+.rx{margin:6px 0 0;padding:0;list-style:none}
+.rx li{margin-bottom:7px;font-size:12.5px}
+.rx b{color:var(--txt)}
+.rx span{color:var(--dim)}
+.awaiting{font-size:12px;color:var(--dim);font-style:italic}
 </style>
 </head>
 <body>
 <header>
   <h1>Taxonomy browse — identification key</h1>
-  <div class="sub">Phenotypic identification, kingdom by kingdom. The bacteria key follows the Oxford Handbook of ID &amp; Microbiology (Figs 7.1&ndash;7.4). Leaves are organisms; the labels above each are the discriminating tests. &middot; <a href="../index.html">home</a></div>
+  <div class="sub">Click any organism to open its identification detail. The bacteria key follows the Oxford Handbook of ID &amp; Microbiology (Figs 7.1&ndash;7.4). &middot; <a href="../index.html">home</a></div>
 </header>
+<div class="kings" id="kings"></div>
 <div class="wrap">
-  <div class="kings" id="kings"></div>
-  <div class="src" id="src"></div>
-  <div id="tree" class="root"></div>
+  <div class="tree" id="tree"></div>
+  <div class="side" id="side"><div class="empty">Select an organism from the tree.<br>Its identification, microscopy and mechanism detail appears here.</div></div>
 </div>
+
 <script src="../data/enums.js"></script>
 <script src="../data/organisms.js"></script>
 <script src="../data/taxonomy.js"></script>
 <script>
-const NAME = new Map(ORGANISMS.map(o=>[o.id,o.name]));
+const ORG = new Map(ORGANISMS.map(o=>[o.id,o]));
 const COUNTS={}; ORGANISMS.forEach(o=>COUNTS[o.kingdom]=(COUNTS[o.kingdom]||0)+1);
 const KCOL={bacteria:'var(--extra)',virus:'var(--cyto)',fungus:'var(--vesic)',parasite:'var(--surf)'};
-const kh=document.getElementById('kings'), treeEl=document.getElementById('tree'), srcEl=document.getElementById('src');
-let cur='bacteria';
+const NICHECOL={extra:'var(--extra)',vesic:'var(--vesic)',cyto:'var(--cyto)',surf:'var(--surf)'};
+const kh=document.getElementById('kings'), treeEl=document.getElementById('tree'),
+      srcEl=null, side=document.getElementById('side');
+let cur='bacteria', selEl=null;
 
-function renderNode(node){
+/* ---- microscopy schematic: Gram + morphology → shapes in a field of view ----
+   This is a SCHEMATIC drawn from the organism's taxonomy. To show a real light
+   micrograph instead, set the organism's `micrograph` field (image URL / data-URI);
+   the panel below prefers it over this schematic. */
+function seeded(str){let h=2166136261;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)}
+  return ()=>{h+=0x6D2B79F5;let t=h;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return ((t^t>>>14)>>>0)/4294967296;};}
+function schematic(o){
+  const t=o.taxonomy||{};
+  const gram=t.gram;
+  const stain = gram==='positive' ? '#7d40b3' : gram==='negative' ? '#d24d6b' : null;
+  if(!stain) return null;
+  const field = gram==='positive' ? '#efe9f4' : '#f6ebee';
+  const m=(t.morphology||'').toLowerCase();
+  const rnd=seeded(o.id);
+  const cx=110, cy=80, R=66;
+  const inField=(x,y,pad)=>Math.hypot(x-cx,y-cy) < R-(pad||8);
+  let body='';
+  const circle=(x,y,r)=>`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r}" fill="${stain}"/>`;
+  const rod=(x,y,w,h,rx,rot)=>`<rect x="${(x-w/2).toFixed(1)}" y="${(y-h/2).toFixed(1)}" width="${w}" height="${h}" rx="${rx}" fill="${stain}" transform="rotate(${rot.toFixed(0)} ${x.toFixed(1)} ${y.toFixed(1)})"/>`;
+  function place(n,draw,pad){let done=0,guard=0;while(done<n&&guard<n*40){guard++;
+    const a=rnd()*Math.PI*2, rr=Math.sqrt(rnd())*(R-16);
+    const x=cx+Math.cos(a)*rr, y=cy+Math.sin(a)*rr;
+    if(inField(x,y,pad)){draw(x,y);done++;}}}
+  if(m.includes('cluster')){                     // grape-like cocci clusters
+    for(let c=0;c<3;c++){const a=rnd()*6.28, rr=Math.sqrt(rnd())*(R-24);
+      const gx=cx+Math.cos(a)*rr, gy=cy+Math.sin(a)*rr;
+      for(let i=0;i<6;i++){const ox=gx+(rnd()-.5)*22, oy=gy+(rnd()-.5)*22;
+        if(inField(ox,oy,6))body+=circle(ox,oy,5.4);}}
+  }else if(m.includes('diploc')){                 // pairs
+    place(4,(x,y)=>{body+=circle(x-4,y,5.2)+circle(x+4,y,5.2);},14);
+  }else if(m.includes('chain')){                  // cocci in chains
+    for(let c=0;c<3;c++){const y=cy+(c-1)*26+(rnd()-.5)*8; let x=cx-46+(rnd()-.5)*10;
+      for(let i=0;i<9;i++){const yy=y+Math.sin(i*.7)*4; if(inField(x,yy,5))body+=circle(x,yy,5); x+=10.5;}}
+  }else if(m.includes('boxcar')||m.includes('box car')){  // square-ended rods in chains
+    for(let c=0;c<3;c++){const y=cy+(c-1)*24+(rnd()-.5)*8; let x=cx-40;
+      for(let i=0;i<4;i++){if(inField(x,y,10))body+=rod(x,y,16,10,1.5,(rnd()-.5)*6); x+=18;}}
+  }else if(m.includes('curved')||m.includes('comma')||m.includes('vibrio')){ // comma
+    place(7,(x,y)=>{const rot=rnd()*360;body+=`<path d="M${x-8},${y+5} Q ${x},${y-9} ${x+8},${y+3}" stroke="${stain}" stroke-width="5" fill="none" stroke-linecap="round" transform="rotate(${rot.toFixed(0)} ${x} ${y})"/>`;},12);
+  }else if(m.includes('rod')||m.includes('bacill')||m.includes('boxcar')){   // bacilli
+    place(9,(x,y)=>{body+=rod(x,y,20,8,4,rnd()*180);},12);
+  }else if(m.includes('cocc')){                   // scattered cocci
+    place(14,(x,y)=>{body+=circle(x,y,5.2);},8);
+  }else{                                           // generic
+    place(10,(x,y)=>{body+=rod(x,y,16,7,3.5,rnd()*180);},10);
+  }
+  return `<svg viewBox="0 0 220 160" width="100%" style="max-width:300px;display:block;margin:auto">
+    <defs><clipPath id="fov"><circle cx="${cx}" cy="${cy}" r="${R}"/></clipPath></defs>
+    <rect x="0" y="0" width="220" height="160" fill="#0e1014"/>
+    <circle cx="${cx}" cy="${cy}" r="${R}" fill="${field}"/>
+    <g clip-path="url(#fov)">${body}</g>
+    <circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#000" stroke-opacity=".35" stroke-width="6"/>
+    <circle cx="${cx}" cy="${cy}" r="${R+3}" fill="none" stroke="#2b303b" stroke-width="1.5"/>
+  </svg>`;
+}
+
+/* ---- tree ---- */
+function renderNode(node, path){
   const wrap=document.createElement('div'); wrap.className='node';
   if(node.organism){
+    const o=ORG.get(node.organism);
     const leaf=document.createElement('div'); leaf.className='leaf';
-    leaf.innerHTML='<b>'+(NAME.get(node.organism)||node.organism)+'</b>'+
-      (node.label?` <span class="nnote">— ${node.label}</span>`:'');
-    wrap.appendChild(leaf);
-    return wrap;
+    leaf.innerHTML='<b>'+(o?o.name:node.organism)+'</b>'+(node.label?` <span class="nnote">— ${node.label}</span>`:'');
+    leaf.onclick=()=>{
+      document.querySelectorAll('.leaf').forEach(x=>x.classList.remove('active'));
+      leaf.classList.add('active'); selEl=leaf;
+      showDetail(o||{id:node.organism,name:node.organism}, path.concat(node.label?[{label:node.label}]:[]));
+    };
+    wrap.appendChild(leaf); return wrap;
   }
   const lab=document.createElement('div'); lab.className='nlabel';
-  lab.innerHTML=`${node.label||''}`+
-    (node.test?`<span class="ntest">→ ${node.test}</span>`:'')+
+  lab.innerHTML=`${node.label||''}`+(node.test?`<span class="ntest">→ ${node.test}</span>`:'')+
     (node.note?`<span class="nnote">(${node.note})</span>`:'');
   wrap.appendChild(lab);
-  (node.children||[]).forEach(c=>wrap.appendChild(renderNode(c)));
+  const nextPath=path.concat(node.label?[{label:node.label,test:node.test}]:[]);
+  (node.children||[]).forEach(c=>wrap.appendChild(renderNode(c,nextPath)));
   return wrap;
 }
 function draw(){
-  treeEl.innerHTML=''; srcEl.textContent='';
+  treeEl.innerHTML='';
   const entry=TAXONOMY[cur];
   if(!entry||entry.pending){
     treeEl.innerHTML='<div class="pending"><b>'+cur[0].toUpperCase()+cur.slice(1)+
-      ' tree not yet authored.</b><br>Seam in <code>data/taxonomy.js</code>. '+
-      'Each organism already carries a <code>kingdom</code> tag ('+(COUNTS[cur]||0)+
-      ' '+cur+'), so this key will be built the same way the bacteria one was.</div>';
+      ' tree not yet authored.</b><br>Seam in <code>data/taxonomy.js</code>. '+(COUNTS[cur]||0)+' '+cur+
+      ' carry a kingdom tag and will be keyed the same way the bacteria tree was.</div>';
     return;
   }
-  if(entry.source) srcEl.textContent='Source: '+entry.source;
-  treeEl.appendChild(renderNode(entry.tree));
+  if(entry.source){const s=document.createElement('div');s.className='src';s.textContent='Source: '+entry.source;treeEl.appendChild(s);}
+  const root=document.createElement('div'); root.className='root';
+  root.appendChild(renderNode(entry.tree,[]));
+  treeEl.appendChild(root);
 }
+
+/* ---- detail panel ---- */
+function showDetail(o, path){
+  const t=o.taxonomy||{};
+  const hasTax=Object.keys(t).length>0;
+  const crumb=path.filter(p=>p.label).map(p=>p.label).join(' › ');
+  // microscopy: prefer a real micrograph, else the schematic
+  let micro;
+  if(o.micrograph){
+    micro=`<img src="${o.micrograph}" alt="light micrograph" style="width:100%;max-width:300px;border-radius:8px;display:block;margin:auto">
+      <div class="microcap">Light micrograph (supplied).</div>`;
+  }else{
+    const svg=schematic(o);
+    micro = svg
+      ? `${svg}<div class="microcap">Schematic from Gram stain + morphology — <b>not a real micrograph</b>. Set this organism's <code>micrograph</code> field (image URL / data-URI) to drop a real light-microscopy image in here.</div>`
+      : `<div style="height:120px;border:1px dashed var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:12px">Light microscopy — awaiting identification data</div>
+         <div class="microcap">No Gram/morphology authored yet, so no schematic. A real image can still be added via the <code>micrograph</code> field.</div>`;
+  }
+  const taxRows = hasTax ? Object.entries(t).filter(([k,v])=>v!==null&&v!==undefined&&k!=='note')
+      .map(([k,v])=>`<dt>${k}</dt><dd>${v===true?'yes':v===false?'no':v}</dd>`).join('') : '';
+  const kcol=KCOL[o.kingdom]||'var(--surf)';
+  side.innerHTML=`<div class="card" style="--k:${kcol}">
+    <h2>${o.name}</h2>
+    <div class="kick">${o.kingdom||''}${crumb?' · identification':''}</div>
+    ${o.niche?`<div class="badges">${(o.tier?`<span class="n" style="background:${kcol}">กลุ่ม ${o.tier}</span>`:'')}
+      ${(o.niche||[]).map(n=>`<span style="border-left:3px solid ${NICHECOL[n]||'var(--line)'}">${n}</span>`).join('')}
+      ${(o.sys||[]).map(s=>`<span>${s}</span>`).join('')}</div>`:''}
+    ${crumb?`<div class="scope">Key: <b>${crumb}</b></div>`:''}
+    <div class="micro">${micro}</div>
+    ${hasTax?`<div class="blk"><div class="lab">Identification</div><dl class="tax">${taxRows}</dl>
+      ${t.note?`<p style="margin-top:8px;color:var(--dim);font-size:12px">${t.note}</p>`:''}</div>`:
+      `<div class="blk"><div class="lab">Identification</div><div class="awaiting">Not yet authored.</div></div>`}
+    ${o.treatment&&o.treatment.length?`<div class="blk"><div class="lab">Treatment — mechanism</div>
+      <ul class="rx">${o.treatment.map(x=>`<li><b>${x.class}</b> — <span>${x.mechanism}</span></li>`).join('')}</ul></div>`:''}
+    ${o.resistance&&o.resistance.length?`<div class="blk"><div class="lab">Resistance — mechanism</div>
+      <ul class="rx">${o.resistance.map(x=>`<li><b>${x.mechanism}</b> — <span>${x.detail}</span></li>`).join('')}</ul></div>`:''}
+    ${o.panels?`<div class="blk"><div class="lab">Resulting disease</div><p>${o.panels.dis}</p></div>`:''}
+  </div>`;
+  side.scrollTop=0;
+}
+
+/* ---- kingdom switcher ---- */
 ENUMS.kingdoms.forEach(k=>{
   const c=document.createElement('div');
   c.className='king'+(TAXONOMY[k]&&TAXONOMY[k].pending?' seam':'')+(k===cur?' on':'');
   c.style.setProperty('--c',KCOL[k]||'var(--dim)');
   c.innerHTML=k[0].toUpperCase()+k.slice(1)+'<small>'+(COUNTS[k]||0)+'</small>';
-  c.onclick=()=>{cur=k;document.querySelectorAll('.king').forEach(x=>x.classList.remove('on'));c.classList.add('on');draw();};
+  c.onclick=()=>{cur=k;document.querySelectorAll('.king').forEach(x=>x.classList.remove('on'));c.classList.add('on');
+    side.innerHTML='<div class="empty">Select an organism from the tree.</div>';draw();};
   kh.appendChild(c);
 });
 draw();
