@@ -577,9 +577,32 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "gram": "negative",
+      "morphology": "curved / comma-shaped rod",
+      "catalase": "positive",
+      "oxidase": "positive",
+      "coagulase": null,
+      "haemolysis": null,
+      "lactose": null,
+      "note": "motile (single polar flagellum, darting on dark-field); yellow (sucrose-fermenting) colonies on TCBS; enriched in alkaline peptone water; O1 (El Tor) and O139 cause epidemics"
+    },
+    "treatment": [
+      {
+        "class": "Aggressive rehydration (oral / IV) — the mainstay",
+        "mechanism": "Disease is a secreted toxin driving massive secretory fluid loss; replacing water and electrolytes (ORS, or IV in shock) is life-saving and treats the actual killer. Antibiotics are adjunctive."
+      },
+      {
+        "class": "Doxycycline or azithromycin (adjunct)",
+        "mechanism": "A tetracycline (30S) or macrolide (50S) shortens the diarrhoea and the shedding period, cutting transmission — but does not replace rehydration."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Tetracycline / multidrug resistance",
+        "detail": "Resistance to tetracyclines and other agents (often carried on the SXT integrative element) is increasingly reported — a further reason antibiotics stay adjunctive and rehydration is the anchor."
+      }
+    ]
   },
   {
     "id": "shigella-eiec",
@@ -603,9 +626,32 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "gram": "negative",
+      "morphology": "rod (bacillus)",
+      "catalase": "positive",
+      "oxidase": "negative",
+      "coagulase": null,
+      "haemolysis": null,
+      "lactose": null,
+      "note": "Enterobacterales; NON-motile, non-capsulate; non-lactose fermenter (S. sonnei late), H2S-negative; genetically one species with E. coli; very low infective dose (10–100)"
+    },
+    "treatment": [
+      {
+        "class": "Oral rehydration (most cases)",
+        "mechanism": "Most shigellosis is mild and self-limiting; fluid replacement suffices, and antibiotics are reserved for severe disease, extremes of age, or immunocompromise."
+      },
+      {
+        "class": "Ciprofloxacin / azithromycin / ceftriaxone when indicated",
+        "mechanism": "A fluoroquinolone, macrolide, or cephalosporin shortens severe illness and reduces transmission; anti-motility agents are avoided as they can worsen invasive colitis."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Multidrug & fluoroquinolone resistance",
+        "detail": "Widespread resistance to ampicillin and co-trimoxazole, with rising fluoroquinolone (gyrA) and azithromycin resistance — increasingly reported in returning travellers and in men who have sex with men — guiding susceptibility-led therapy."
+      }
+    ]
   },
   {
     "id": "salmonella",
@@ -629,9 +675,32 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "gram": "negative",
+      "morphology": "rod (bacillus)",
+      "catalase": "positive",
+      "oxidase": "negative",
+      "coagulase": null,
+      "haemolysis": null,
+      "lactose": null,
+      "note": "Enterobacterales; motile; non-lactose fermenter, urease-negative, H2S-producing (black colonies on XLD / Hektoen); O and H antigens"
+    },
+    "treatment": [
+      {
+        "class": "Usually supportive (gastroenteritis)",
+        "mechanism": "Non-typhoidal Salmonella enteritis is self-limiting and antibiotics can prolong carriage, so they are withheld except in the immunosuppressed, neonates, elderly, or those at risk of bacteraemia."
+      },
+      {
+        "class": "Ceftriaxone / ciprofloxacin / azithromycin for invasive disease",
+        "mechanism": "Bacteraemia, endovascular or CNS infection always needs therapy; ceftriaxone (β-lactam, CSF-penetrating) is used for Salmonella meningitis, with a fluoroquinolone or azithromycin by susceptibility."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Fluoroquinolone reduced susceptibility (gyrA / qnr) & MDR",
+        "detail": "gyrA mutations and plasmid qnr genes reduce fluoroquinolone activity, and multidrug-resistant serovars (e.g. Typhimurium DT104) are widespread — so invasive disease is treated by susceptibility, often with a cephalosporin."
+      }
+    ]
   },
   {
     "id": "salmonella-typhi",
@@ -654,9 +723,32 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "gram": "negative",
+      "morphology": "rod (bacillus)",
+      "catalase": "positive",
+      "oxidase": "negative",
+      "coagulase": null,
+      "haemolysis": null,
+      "lactose": null,
+      "note": "Enterobacterales; motile; non-lactose fermenter; Vi polysaccharide capsule (can mask the O antigen); ACDP hazard group 3; weak/absent H2S vs non-typhoidal Salmonella"
+    },
+    "treatment": [
+      {
+        "class": "Ceftriaxone (first-line, empirical)",
+        "mechanism": "β-lactam PBP inhibition; first-line for imported typhoid because of widespread resistance to older agents."
+      },
+      {
+        "class": "Azithromycin or a fluoroquinolone (by susceptibility)",
+        "mechanism": "Azithromycin (50S) concentrates intracellularly to reach organisms within macrophages; a fluoroquinolone is used only where susceptible, and ampicillin/co-trimoxazole where the isolate is sensitive."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "MDR and fluoroquinolone resistance (gyrA); XDR typhoid",
+        "detail": "Multidrug-resistant typhoid (ampicillin, chloramphenicol, co-trimoxazole) and gyrA fluoroquinolone resistance are common; extensively drug-resistant (XDR) strains resistant also to third-generation cephalosporins have emerged, pushing therapy toward azithromycin or carbapenems."
+      }
+    ]
   },
   {
     "id": "campylobacter-jejuni",
