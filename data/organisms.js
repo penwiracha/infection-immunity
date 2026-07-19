@@ -1758,9 +1758,28 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "genome": "positive-sense ssRNA",
+      "envelope": "enveloped",
+      "segmentation": "non-segmented",
+      "note": "Togaviridae (Rubivirus); single serotype; teratogenic — crosses the placenta to cause congenital rubella syndrome in the first trimester"
+    },
+    "treatment": [
+      {
+        "class": "Supportive care",
+        "mechanism": "Mild self-limiting illness with no antiviral; management is supportive."
+      },
+      {
+        "class": "Prevention — live attenuated vaccine (MMR)",
+        "mechanism": "The live vaccine gives durable immunity to the single serotype; the whole clinical priority is preventing first-trimester maternal infection, so susceptible women are vaccinated before pregnancy."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Not applicable (no antiviral)",
+        "detail": "A single stable serotype and no antiviral, so escape/resistance is irrelevant — control is vaccination to prevent congenital disease."
+      }
+    ]
   },
   {
     "id": "varicella-zoster-virus",
@@ -2344,9 +2363,28 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "genome": "negative-sense ssRNA",
+      "envelope": "enveloped",
+      "segmentation": "non-segmented",
+      "note": "Rhabdoviridae (Lyssavirus); bullet-shaped; travels retrogradely up axons to the CNS; Negri bodies on histology"
+    },
+    "treatment": [
+      {
+        "class": "Post-exposure prophylaxis — wound care + rabies vaccine + immunoglobulin",
+        "mechanism": "Given BEFORE symptoms, the only effective intervention: thorough wound washing, active immunisation (vaccine), and rabies immunoglobulin infiltrated around the wound to neutralise virus locally before it enters peripheral nerves and ascends to the CNS."
+      },
+      {
+        "class": "Once symptomatic — supportive / palliative only",
+        "mechanism": "After CNS invasion the virus is beyond antibody reach behind the blood-brain barrier; symptomatic rabies is almost universally fatal, so prevention (PEP) is everything."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Not applicable (no antiviral)",
+        "detail": "Outcome depends entirely on whether PEP is given before the virus reaches the CNS, not on any drug resistance."
+      }
+    ]
   },
   {
     "id": "poliovirus",
@@ -2369,9 +2407,28 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "genome": "positive-sense ssRNA",
+      "envelope": "non-enveloped (naked)",
+      "segmentation": "non-segmented",
+      "note": "Picornaviridae (Enterovirus); three serotypes (trivalent cover needed); faeco-oral; anterior-horn motor-neuron tropism"
+    },
+    "treatment": [
+      {
+        "class": "Supportive care",
+        "mechanism": "No antiviral; paralytic disease is managed supportively (respiratory support, rehabilitation)."
+      },
+      {
+        "class": "Prevention — IPV (inactivated) / OPV (live oral) vaccine",
+        "mechanism": "IPV gives serotype-specific neutralising IgG that prevents viraemia and paralysis; OPV additionally induces gut mucosal IgA that blocks transmission — the basis of eradication."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Not applicable (no antiviral)",
+        "detail": "Control is by vaccination; the only escape concern is rare vaccine-derived poliovirus reverting to neurovirulence, not drug resistance."
+      }
+    ]
   },
   {
     "id": "mumps-virus",
@@ -2440,9 +2497,24 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "genome": "positive-sense ssRNA",
+      "envelope": "non-enveloped (naked)",
+      "segmentation": "non-segmented",
+      "note": "Picornaviridae; dozens of non-cross-protective serotypes (Coxsackie, echo, EV71); faeco-oral"
+    },
+    "treatment": [
+      {
+        "class": "Supportive care",
+        "mechanism": "No routine antiviral; hand-foot-and-mouth disease, herpangina and viral meningitis are self-limiting. EV71 brainstem disease needs intensive support; investigational capsid inhibitors (e.g. pleconaril) are not standard."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Not applicable (no antiviral)",
+        "detail": "Repeated childhood infection reflects the many non-cross-protective serotypes, not drug resistance."
+      }
+    ]
   },
   {
     "id": "parvovirus-b19",
@@ -2466,9 +2538,28 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "genome": "single-stranded DNA",
+      "envelope": "non-enveloped (naked)",
+      "segmentation": "non-segmented",
+      "note": "Parvoviridae; smallest DNA virus; infects erythroid progenitors via the P antigen (blood-group P); tropic for dividing red-cell precursors"
+    },
+    "treatment": [
+      {
+        "class": "Supportive care",
+        "mechanism": "Erythema infectiosum and the arthropathy are self-limiting and largely post-viral / immune-complex mediated, so no antiviral is used."
+      },
+      {
+        "class": "IVIG (chronic infection) / transfusion (aplastic crisis, hydrops)",
+        "mechanism": "In the immunocompromised who cannot clear the virus, pooled immunoglobulin supplies neutralising antibody; transient aplastic crisis needs red-cell transfusion, and fetal hydrops may need intrauterine transfusion — replacing what the arrested erythropoiesis cannot make."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Not applicable (no antiviral)",
+        "detail": "The therapeutic problem is supporting erythropoiesis and supplying antibody in those who cannot mount their own, not drug resistance."
+      }
+    ]
   },
   {
     "id": "human-herpesvirus-6",
@@ -2492,9 +2583,28 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "genome": "dsDNA",
+      "envelope": "enveloped",
+      "segmentation": "non-segmented",
+      "note": "Herpesviridae (Roseolovirus); infects CD4 cells and can integrate into telomeres; lifelong latency, reactivates under immunosuppression"
+    },
+    "treatment": [
+      {
+        "class": "Supportive (roseola self-limiting)",
+        "mechanism": "Primary infection (roseola infantum) is self-limiting and needs no antiviral."
+      },
+      {
+        "class": "Ganciclovir / foscarnet (severe reactivation)",
+        "mechanism": "For encephalitis or marrow suppression after transplant, the CMV-type agents (ganciclovir, foscarnet) are used — they inhibit the viral DNA polymerase, HHV-6 being a betaherpesvirus like CMV."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Rarely relevant",
+        "detail": "Antiviral resistance is uncommon and clinically minor; most disease is self-limiting and managed without antivirals."
+      }
+    ]
   },
   {
     "id": "human-papillomavirus",
@@ -2518,9 +2628,28 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "genome": "double-stranded DNA (circular)",
+      "envelope": "non-enveloped (naked)",
+      "segmentation": "non-segmented",
+      "note": "Papillomaviridae; replicates only in differentiating keratinocytes (no viraemia); high-risk types (16/18) integrate and express E6/E7 oncogenes"
+    },
+    "treatment": [
+      {
+        "class": "Lesion-directed therapy (cryotherapy, topical agents, excision)",
+        "mechanism": "No antiviral exists; visible warts are removed physically (cryo, salicylic acid) or with an immune modulator (imiquimod, a TLR7 agonist driving local innate immunity). Dysplasia is treated by excision/ablation (e.g. LLETZ)."
+      },
+      {
+        "class": "Prevention — prophylactic HPV vaccine",
+        "mechanism": "A virus-like-particle vaccine (types incl. 16/18, ±6/11) induces neutralising antibody far more effectively than natural infection, preventing acquisition — preventive, not therapeutic."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Not applicable (no antiviral)",
+        "detail": "Persistence reflects the virus's stealthy intra-epithelial life cycle evading immunity, not drug resistance."
+      }
+    ]
   },
   {
     "id": "nipah-virus",
@@ -2544,9 +2673,24 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "genome": "negative-sense ssRNA",
+      "envelope": "enveloped",
+      "segmentation": "non-segmented",
+      "note": "Paramyxoviridae (Henipavirus); fruit-bat reservoir; infects endothelium and neurons; high-mortality encephalitis; BSL-4 pathogen"
+    },
+    "treatment": [
+      {
+        "class": "Supportive / intensive care",
+        "mechanism": "No proven antiviral; management of the encephalitis is supportive. Ribavirin has been tried with uncertain benefit and monoclonal antibodies are investigational."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Not applicable (no proven antiviral)",
+        "detail": "No established antiviral, so drug resistance is not the issue; outcome depends on supportive care and the virus's intrinsic virulence."
+      }
+    ]
   },
   {
     "id": "candida-albicans",
