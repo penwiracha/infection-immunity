@@ -1980,9 +1980,28 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "genome": "positive-sense ssRNA",
+      "envelope": "non-enveloped (naked)",
+      "segmentation": "non-segmented",
+      "note": "Picornaviridae (Hepatovirus); faeco-oral; no chronic carriage; heat- and acid-stable naked capsid"
+    },
+    "treatment": [
+      {
+        "class": "Supportive care",
+        "mechanism": "Self-limiting acute hepatitis with no chronicity and no specific antiviral; management is supportive."
+      },
+      {
+        "class": "Prevention — inactivated vaccine; post-exposure vaccine or immunoglobulin",
+        "mechanism": "The killed-virus vaccine gives durable protection; vaccine or human normal immunoglobulin after exposure prevents or attenuates disease."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Not applicable (no antiviral)",
+        "detail": "No antiviral therapy and lifelong immunity after one infection, so drug resistance is irrelevant; control is by vaccination and sanitation."
+      }
+    ]
   },
   {
     "id": "hepatitis-b-virus",
@@ -2006,9 +2025,28 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "genome": "partially double-stranded DNA",
+      "envelope": "enveloped",
+      "segmentation": "non-segmented",
+      "note": "Hepadnaviridae; replicates through an RNA intermediate using reverse transcriptase; nuclear cccDNA persists indefinitely"
+    },
+    "treatment": [
+      {
+        "class": "Nucleos(t)ide analogue — tenofovir or entecavir (first-line)",
+        "mechanism": "Nucleotide/nucleoside analogues that inhibit the viral reverse transcriptase / DNA polymerase, suppressing HBV DNA. Tenofovir and entecavir are preferred for potency and a high barrier to resistance; they suppress but rarely clear the virus (cccDNA persists), so treatment is long-term."
+      },
+      {
+        "class": "Pegylated interferon-α (finite course, selected patients)",
+        "mechanism": "Immunomodulatory — augments the host antiviral and immune response, aiming for HBeAg seroconversion in a finite course rather than indefinite suppression."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Reverse-transcriptase mutations (e.g. rtM204V/I — YMDD)",
+        "detail": "Lamivudine and older agents select YMDD-motif (rtM204) polymerase mutations, causing resistance and cross-resistance (telbivudine, partly entecavir). Tenofovir and entecavir have a high genetic barrier, which is why they are first-line."
+      }
+    ]
   },
   {
     "id": "hepatitis-c-virus",
@@ -2032,9 +2070,24 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "genome": "positive-sense ssRNA",
+      "envelope": "enveloped",
+      "segmentation": "non-segmented",
+      "note": "Flaviviridae (Hepacivirus); high replication error rate → quasispecies and multiple genotypes; no vaccine"
+    },
+    "treatment": [
+      {
+        "class": "Direct-acting antivirals (DAAs) — usually a combination",
+        "mechanism": "Curative oral regimens (sustained virological response >90%) blocking distinct viral steps: NS3/4A protease inhibitors ('-previr') stop polyprotein cleavage, NS5A inhibitors ('-asvir') block the replication complex, and NS5B polymerase inhibitors ('-buvir', e.g. sofosbuvir) stall RNA synthesis. Combining classes prevents resistance and cures the infection (HCV has no latent reservoir to outlast)."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Resistance-associated substitutions (RAS), especially NS5A",
+        "detail": "The error-prone polymerase generates resistant variants — most durably in NS5A — which is why DAAs are given in combination; genotype and prior treatment guide the regimen, and an SVR clears the virus rather than merely suppressing it."
+      }
+    ]
   },
   {
     "id": "hepatitis-e-virus",
@@ -2057,9 +2110,28 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "genome": "positive-sense ssRNA",
+      "envelope": "non-enveloped (naked)",
+      "segmentation": "non-segmented",
+      "note": "Hepeviridae; faeco-oral (also zoonotic — undercooked pork/game); high mortality in the third trimester of pregnancy"
+    },
+    "treatment": [
+      {
+        "class": "Supportive care (acute)",
+        "mechanism": "Usually self-limiting; management is supportive, with particular vigilance in pregnancy where mortality is high."
+      },
+      {
+        "class": "Reduce immunosuppression ± ribavirin (chronic HEV)",
+        "mechanism": "Chronic HEV occurs in the immunosuppressed (e.g. transplant patients on calcineurin inhibitors); lowering immunosuppression may clear it, and ribavirin (a guanosine analogue impairing viral RNA synthesis) is used when it persists."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Not a major drug-resistance issue",
+        "detail": "No routine antiviral for acute disease; where ribavirin is used for chronic HEV, failure relates more to host immunosuppression than to defined viral resistance."
+      }
+    ]
   },
   {
     "id": "hiv-1",
