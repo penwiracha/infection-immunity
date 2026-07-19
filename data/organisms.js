@@ -790,9 +790,36 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "gram": "negative",
+      "morphology": "diplococci (often intracellular, within neutrophils)",
+      "catalase": "positive",
+      "oxidase": "positive",
+      "coagulase": null,
+      "haemolysis": null,
+      "lactose": "negative",
+      "note": "ferments glucose ONLY (maltose-negative distinguishes it from N. meningitidis)"
+    },
+    "treatment": [
+      {
+        "class": "Third-generation cephalosporin (ceftriaxone)",
+        "mechanism": "β-lactam inhibition of penicillin-binding proteins; the guideline empirical choice because penicillin and older agents are now widely resisted. Often paired with azithromycin (dual therapy, and to cover co-infection)."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Plasmid β-lactamase (penicillinase)",
+        "detail": "Nitrocefin-detectable β-lactamase hydrolyses penicillin — one route by which penicillin was lost as therapy."
+      },
+      {
+        "mechanism": "Acquired PBP alteration (transformation)",
+        "detail": "Being naturally competent for DNA uptake, N. gonorrhoeae takes up altered penicillin-binding-protein (penA) genes from commensal Neisseria, lowering β-lactam affinity; this now drives creeping reduced cephalosporin susceptibility."
+      },
+      {
+        "mechanism": "Multidrug resistance / efflux",
+        "detail": "Successive loss of sulphonamides, penicillin, tetracycline and fluoroquinolones (gyrA), with rising azithromycin MICs (mtr efflux, 23S rRNA) — the reason gonorrhoea is a priority pathogen managed by empirical dual therapy."
+      }
+    ]
   },
   {
     "id": "chlamydia-trachomatis",
@@ -2735,9 +2762,40 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "gram": "positive",
+      "morphology": "rod with subterminal spores",
+      "catalase": null,
+      "oxidase": null,
+      "coagulase": null,
+      "haemolysis": null,
+      "lactose": null,
+      "note": "anaerobic spore-former; diagnosed by stool toxin A/B testing, not culture; hardy spores resist alcohol hand-gel"
+    },
+    "treatment": [
+      {
+        "class": "Stop the inciting antibiotic (± PPI)",
+        "mechanism": "Removing the driver lets the normal colonic flora — and its colonisation resistance — recover; the first step in every case."
+      },
+      {
+        "class": "Oral metronidazole or vancomycin",
+        "mechanism": "Metronidazole (non-severe) generates DNA-damaging radicals in anaerobes; ORAL vancomycin stays in the gut lumen (poorly absorbed) to kill C. difficile locally in severe or persistent disease."
+      },
+      {
+        "class": "Fidaxomicin",
+        "mechanism": "Narrow-spectrum inhibitor of bacterial RNA polymerase that spares much of the gut flora, reducing recurrence."
+      },
+      {
+        "class": "Faecal microbiota transplant (recurrent disease)",
+        "mechanism": "Restores a diverse flora and its colonisation resistance — treats the underlying dysbiosis rather than the organism, which is why it succeeds where antibiotics fail."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Antibiotic-driven dysbiosis, not classic AMR",
+        "detail": "Disease arises from antibiotic loss of colonisation resistance rather than resistance in C. difficile itself. Hypervirulent ribotype 027 responds less well to metronidazole, and hardy spores survive alcohol gel — hence soap-and-water hygiene and flora restoration."
+      }
+    ]
   }
 ];
   root.ORGANISMS = ORGANISMS;
