@@ -292,9 +292,36 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "gram": "positive",
+      "morphology": "club-shaped pleomorphic rods in palisades ('Chinese letters')",
+      "catalase": "positive",
+      "oxidase": null,
+      "coagulase": null,
+      "haemolysis": null,
+      "lactose": null,
+      "note": "non-motile, non-spore, non-capsulate; metachromatic (volutin) granules on Albert/Neisser stain; black colonies on tellurite"
+    },
+    "treatment": [
+      {
+        "class": "Diphtheria antitoxin",
+        "mechanism": "Antibody that neutralises circulating diphtheria toxin before it enters cells — the mainstay, because disease is toxin-mediated. It cannot reverse toxin already internalised, so early administration is critical."
+      },
+      {
+        "class": "Antibiotic (penicillin or a macrolide such as erythromycin)",
+        "mechanism": "Eliminates the organism and halts further toxin production; an adjunct to antitoxin, not a substitute for it."
+      },
+      {
+        "class": "Toxoid (immunisation)",
+        "mechanism": "Formaldehyde-inactivated toxin that induces neutralising antitoxin antibody, giving durable protection (the basis of the DTP schedule)."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Generally antibiotic-susceptible",
+        "detail": "C. diphtheriae is typically susceptible to penicillin and macrolides; management turns on antitoxin, not resistance. Disease in the immunised reflects waning toxoid immunity, not drug resistance."
+      }
+    ]
   },
   {
     "id": "bordetella-pertussis",
@@ -2474,9 +2501,32 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "gram": "positive",
+      "morphology": "large boxcar / cigar-shaped rods in chains",
+      "catalase": "positive",
+      "oxidase": null,
+      "coagulase": null,
+      "haemolysis": "non-haemolytic",
+      "lactose": null,
+      "note": "aerobic; central/subterminal oval spores; non-motile; poly-D-glutamate capsule (McFadyean-positive) — distinguishes it from motile, β-haemolytic B. cereus"
+    },
+    "treatment": [
+      {
+        "class": "Fluoroquinolone or tetracycline (ciprofloxacin, doxycycline)",
+        "mechanism": "Ciprofloxacin inhibits DNA gyrase / topoisomerase IV; doxycycline blocks the 30S ribosome. First-line for treatment and post-exposure prophylaxis of inhalational anthrax."
+      },
+      {
+        "class": "Anti-toxin (anti-protective-antigen monoclonal, e.g. raxibacumab)",
+        "mechanism": "Binds anthrax protective antigen (PA), preventing assembly of lethal and oedema toxin on the cell surface — an adjunct in severe disease because the outcome is toxin-driven."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Inducible β-lactamases",
+        "detail": "B. anthracis carries chromosomal inducible β-lactamases, so penicillin is not relied on for severe or bioterrorism-associated disease despite apparent in-vitro susceptibility — ciprofloxacin or doxycycline are preferred."
+      }
+    ]
   },
   {
     "id": "yersinia-pestis",
@@ -2526,9 +2576,36 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "gram": "positive",
+      "morphology": "cocci in chains",
+      "catalase": "negative",
+      "oxidase": null,
+      "coagulase": null,
+      "haemolysis": "beta",
+      "lactose": null,
+      "note": "Lancefield group B (S. agalactiae); bacitracin-resistant, hippurate-positive, CAMP-positive"
+    },
+    "treatment": [
+      {
+        "class": "Penicillin (benzylpenicillin)",
+        "mechanism": "β-lactam inhibition of penicillin-binding proteins; drug of choice for neonatal and adult GBS disease, and given intrapartum to prevent early-onset neonatal infection."
+      },
+      {
+        "class": "Vancomycin (penicillin allergy)",
+        "mechanism": "Binds the D-Ala-D-Ala cell-wall precursor terminus; the alternative when penicillin cannot be used."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Penicillin-susceptible",
+        "detail": "GBS has retained full penicillin susceptibility, so penicillin stays first-line."
+      },
+      {
+        "mechanism": "Macrolide / clindamycin resistance",
+        "detail": "Increasingly common (erm ribosomal methylation / mef efflux) — the reason susceptibility must be checked when choosing intrapartum prophylaxis for a penicillin-allergic mother."
+      }
+    ]
   },
   {
     "id": "helicobacter-pylori",
