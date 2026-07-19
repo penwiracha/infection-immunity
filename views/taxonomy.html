@@ -188,18 +188,12 @@ function showDetail(o, path){
   const t=o.taxonomy||{};
   const hasTax=Object.keys(t).length>0;
   const crumb=path.filter(p=>p.label).map(p=>p.label).join(' › ');
-  // microscopy: prefer a real micrograph, else the schematic
-  let micro;
-  if(o.micrograph){
-    micro=`<img src="${o.micrograph}" alt="light micrograph" style="width:100%;max-width:300px;border-radius:8px;display:block;margin:auto">
-      <div class="microcap">Light micrograph (supplied).</div>`;
-  }else{
-    const svg=schematic(o);
-    micro = svg
-      ? `${svg}<div class="microcap">Schematic from Gram stain + morphology — <b>not a real micrograph</b>. Set this organism's <code>micrograph</code> field (image URL / data-URI) to drop a real light-microscopy image in here.</div>`
-      : `<div style="height:120px;border:1px dashed var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:12px">Light microscopy — awaiting identification data</div>
-         <div class="microcap">No Gram/morphology authored yet, so no schematic. A real image can still be added via the <code>micrograph</code> field.</div>`;
-  }
+  // microscopy: show the schematic now; a real image (if present) swaps in after render
+  const svg=schematic(o);
+  const micro = svg
+    ? `${svg}<div class="microcap">Schematic from Gram stain + morphology — <b>not a real micrograph</b>. Drop a real image named <code>${o.id}.jpg</code> into the <code>images/</code> folder and it replaces this automatically.</div>`
+    : `<div style="height:120px;border:1px dashed var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:12px">Light microscopy</div>
+       <div class="microcap">No schematic for this one — a real image named <code>${o.id}.jpg</code> in the <code>images/</code> folder appears here.</div>`;
   const taxRows = hasTax ? Object.entries(t).filter(([k,v])=>v!==null&&v!==undefined&&k!=='note')
       .map(([k,v])=>`<dt>${k}</dt><dd>${v===true?'yes':v===false?'no':v}</dd>`).join('') : '';
   const kcol=KCOL[o.kingdom]||'var(--surf)';
@@ -221,6 +215,26 @@ function showDetail(o, path){
     ${o.panels?`<div class="blk"><div class="lab">Resulting disease</div><p>${o.panels.dis}</p></div>`:''}
   </div>`;
   side.scrollTop=0;
+  mountMicrograph(o);
+}
+
+/* Swap the schematic for a real light micrograph if one exists.
+   Priority: an explicit `micrograph` field, else images/<id>.(jpg|jpeg|png).
+   Falls back silently to the schematic when no image is found. */
+function mountMicrograph(o){
+  const slot=side.querySelector('.micro'); if(!slot) return;
+  const paths = o.micrograph ? [o.micrograph]
+    : ['jpg','jpeg','png'].map(e=>`../images/${o.id}.${e}`);
+  let i=0;
+  (function tryNext(){
+    if(i>=paths.length) return;           // keep the schematic fallback
+    const src=paths[i++], img=new Image();
+    img.onload=()=>{ slot.innerHTML=
+      `<img src="${src}" alt="Light micrograph of ${o.name}" style="width:100%;max-width:320px;border-radius:8px;display:block;margin:auto">
+       <div class="microcap">Light micrograph.</div>`; };
+    img.onerror=tryNext;
+    img.src=src;
+  })();
 }
 
 /* ---- kingdom switcher ---- */
