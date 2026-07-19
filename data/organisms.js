@@ -680,9 +680,36 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "gram": "negative",
+      "morphology": "curved / spiral 'seagull-wing' rods",
+      "catalase": "positive",
+      "oxidase": "positive",
+      "coagulase": null,
+      "haemolysis": null,
+      "lactose": null,
+      "note": "microaerophilic, thermophilic (grows at 42°C); single polar flagellum, darting motility; coccal transformation under stress; CCDA selective agar"
+    },
+    "treatment": [
+      {
+        "class": "Usually supportive (self-limiting)",
+        "mechanism": "Most Campylobacter enteritis settles with rehydration alone; antibiotics are reserved for severe or high-risk disease and add little in mild illness."
+      },
+      {
+        "class": "Macrolide (azithromycin / erythromycin) when treatment is needed",
+        "mechanism": "Binds the 50S ribosome to inhibit protein synthesis; preferred first-line because fluoroquinolone resistance is now common."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Fluoroquinolone resistance (gyrA)",
+        "detail": "DNA-gyrase (gyrA) mutations make ciprofloxacin unreliable — widespread, driven partly by agricultural fluoroquinolone use — so a macrolide is preferred when treatment is indicated."
+      },
+      {
+        "mechanism": "Macrolide resistance (23S rRNA / erm)",
+        "detail": "Less common but rising; 23S rRNA mutation or erm methylation reduces macrolide binding."
+      }
+    ]
   },
   {
     "id": "escherichia-coli",
@@ -706,9 +733,36 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "gram": "negative",
+      "morphology": "rod (bacillus)",
+      "catalase": "positive",
+      "oxidase": "negative",
+      "coagulase": null,
+      "haemolysis": null,
+      "lactose": "positive",
+      "note": "Enterobacterales; ferments glucose and lactose; usually motile; indole-positive — the archetypal lactose-fermenting coliform"
+    },
+    "treatment": [
+      {
+        "class": "Targeted therapy by site and susceptibility",
+        "mechanism": "Choice follows the syndrome and sensitivities: simple cystitis often responds to trimethoprim, nitrofurantoin or an aminopenicillin; invasive or hospital infection may need a cephalosporin, piperacillin–tazobactam, aminoglycoside, fluoroquinolone or carbapenem. Use the narrowest effective agent, guided by susceptibility."
+      },
+      {
+        "class": "Avoid antibiotics in STEC / O157",
+        "mechanism": "Antibiotics can increase Shiga-toxin release and the risk of haemolytic-uraemic syndrome, so they are avoided in E. coli O157 enteritis."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Extended-spectrum β-lactamases (ESBL)",
+        "detail": "Plasmid ESBLs (e.g. CTX-M) hydrolyse penicillins and most cephalosporins while sparing carbapenems — a major driver of empirical carbapenem use in serious Gram-negative sepsis."
+      },
+      {
+        "mechanism": "AmpC and carbapenemases",
+        "detail": "AmpC β-lactamases defeat cephalosporins and β-lactamase-inhibitor combinations; carbapenemases (NDM, OXA-48, KPC) remove the carbapenem last resort, leaving few options."
+      }
+    ]
   },
   {
     "id": "pseudomonas-aeruginosa",
@@ -1061,9 +1115,28 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "gram": "negative",
+      "morphology": "faintly staining short rods / coccobacilli",
+      "catalase": "positive",
+      "oxidase": null,
+      "coagulase": null,
+      "haemolysis": null,
+      "lactose": null,
+      "note": "aerobic; stains poorly by Gram (use silver / fluorescent-antibody); grows only on BCYE agar (needs L-cysteine + iron); facultative intracellular in macrophages and amoebae; urinary antigen detects serogroup 1"
+    },
+    "treatment": [
+      {
+        "class": "Macrolide (azithromycin) or respiratory fluoroquinolone (levofloxacin)",
+        "mechanism": "Both penetrate host cells to reach the intracellular organism — azithromycin blocks the 50S ribosome, levofloxacin inhibits DNA gyrase / topoisomerase IV. Agents that cannot enter cells (β-lactams, aminoglycosides) fail despite in-vitro activity."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Intrinsic β-lactam / aminoglycoside failure (intracellular niche + β-lactamase)",
+        "detail": "Legionella makes a β-lactamase and, more importantly, lives inside cells where β-lactams and aminoglycosides do not reach — so they fail clinically regardless of disc testing. Treatment relies on cell-penetrating macrolides or fluoroquinolones."
+      }
+    ]
   },
   {
     "id": "brucella-species",
@@ -2848,9 +2921,32 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "gram": "negative",
+      "morphology": "helical / curved rod",
+      "catalase": "positive",
+      "oxidase": "positive",
+      "coagulase": null,
+      "haemolysis": null,
+      "lactose": null,
+      "note": "strictly microaerophilic, requires CO2; tuft of sheathed unipolar flagella; strongly urease-positive (basis of the urea breath test); colonises gastric mucosa"
+    },
+    "treatment": [
+      {
+        "class": "Eradication 'triple therapy' — PPI + two antibiotics (clarithromycin + amoxicillin or metronidazole)",
+        "mechanism": "A proton-pump inhibitor suppresses acid, raising gastric pH so the antibiotics work and the organism turns metabolically active; clarithromycin (50S) with amoxicillin (PBP) or metronidazole (anaerobic DNA damage) then eradicate it. Combined to prevent resistance and clear the mucus-shielded niche."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Clarithromycin resistance (23S rRNA mutation)",
+        "detail": "Point mutations in 23S rRNA block macrolide binding — the leading cause of eradication failure, so local resistance rates guide the regimen and clarithromycin is dropped where prevalence is high."
+      },
+      {
+        "mechanism": "Metronidazole resistance (rdxA)",
+        "detail": "Reduced nitroreductase (rdxA) activity lowers metronidazole activation; common in some populations and factored into regimen choice."
+      }
+    ]
   },
   {
     "id": "clostridioides-difficile",
