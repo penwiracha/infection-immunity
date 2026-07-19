@@ -1719,9 +1719,24 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "genome": "dsDNA",
+      "envelope": "enveloped",
+      "segmentation": "non-segmented",
+      "note": "Herpesviridae (HHV-3); lifelong latency in dorsal-root and cranial ganglia, reactivating as zoster"
+    },
+    "treatment": [
+      {
+        "class": "Aciclovir / valaciclovir (higher doses than for HSV)",
+        "mechanism": "Same TK-dependent activation and viral-DNA-polymerase inhibition as for HSV, but VZV is less susceptible so higher doses are used; started early in zoster to cut severity and post-herpetic neuralgia."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "TK / DNA-polymerase mutations (uncommon)",
+        "detail": "Aciclovir-resistant VZV is less common than HSV, arising mainly under chronic suppressive therapy at subtherapeutic doses; foscarnet is the fallback."
+      }
+    ]
   },
   {
     "id": "herpes-simplex-virus",
@@ -1760,9 +1775,28 @@
       "f_dc_mhc1",
       "f_mhc1_cd8"
     ],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": [],
+    "taxonomy": {
+      "genome": "dsDNA",
+      "envelope": "enveloped",
+      "segmentation": "non-segmented",
+      "note": "Herpesviridae (HSV-1/2); establishes lifelong latency in sensory (trigeminal / dorsal-root) ganglia"
+    },
+    "treatment": [
+      {
+        "class": "Aciclovir / valaciclovir (or famciclovir)",
+        "mechanism": "A nucleoside analogue phosphorylated ONLY by the virus's own thymidine kinase in infected cells, then blocking viral DNA polymerase and terminating the DNA chain — so it acts selectively on infected cells. Valaciclovir is the better-absorbed oral prodrug."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Thymidine-kinase deficiency (TK mutants)",
+        "detail": "Loss or alteration of viral TK stops aciclovir activation; seen mainly in the immunocompromised (up to ~17% in AIDS/transplant on prolonged therapy) and cross-resistant to famciclovir and ganciclovir."
+      },
+      {
+        "mechanism": "Altered DNA polymerase",
+        "detail": "Reduced polymerase affinity also causes resistance; foscarnet — which inhibits the polymerase directly without needing viral TK — is used for aciclovir-resistant disease."
+      }
+    ],
     "mapNote": "ICP47 blocks TAP, so viral peptides never reach MHC I and the infected cell displays nothing for CTLs to see. NK cells partly rescue this by killing cells with low MHC I &mdash; which is exactly why that backup exists. Latency in sensory ganglia then sits beyond the reach of either arm."
   },
   {
@@ -1788,9 +1822,32 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "genome": "dsDNA",
+      "envelope": "enveloped",
+      "segmentation": "non-segmented",
+      "note": "Herpesviridae (HHV-5); latency in myeloid cells; largest herpesvirus genome"
+    },
+    "treatment": [
+      {
+        "class": "Ganciclovir / valganciclovir",
+        "mechanism": "A guanosine analogue activated by CMV's UL97 protein kinase (CMV lacks the TK that aciclovir needs), then inhibiting CMV DNA polymerase. Reserved for sight- or life-threatening CMV in the immunocompromised because cellular enzymes also activate it, causing marrow toxicity. Valganciclovir is the oral prodrug."
+      },
+      {
+        "class": "Foscarnet / cidofovir (resistant or intolerant)",
+        "mechanism": "Foscarnet (a pyrophosphate analogue) inhibits the viral DNA polymerase directly, needing no activation, so it works against ganciclovir-resistant CMV; cidofovir is a nucleotide-analogue alternative."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "UL97 kinase mutation (ganciclovir)",
+        "detail": "Mutations in the UL97 protein kinase stop ganciclovir activation — the commonest resistance, emerging on prolonged therapy in AIDS/transplant (≈28% after 9 months in one retinitis study)."
+      },
+      {
+        "mechanism": "UL54 DNA-polymerase mutation",
+        "detail": "Polymerase mutations give higher-level and sometimes cross-resistance (ganciclovir / foscarnet / cidofovir), guiding switches between agents."
+      }
+    ]
   },
   {
     "id": "epstein-barr-virus",
@@ -1814,9 +1871,28 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "genome": "dsDNA",
+      "envelope": "enveloped",
+      "segmentation": "non-segmented",
+      "note": "Herpesviridae (HHV-4); latency in memory B cells; oncogenic (Burkitt, Hodgkin, nasopharyngeal carcinoma, PTLD)"
+    },
+    "treatment": [
+      {
+        "class": "Supportive care (no specific antiviral)",
+        "mechanism": "Infectious mononucleosis is self-limiting and largely immunopathological, so there is no routine antiviral; aciclovir reduces viral shedding but not the illness. Corticosteroids are reserved for complications such as airway obstruction."
+      },
+      {
+        "class": "Restore T-cell control / rituximab for PTLD",
+        "mechanism": "Post-transplant lymphoproliferative disease is driven by unchecked EBV-immortalised B cells — reducing immunosuppression (restoring cytotoxic T cells) and anti-CD20 (rituximab) target the B-cell proliferation, not the virus directly."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Not an antiviral-resistance issue",
+        "detail": "As EBV disease is managed immunologically rather than with antivirals, drug resistance is not clinically relevant; the problem is restoring T-cell control."
+      }
+    ]
   },
   {
     "id": "hepatitis-a-virus",
