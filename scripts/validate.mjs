@@ -83,9 +83,18 @@ for (const o of ORGANISMS) {
   else if (!kingdomSet.has(o.kingdom)) err(`${label}: unknown kingdom "${o.kingdom}"`);
   checkRefs(o, label);
 
-  // reference entries appear in the taxonomy browse only — they are exempt from
-  // the ศรว-specific clinical fields until promoted to full records.
-  if (o.reference) { refCount++; continue; }
+  // reference entries appear in the taxonomy browse only — the ศรว-specific
+  // fields (niche/tier/sys/fail/sub/panels) are optional, but validated if present.
+  if (o.reference) {
+    refCount++;
+    if (o.panels) for (const p of ["resp", "evade", "dis"])
+      if (!o.panels[p]) err(`${label}: panel "${p}" present but empty`);
+    if (o.fail) { if (!failSet.has(o.fail)) err(`${label}: fail "${o.fail}" not in canonical set`); else usedFails.add(o.fail); }
+    if (o.tier !== undefined && ![1, 2].includes(o.tier)) err(`${label}: tier, if present, must be 1 or 2`);
+    for (const n of o.niche || []) if (!nicheSet.has(n)) err(`${label}: unknown niche "${n}"`);
+    for (const s of o.sys || []) if (!sysSet.has(s)) err(`${label}: unknown system "${s}"`);
+    continue;
+  }
 
   const req = ["niche", "tier", "sys", "fail", "sub", "panels"];
   for (const k of req) if (o[k] === undefined || o[k] === null) err(`${label}: missing required field "${k}"`);
