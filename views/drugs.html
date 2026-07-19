@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Antimicrobial Review</title>
+<style>
+:root{--bg:#0f1115;--panel:#171a21;--panel2:#1e222b;--line:#2b303b;--txt:#e6e8ec;--dim:#9aa3b2;
+ --extra:#e0603f;--vesic:#e0a83f;--cyto:#4fa3e3;--surf:#57b86b;--host:#7a6cf0;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);
+ font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+header{padding:22px 28px 14px;border-bottom:1px solid var(--line)}
+h1{margin:0 0 6px;font-size:22px}
+.sub{color:var(--dim);font-size:13.5px;max-width:900px}
+.sub a{color:var(--dim)}
+.fams{display:flex;gap:8px;flex-wrap:wrap;padding:12px 28px;border-bottom:1px solid var(--line)}
+.fam{padding:7px 13px;border-radius:20px;border:1px solid var(--line);background:var(--panel2);
+ font-weight:600;font-size:13px;cursor:pointer;user-select:none}
+.fam small{color:var(--dim);font-weight:400;margin-left:6px}
+.fam.on{background:var(--c);color:#0f1115;border-color:var(--c)}
+.fam.on small{color:rgba(0,0,0,.55)}
+.wrap{display:grid;grid-template-columns:minmax(320px,1fr) minmax(360px,440px)}
+@media(max-width:900px){.wrap{grid-template-columns:1fr}}
+.tree{padding:16px 28px 60px}
+.side{position:sticky;top:0;max-height:100vh;overflow:auto;background:var(--panel);
+ border-left:1px solid var(--line);padding:22px 24px 60px}
+.node{margin-left:16px;border-left:1px solid var(--line);padding-left:14px;margin-top:2px}
+.nlabel{font-size:13px;padding:3px 0;color:var(--txt)}
+.leaf{display:inline-block;font-size:12.5px;padding:4px 10px;border-radius:7px;margin:3px 0;
+ background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--c);cursor:pointer;transition:.12s}
+.leaf:hover{transform:translateY(-1px);border-color:var(--dim)}
+.leaf.active{background:var(--c);color:#0f1115;border-color:var(--c);font-weight:600}
+.root>.node{border-left:none;margin-left:0;padding-left:0}
+.empty{color:var(--dim);font-size:13.5px;text-align:center;padding-top:44px;line-height:1.7}
+.card h2{margin:0 0 3px;font-size:19px}
+.card .kick{font-size:11.5px;color:var(--dim);margin-bottom:12px}
+.scope{font-size:11px;color:var(--dim);margin:-4px 0 14px}
+.scope b{color:var(--txt)}
+.blk{margin-bottom:11px;padding:11px 13px;background:var(--panel2);border-radius:8px;border-left:3px solid var(--c)}
+.blk .lab{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
+.blk p{margin:0;font-size:13px}
+.note{font-size:11.5px;color:var(--dim);margin-top:18px;border-top:1px solid var(--line);padding-top:11px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Antimicrobial review</h1>
+  <div class="sub">Every antimicrobial, by family &rarr; class &rarr; generation &rarr; drug. Click a drug for its mechanism and use. Mechanistic reference, not a prescribing guide. &middot; <a href="../index.html">home</a></div>
+</header>
+<div class="fams" id="fams"></div>
+<div class="wrap">
+  <div class="tree" id="tree"></div>
+  <div class="side" id="side"><div class="empty">Select a drug from the tree.<br>Its mechanism and use appear here.</div></div>
+</div>
+<script src="../data/drugs.js"></script>
+<script>
+const FAMCOL={Antibacterial:'var(--extra)',Antiviral:'var(--cyto)',Antifungal:'var(--vesic)',Antiparasitic:'var(--surf)'};
+const fams=document.getElementById('fams'), treeEl=document.getElementById('tree'), side=document.getElementById('side');
+let cur=DRUGS.families[0].label, col='var(--extra)';
+
+function countLeaves(node){ if(node.drug) return 1; return (node.children||[]).reduce((a,c)=>a+countLeaves(c),0); }
+function renderNode(node, path){
+  const wrap=document.createElement('div'); wrap.className='node';
+  if(node.drug){
+    const leaf=document.createElement('div'); leaf.className='leaf'; leaf.style.setProperty('--c',col);
+    leaf.textContent=node.drug;
+    leaf.onclick=()=>{
+      document.querySelectorAll('.leaf').forEach(x=>x.classList.remove('active'));
+      leaf.classList.add('active');
+      showDetail(node, path);
+    };
+    wrap.appendChild(leaf); return wrap;
+  }
+  const lab=document.createElement('div'); lab.className='nlabel'; lab.textContent=node.label;
+  wrap.appendChild(lab);
+  const next=path.concat(node.label?[node.label]:[]);
+  (node.children||[]).forEach(c=>wrap.appendChild(renderNode(c,next)));
+  return wrap;
+}
+function showDetail(node, path){
+  const crumb=path.join(' › ');
+  side.innerHTML=`<div class="card" style="--c:${col}">
+    <h2>${node.drug}</h2>
+    <div class="kick">${cur}</div>
+    ${crumb?`<div class="scope">Class: <b>${crumb}</b></div>`:''}
+    <div class="blk"><div class="lab">Mechanism</div><p>${node.mechanism}</p></div>
+    <div class="blk"><div class="lab">Use &amp; notes</div><p>${node.use}</p></div>
+    <div class="note">Mechanism-level reference only — regimens follow local guidelines.</div>
+  </div>`;
+  side.scrollTop=0;
+}
+function draw(){
+  const fam=DRUGS.families.find(f=>f.label===cur);
+  col=FAMCOL[cur]||'var(--extra)';
+  treeEl.innerHTML='';
+  const root=document.createElement('div'); root.className='root';
+  (fam.children||[]).forEach(c=>root.appendChild(renderNode(c,[])));
+  treeEl.appendChild(root);
+}
+DRUGS.families.forEach(f=>{
+  const c=document.createElement('div');
+  c.className='fam'+(f.label===cur?' on':'');
+  c.style.setProperty('--c',FAMCOL[f.label]||'var(--dim)');
+  c.innerHTML=f.label+'<small>'+countLeaves(f)+'</small>';
+  c.onclick=()=>{cur=f.label;document.querySelectorAll('.fam').forEach(x=>x.classList.remove('on'));c.classList.add('on');
+    side.innerHTML='<div class="empty">Select a drug from the tree.</div>';draw();};
+  fams.appendChild(c);
+});
+draw();
+</script>
+</body>
+</html>

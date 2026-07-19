@@ -28,12 +28,12 @@ for (const f of [
   "data/enums.js", "data/organisms.js", "data/host-defects.js",
   "data/cascades/extracellular.js",
   "data/cascades/vesicular.js", "data/cascades/cytosolic.js", "data/cascades/surface.js",
-  "data/taxonomy.js"
+  "data/taxonomy.js", "data/drugs.js"
 ]) {
   if (!existsSync(P(f))) continue; // seams may not exist yet
   vm.runInContext(readFileSync(P(f), "utf8"), ctx, { filename: f });
 }
-const { ENUMS, ORGANISMS, HOST_DEFECTS, CASCADES, TAXONOMY } = ctx;
+const { ENUMS, ORGANISMS, HOST_DEFECTS, CASCADES, TAXONOMY, DRUGS } = ctx;
 
 const errors = [];
 const warnings = [];
@@ -160,6 +160,20 @@ for (const [kingdom, entry] of Object.entries(TAXONOMY || {})) {
     if (!leaves.has(o.id)) err(`${label}: organism "${o.id}" is not placed anywhere in the tree`);
 }
 
+/* ---- drug tree: every leaf carries drug + mechanism + use ---- */
+let drugCount = 0;
+if (DRUGS) {
+  const walkDrug = (node, path) => {
+    if (node.drug) {
+      drugCount++;
+      for (const k of ["mechanism", "use"]) if (!node[k]) err(`drug "${node.drug}" (${path}): missing "${k}"`);
+      return;
+    }
+    for (const c of node.children || []) walkDrug(c, `${path} › ${node.label || ""}`);
+  };
+  for (const fam of DRUGS.families || []) walkDrug(fam, fam.label);
+}
+
 /* ---- scope seam: cross-check against the ศรว. list when supplied ---- */
 if (existsSync(P("prototypes", "ocr.txt"))) {
   // TODO: parse ocr.txt and diff required organisms against ORGANISMS names.
@@ -178,6 +192,6 @@ function report() {
     for (const e of errors) console.log("   - " + e);
   } else {
     const full = ORGANISMS.length - refCount;
-    console.log(`\n✓ validation passed — ${full} organisms${refCount ? ` (+${refCount} reference)` : ""}, ${HOST_DEFECTS.length} host defects, ${Object.keys(CASCADES || {}).length} cascade(s).`);
+    console.log(`\n✓ validation passed — ${full} organisms${refCount ? ` (+${refCount} reference)` : ""}, ${HOST_DEFECTS.length} host defects, ${Object.keys(CASCADES || {}).length} cascade(s), ${drugCount} drugs.`);
   }
 }
