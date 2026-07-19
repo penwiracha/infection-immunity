@@ -139,6 +139,8 @@ function show(o,n){
    <div class="tag">Niche: <b>${n.name.split('—')[0].trim()}</b>${others.length?' · also '+others.join(', '):''}</div>
    <div class="meta"><span>กลุ่ม ${o.tier}</span>${o.sys.map(s=>`<span>${s}</span>`).join('')}</div>
    <div class="fail">${o.fail} · ${o.sub}</div>
+   ${o.transmission?`<div class="blk"><div class="lab">Transmission — how it reaches humans</div><p>${o.transmission}</p></div>`:''}
+   ${o.lifecycle?`<div class="blk"><div class="lab">Life cycle</div><p>${o.lifecycle}</p></div>`:''}
    <div class="blk"><div class="lab">1 · Response mounted</div><p>${o.panels.resp}</p></div>
    <div class="blk"><div class="lab">2 · Why it is not enough</div><p>${o.panels.evade}</p></div>
    <div class="blk"><div class="lab">3 · Resulting disease</div><p>${o.panels.dis}</p></div>

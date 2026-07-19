@@ -212,6 +212,8 @@ function showDetail(o, path){
       <ul class="rx">${o.treatment.map(x=>`<li><b>${x.class}</b> — <span>${x.mechanism}</span></li>`).join('')}</ul></div>`:''}
     ${o.resistance&&o.resistance.length?`<div class="blk"><div class="lab">Resistance — mechanism</div>
       <ul class="rx">${o.resistance.map(x=>`<li><b>${x.mechanism}</b> — <span>${x.detail}</span></li>`).join('')}</ul></div>`:''}
+    ${o.transmission?`<div class="blk"><div class="lab">Transmission — how it reaches humans</div><p>${o.transmission}</p></div>`:''}
+    ${o.lifecycle?`<div class="blk"><div class="lab">Life cycle</div><p>${o.lifecycle}</p></div>`:''}
     ${o.panels?`<div class="blk"><div class="lab">Resulting disease</div><p>${o.panels.dis}</p></div>`:''}
   </div>`;
   side.scrollTop=0;
