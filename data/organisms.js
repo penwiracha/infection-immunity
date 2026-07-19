@@ -2791,9 +2791,27 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "growthForm": "yeast",
+      "phylum": "Basidiomycota",
+      "detail": "heavily encapsulated yeast (India-ink capsule); urease- and phenol-oxidase-positive (melanin); narrow-based buds"
+    },
+    "treatment": [
+      {
+        "class": "Induction: liposomal amphotericin B + flucytosine",
+        "mechanism": "Amphotericin (polyene, binds ergosterol) with flucytosine (antimetabolite → 5-fluorouracil disrupting nucleic-acid synthesis) — synergistic fungicidal induction for cryptococcal meningitis."
+      },
+      {
+        "class": "Consolidation / maintenance: fluconazole",
+        "mechanism": "Azole ergosterol-synthesis inhibition with good CSF penetration; continued until immune recovery (e.g. CD4 rise on ART) to prevent relapse."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Flucytosine resistance on monotherapy; azole relapse",
+        "detail": "Flucytosine rapidly selects resistant mutants if used alone (hence combination); fluconazole relapse follows inadequate maintenance or persistent immunosuppression."
+      }
+    ]
   },
   {
     "id": "talaromyces-marneffei",
@@ -2817,9 +2835,23 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "growthForm": "dimorphic",
+      "phylum": "Ascomycota",
+      "detail": "mould at 25°C (diffusible red pigment); intracellular fission yeast with a central septum at 37°C; SE Asia; ACDP hazard group 3"
+    },
+    "treatment": [
+      {
+        "class": "Induction: liposomal amphotericin B → itraconazole",
+        "mechanism": "Polyene induction for disseminated disease, stepped down to itraconazole (azole) for consolidation/maintenance, continued until immune recovery on ART."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Relapse without immune recovery",
+        "detail": "Responds well to amphotericin/itraconazole; relapse reflects persistent HIV-related immunosuppression rather than acquired resistance."
+      }
+    ]
   },
   {
     "id": "aspergillus-fumigatus",
@@ -2842,9 +2874,27 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "growthForm": "mould",
+      "phylum": "Ascomycota",
+      "detail": "septate hyaline mould with narrow, regular, acute-angle (≈45°) branching; conidial heads; galactomannan antigen aids diagnosis"
+    },
+    "treatment": [
+      {
+        "class": "Voriconazole (first-line, invasive aspergillosis)",
+        "mechanism": "Azole inhibition of 14-α-demethylase (ergosterol synthesis); first-line for invasive disease, with liposomal amphotericin or isavuconazole as alternatives."
+      },
+      {
+        "class": "Echinocandin (salvage / combination)",
+        "mechanism": "Inhibits β-1,3-glucan synthase (cell wall); used in salvage or combination, not as sole first-line."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Azole resistance (cyp51A)",
+        "detail": "Mutations in cyp51A (the azole target), including environmentally-acquired TR34/L98H from agricultural azole use, produce azole-resistant A. fumigatus and treatment failure."
+      }
+    ]
   },
   {
     "id": "mucorales",
@@ -2868,9 +2918,27 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "growthForm": "mould",
+      "phylum": "Zygomycota",
+      "detail": "broad, ribbon-like, aseptate hyphae with wide-angle (≈90°), irregular branching — distinguishes it from Aspergillus; angioinvasive (Rhizopus, Mucor, Rhizomucor)"
+    },
+    "treatment": [
+      {
+        "class": "Urgent liposomal amphotericin B + surgical debridement",
+        "mechanism": "High-dose polyene plus aggressive removal of necrotic (avascular) tissue, together with reversing the predisposing state (e.g. correcting diabetic ketoacidosis) — drug alone cannot reach infarcted tissue."
+      },
+      {
+        "class": "Isavuconazole or posaconazole (step-down / salvage)",
+        "mechanism": "The only azoles with useful Mucorales activity; used for consolidation or when amphotericin is not tolerated."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Intrinsic resistance to voriconazole and echinocandins",
+        "detail": "Mucorales are inherently resistant to voriconazole and to echinocandins — a key trap, since a patient on voriconazole prophylaxis can develop breakthrough mucormycosis."
+      }
+    ]
   },
   {
     "id": "pneumocystis-jirovecii",
@@ -2893,9 +2961,27 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "growthForm": "atypical (unculturable)",
+      "phylum": "Ascomycota",
+      "detail": "unusual fungus lacking ergosterol in its membrane (so standard antifungals fail); cannot be cultured; trophic and cyst forms; diagnosed on induced sputum/BAL with silver or immunofluorescent stains"
+    },
+    "treatment": [
+      {
+        "class": "High-dose co-trimoxazole (first-line)",
+        "mechanism": "Sequential folate-synthesis blockade (trimethoprim + sulfamethoxazole). Standard antifungals do NOT work because Pneumocystis lacks ergosterol. Add corticosteroids in hypoxia to blunt the inflammatory response."
+      },
+      {
+        "class": "Alternatives — pentamidine, atovaquone, clindamycin-primaquine",
+        "mechanism": "Used in sulfa allergy/intolerance; low-dose co-trimoxazole is also the basis of prophylaxis when CD4 is low."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Sulfa target mutations (DHPS)",
+        "detail": "Dihydropteroate synthase (DHPS) mutations are associated with sulfonamide exposure; because the organism can't be cultured, resistance is inferred molecularly and clinically."
+      }
+    ]
   },
   {
     "id": "dermatophytes",
@@ -2918,9 +3004,27 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "growthForm": "mould",
+      "phylum": "Ascomycota",
+      "detail": "keratinophilic septate moulds (Trichophyton, Microsporum, Epidermophyton) invading skin, hair and nail; arthrospores; some Microsporum fluoresce under Wood's UV light"
+    },
+    "treatment": [
+      {
+        "class": "Topical azole or terbinafine (skin — tinea corporis/cruris/pedis)",
+        "mechanism": "Terbinafine inhibits squalene epoxidase and azoles inhibit 14-α-demethylase — both block ergosterol synthesis; topical therapy suffices for glabrous-skin tinea."
+      },
+      {
+        "class": "Oral terbinafine / itraconazole / griseofulvin (nails, scalp)",
+        "mechanism": "Topicals fail for tinea capitis and onychomycosis, so systemic therapy is used; griseofulvin disrupts fungal microtubules and concentrates in keratin."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Emerging terbinafine resistance (squalene epoxidase)",
+        "detail": "Squalene-epoxidase (SQLE) mutations, notably in Trichophyton indotineae, cause terbinafine-resistant, difficult-to-treat dermatophytosis — a growing global problem."
+      }
+    ]
   },
   {
     "id": "plasmodium-falciparum",
