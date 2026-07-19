@@ -3388,9 +3388,23 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "class": "helminth",
+      "subclass": "nematode (roundworm)",
+      "detail": "skin-penetrating hookworm; buccal capsule attaches to duodenal mucosa and sucks blood; faeco-soil cycle"
+    },
+    "treatment": [
+      {
+        "class": "Albendazole or mebendazole",
+        "mechanism": "Benzimidazoles bind β-tubulin, blocking microtubule formation and glucose uptake; iron replacement corrects the blood-loss anaemia."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Benzimidazole resistance (β-tubulin) — emerging",
+        "detail": "β-tubulin mutations threaten mass-treatment programmes, as already seen in veterinary nematodes."
+      }
+    ]
   },
   {
     "id": "strongyloides-stercoralis",
@@ -3415,9 +3429,23 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "class": "helminth",
+      "subclass": "nematode (roundworm)",
+      "detail": "skin-penetrating; uniquely completes autoinfection within the host, so infection can persist for decades"
+    },
+    "treatment": [
+      {
+        "class": "Ivermectin (first-line)",
+        "mechanism": "Opens glutamate-gated chloride channels in the parasite's nerve/muscle, causing paralysis and death; the drug of choice (albendazole is an alternative). Screen and treat before corticosteroids to avoid hyperinfection."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Not a resistance issue",
+        "detail": "Failure reflects the autoinfective cycle and heavy burden (hyperinfection), not drug resistance; repeat/prolonged ivermectin is used."
+      }
+    ]
   },
   {
     "id": "enterobius-vermicularis",
@@ -3440,9 +3468,23 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "class": "helminth",
+      "subclass": "nematode (roundworm)",
+      "detail": "pinworm; nocturnal perianal egg-laying; diagnosed by the sticky-tape test"
+    },
+    "treatment": [
+      {
+        "class": "Mebendazole or albendazole (repeat at 2 weeks; treat household)",
+        "mechanism": "Benzimidazole β-tubulin inhibition; a second dose covers reinfection from persistent perianal eggs, and treating the household breaks the cycle."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Reinfection, not resistance",
+        "detail": "Recurrence is autoinfection/household reinfection rather than drug resistance."
+      }
+    ]
   },
   {
     "id": "trichuris-trichiura",
@@ -3465,9 +3507,23 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "class": "helminth",
+      "subclass": "nematode (roundworm)",
+      "detail": "whipworm; anterior end threaded into the colonic epithelium"
+    },
+    "treatment": [
+      {
+        "class": "Albendazole or mebendazole (± ivermectin)",
+        "mechanism": "Benzimidazole β-tubulin inhibition; Trichuris responds less well than Ascaris, so longer courses or adding ivermectin improve cure."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Low intrinsic benzimidazole susceptibility",
+        "detail": "Whipworm is inherently harder to clear with single-dose benzimidazoles — an efficacy limit more than acquired resistance."
+      }
+    ]
   },
   {
     "id": "taenia-solium-cysticercosis",
@@ -3492,9 +3548,27 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "class": "helminth",
+      "subclass": "cestode (tapeworm)",
+      "detail": "pork tapeworm; intestinal adult (taeniasis) from cysticercus in pork; human cysticercosis (incl. neurocysticercosis) from ingesting eggs"
+    },
+    "treatment": [
+      {
+        "class": "Intestinal taeniasis: praziquantel or niclosamide",
+        "mechanism": "Praziquantel raises tegumental calcium permeability, paralysing and damaging the worm; niclosamide (poorly absorbed) acts in the gut lumen on the adult."
+      },
+      {
+        "class": "Neurocysticercosis: albendazole (± praziquantel) + corticosteroids + antiepileptics",
+        "mechanism": "Albendazole kills the cysts, but dying cysts inflame — so corticosteroids are co-given (treatment can transiently worsen seizures/oedema); ocular/spinal cysts may need surgery rather than drugs."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Not a resistance issue",
+        "detail": "The therapeutic hazard is inflammation from dying cysts (managed with steroids), not drug resistance."
+      }
+    ]
   },
   {
     "id": "opisthorchis-viverrini",
@@ -3518,9 +3592,23 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "class": "helminth",
+      "subclass": "trematode (liver fluke)",
+      "detail": "acquired from raw cyprinid fish; adult in the bile ducts; endemic in NE Thailand; cholangiocarcinoma risk"
+    },
+    "treatment": [
+      {
+        "class": "Praziquantel",
+        "mechanism": "Raises tegumental calcium permeability of the fluke, causing spastic paralysis and tegumental disruption; the standard cure for liver-fluke infection."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Reinfection drives the cancer risk",
+        "detail": "Praziquantel cures the infection, but repeated reinfection from continued raw-fish consumption sustains the chronic inflammation behind cholangiocarcinoma — an exposure problem, not drug resistance."
+      }
+    ]
   },
   {
     "id": "schistosoma-species",
@@ -3557,9 +3645,23 @@
       "f_cd4_th2",
       "f_th2_ige"
     ],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": [],
+    "taxonomy": {
+      "class": "helminth",
+      "subclass": "trematode (blood fluke)",
+      "detail": "freshwater cercariae penetrate skin; adult worm pairs live in mesenteric/vesical veins; eggs drive granulomatous disease"
+    },
+    "treatment": [
+      {
+        "class": "Praziquantel",
+        "mechanism": "Raises tegumental calcium permeability of adult worms, causing paralysis and immune-mediated killing; active against adults (less so immature stages, so timing/repeat matters)."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Reduced praziquantel susceptibility (emerging)",
+        "detail": "Reduced susceptibility is reported with heavy repeated use, and praziquantel is weak against immature worms — so re-treatment after maturation is sometimes needed."
+      }
+    ],
     "mapNote": "The TH2 arm engages fully &mdash; IgE, mast cells, eosinophils &mdash; but the adult worm coats its tegument in host molecules including MHC, so it reads as self, and secretes protease inhibitors that block complement. It is also simply too large to phagocytose. The response then turns on trapped eggs instead."
   },
   {
@@ -3584,9 +3686,23 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "class": "helminth",
+      "subclass": "nematode (roundworm)",
+      "detail": "acquired from undercooked pork; larvae encyst in skeletal-muscle 'nurse cells'"
+    },
+    "treatment": [
+      {
+        "class": "Albendazole/mebendazole + corticosteroids",
+        "mechanism": "Benzimidazoles kill adult worms in the gut and limit larval output; corticosteroids control the myositis/hypersensitivity — but drugs poorly penetrate encysted muscle larvae."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Encysted larvae are drug-inaccessible",
+        "detail": "Established muscle larvae in their collagen capsule are largely beyond drug reach, so early treatment matters; this is sanctuary, not classic resistance."
+      }
+    ]
   },
   {
     "id": "gnathostoma-spinigerum",
@@ -3610,9 +3726,23 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "class": "helminth",
+      "subclass": "nematode (roundworm)",
+      "detail": "acquired from raw freshwater fish; a migratory larva; endemic in Thailand"
+    },
+    "treatment": [
+      {
+        "class": "Albendazole or ivermectin",
+        "mechanism": "Albendazole (β-tubulin) or ivermectin (glutamate-gated Cl channels) kill the migrating larva; surgical removal if it is accessible."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Migratory larva evades localisation",
+        "detail": "The constantly-moving larva can re-migrate after treatment, so repeat courses may be needed — a localisation problem, not drug resistance."
+      }
+    ]
   },
   {
     "id": "angiostrongylus-cantonensis",
@@ -3635,9 +3765,23 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "class": "helminth",
+      "subclass": "nematode (roundworm)",
+      "detail": "rat lungworm; from raw snails/slugs or contaminated produce; the larva dies in the CNS"
+    },
+    "treatment": [
+      {
+        "class": "Supportive care + analgesia + corticosteroids",
+        "mechanism": "Eosinophilic meningitis is self-limiting; steroids reduce the inflammatory reaction to the dying larvae and repeated lumbar puncture relieves headache. Anthelmintics are used cautiously, as killing larvae can worsen inflammation."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Not a drug-resistance issue",
+        "detail": "Disease is the host inflammatory reaction to a dying larva; management is anti-inflammatory/supportive."
+      }
+    ]
   },
   {
     "id": "wuchereria-bancrofti",
@@ -3660,9 +3804,27 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "class": "helminth",
+      "subclass": "nematode (filarial roundworm)",
+      "detail": "mosquito-transmitted; adults in lymphatics; nocturnal microfilaraemia; harbours Wolbachia endosymbionts"
+    },
+    "treatment": [
+      {
+        "class": "Diethylcarbamazine (DEC); ivermectin + albendazole (mass drug admin)",
+        "mechanism": "DEC clears microfilariae with some effect on adults; ivermectin+albendazole is used programmatically. Reactions relate to microfilarial killing and Wolbachia LPS release."
+      },
+      {
+        "class": "Doxycycline (anti-Wolbachia)",
+        "mechanism": "Kills the essential Wolbachia endosymbiont, sterilising and eventually killing adult worms — a macrofilaricidal strategy."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Not a major resistance issue",
+        "detail": "Programmatic limits are coverage and adult-worm persistence, not defined drug resistance."
+      }
+    ]
   },
   {
     "id": "sarcoptes-scabiei",
@@ -3685,9 +3847,23 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "class": "ectoparasite",
+      "subclass": "mite (arthropod)",
+      "detail": "burrowing mite; the female tunnels in the stratum corneum; crusted (Norwegian) scabies carries thousands of mites"
+    },
+    "treatment": [
+      {
+        "class": "Topical permethrin (first-line); oral ivermectin (crusted / outbreaks)",
+        "mechanism": "Permethrin (a pyrethroid) blocks arthropod sodium channels; ivermectin opens glutamate-gated chloride channels. Treat close contacts and decontaminate bedding at the same time."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Pyrethroid tolerance / reinfestation",
+        "detail": "Reduced permethrin susceptibility and reinfestation from untreated contacts cause apparent failure; crusted scabies needs repeated ivermectin."
+      }
+    ]
   },
   {
     "id": "pediculus-phthirus",
@@ -3710,9 +3886,23 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "class": "ectoparasite",
+      "subclass": "louse (arthropod)",
+      "detail": "head/body/pubic lice on the skin surface and hair shafts; body lice transmit typhus and relapsing fever"
+    },
+    "treatment": [
+      {
+        "class": "Topical dimeticone / permethrin / malathion (± wet-combing); ivermectin",
+        "mechanism": "Dimeticone physically coats and suffocates lice; permethrin/malathion are neurotoxic to the louse. Physical agents are favoured where insecticide resistance is common."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Widespread pyrethroid resistance",
+        "detail": "Permethrin/pyrethroid resistance is common in head lice, driving the shift to physical agents (dimeticone, wet-combing) that resistance cannot defeat."
+      }
+    ]
   },
   {
     "id": "cutaneous-larva-migrans",
@@ -3735,9 +3925,23 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "class": "helminth",
+      "subclass": "nematode larva (animal hookworm)",
+      "detail": "Ancylostoma braziliense larva in a dead-end human host — it wanders the epidermis as a serpiginous track"
+    },
+    "treatment": [
+      {
+        "class": "Albendazole or ivermectin (topical thiabendazole for a single track)",
+        "mechanism": "Systemic albendazole/ivermectin kill the migrating larva; topical thiabendazole suffices for a single track. Self-limiting, but treatment shortens the itchy course."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Self-limiting; not a resistance issue",
+        "detail": "The larva dies in this wrong host anyway; treatment is for symptom relief."
+      }
+    ]
   },
   {
     "id": "bacillus-anthracis",
