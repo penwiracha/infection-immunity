@@ -879,9 +879,36 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "gram": "negative",
+      "morphology": "rod (bacillus)",
+      "catalase": "positive",
+      "oxidase": "positive",
+      "coagulase": null,
+      "haemolysis": null,
+      "lactose": null,
+      "note": "strict aerobe (grows anaerobically with nitrate), motile, non-lactose non-fermenter (oxidises glucose only); pyocyanin (blue) + pyoverdine (fluorescent siderophore) pigments; 'freshly cut grass' odour"
+    },
+    "treatment": [
+      {
+        "class": "Anti-pseudomonal β-lactam (piperacillin–tazobactam, ceftazidime, cefepime, meropenem, aztreonam)",
+        "mechanism": "β-lactams that inhibit penicillin-binding proteins and, unlike most, penetrate Pseudomonas's outer membrane and resist its baseline defences — the backbone of therapy."
+      },
+      {
+        "class": "Aminoglycoside or ciprofloxacin (often combined in severe disease)",
+        "mechanism": "Aminoglycosides block the 30S ribosome, ciprofloxacin inhibits DNA gyrase / topoisomerase IV; added to a β-lactam in severe sepsis to broaden cover and slow emergence of resistance."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Intrinsic multidrug resistance (efflux + low permeability + AmpC)",
+        "detail": "A low-permeability outer membrane, constitutive efflux pumps (MexAB-OprM) and an inducible chromosomal AmpC β-lactamase make Pseudomonas resistant to many agents from the outset — hence only specific anti-pseudomonal drugs work."
+      },
+      {
+        "mechanism": "Carbapenem resistance (OprD loss / carbapenemases)",
+        "detail": "Loss of the OprD porin blocks carbapenem entry, and acquired carbapenemases (e.g. VIM, IMP) hydrolyse them — yielding difficult multidrug- or extensively-resistant strains."
+      }
+    ]
   },
   {
     "id": "burkholderia-pseudomallei",
@@ -907,9 +934,32 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "gram": "negative",
+      "morphology": "rod with bipolar 'safety-pin' staining",
+      "catalase": "positive",
+      "oxidase": "positive",
+      "coagulase": null,
+      "haemolysis": null,
+      "lactose": null,
+      "note": "aerobic; grows on Ashdown's selective agar; facultative intracellular (survives in phagocytes); ACDP hazard group 3; soil / rice-paddy exposure, endemic in NE Thailand"
+    },
+    "treatment": [
+      {
+        "class": "Intensive phase — IV ceftazidime or a carbapenem (meropenem), ≥2 weeks",
+        "mechanism": "High-dose anti-pseudomonal β-lactam (PBP inhibition) given IV first because even mild melioidosis is treated intensively and in-vitro-active drugs do not reliably cure this intracellular organism."
+      },
+      {
+        "class": "Eradication phase — oral co-trimoxazole, months",
+        "mechanism": "Prolonged oral co-trimoxazole (folate blockade) for ≥3 months (6 for bone or neurological disease) to clear intracellular organisms and prevent the relapse that follows short courses."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Intrinsic resistance to many agents",
+        "detail": "Inherently resistant to aminoglycosides, polymyxins/colistin and many β-lactams (efflux + β-lactamase), so empirical Gram-negative regimens fail; resistance to the oral eradication agents can also emerge on treatment."
+      }
+    ]
   },
   {
     "id": "leptospira-interrogans",
@@ -934,9 +984,28 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "gram": null,
+      "morphology": "thin coiled spirochaete with hooked ends",
+      "catalase": null,
+      "oxidase": null,
+      "coagulase": null,
+      "haemolysis": null,
+      "lactose": null,
+      "note": "aerobic; not reliably Gram-stained — use dark-field microscopy; grows slowly on EMJH media; serology (micro-agglutination test) is the diagnostic mainstay; rodent-urine / freshwater exposure"
+    },
+    "treatment": [
+      {
+        "class": "Doxycycline (mild) or IV penicillin / ceftriaxone (severe)",
+        "mechanism": "A tetracycline (30S) for mild leptospirosis; IV benzylpenicillin or ceftriaxone (PBP inhibition) for severe (Weil's) disease. A Jarisch–Herxheimer reaction can follow the first dose as spirochaetes are killed."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Penicillin-susceptible (no significant resistance)",
+        "detail": "No clinically important acquired resistance; outcome depends on early treatment and supportive care for renal and hepatic failure, not on drug choice against resistance."
+      }
+    ]
   },
   {
     "id": "treponema-pallidum",
@@ -961,9 +1030,32 @@
     "engages": [],
     "breaks": [],
     "flows": [],
-    "taxonomy": {},
-    "treatment": [],
-    "resistance": []
+    "taxonomy": {
+      "gram": null,
+      "morphology": "thin motile helical / spiral rod (spirochaete)",
+      "catalase": null,
+      "oxidase": null,
+      "coagulase": null,
+      "haemolysis": null,
+      "lactose": null,
+      "note": "not seen on Gram stain and cannot be cultured in vitro; diagnosed by dark-field microscopy and serology; subspecies pallidum causes syphilis"
+    },
+    "treatment": [
+      {
+        "class": "Penicillin (benzathine or procaine penicillin G)",
+        "mechanism": "β-lactam inhibition of penicillin-binding proteins; long-acting benzathine penicillin gives sustained levels against this slowly-dividing organism and stays uniformly effective — T. pallidum has never developed penicillin resistance."
+      },
+      {
+        "class": "Doxycycline (penicillin allergy)",
+        "mechanism": "A tetracycline (30S inhibition) is the main alternative; penicillin desensitisation is preferred in pregnancy and neurosyphilis."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Penicillin-susceptible; macrolide resistance",
+        "detail": "No penicillin resistance has ever been documented, so penicillin remains the anchor. Azithromycin resistance via a 23S rRNA point mutation is now widespread, so macrolides are not recommended."
+      }
+    ]
   },
   {
     "id": "neisseria-gonorrhoeae",
