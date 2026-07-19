@@ -9,6 +9,17 @@ content is duplicated across views.
 Zero build. Open `index.html` in a browser (double-click works — data files load as
 plain `<script>` globals, no dev server required). From there:
 
+### Share it as one offline file
+
+```
+node scripts/bundle.mjs      # → dist/infection-immunity.html
+```
+
+Produces a **single self-contained HTML file** (~2 MB) with every view and all data
+inlined in isolated frames. It opens by double-click, works with **no internet and no
+other files** — hand it to a student, email it, put it on a USB stick. (To host it online
+instead, push the repo to GitHub and enable GitHub Pages.)
+
 | View | File | Reads |
 |---|---|---|
 | Niche map | `views/niche-map.html` | organisms |

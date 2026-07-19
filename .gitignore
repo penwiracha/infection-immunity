@@ -12,6 +12,9 @@ Thumbs.db
 *.log
 tmp/
 
+# generated single-file bundle (build with: node scripts/bundle.mjs)
+dist/
+
 # reference textbooks — copyrighted / large binaries, never committed.
 # Provenance and locations are recorded in reference/SOURCES.md instead.
 *.pdf
