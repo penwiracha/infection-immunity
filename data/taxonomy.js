@@ -268,6 +268,8 @@
           { label: "Apicomplexa (sporozoa)",
             children: [
               { organism: "plasmodium-falciparum" },
+              { organism: "plasmodium-vivax" },
+              { organism: "plasmodium-ovale" },
               { organism: "toxoplasma-gondii" }
             ] }
         ] },

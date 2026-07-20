@@ -3145,6 +3145,112 @@
     ]
   },
   {
+    "id": "plasmodium-vivax",
+    "name": "Plasmodium vivax",
+    "kingdom": "parasite",
+    "niche": [
+      "cyto",
+      "extra"
+    ],
+    "tier": 1,
+    "sys": [
+      "Systemic",
+      "Haem"
+    ],
+    "fail": "Latency / sanctuary site",
+    "sub": "hypnozoite relapse + Duffy tropism",
+    "panels": {
+      "resp": "Antibody to merozoite surface antigens; splenic clearance of infected red cells.",
+      "evade": "Dormant hypnozoites persist in hepatocytes for weeks to months — invisible to blood-stage immunity and to blood schizonticides — then reactivate to cause relapse. Merozoite invasion depends on the Duffy (Fy) blood-group antigen, so Duffy-negative people are largely resistant.",
+      "dis": "Benign tertian malaria — cyclical fever with relapses from hypnozoites; only mild sequestration compared with falciparum, but heavy splenomegaly (risk of rupture) and occasionally severe disease. The commonest malaria species in Thailand."
+    },
+    "engages": [],
+    "breaks": [],
+    "flows": [],
+    "taxonomy": {
+      "class": "protozoa",
+      "subclass": "Apicomplexa (sporozoa)",
+      "detail": "intra-erythrocytic; prefers young reticulocytes; Duffy-antigen-dependent invasion; dormant hepatic hypnozoite → relapse; enlarged infected RBC with Schüffner's dots; Anopheles-transmitted"
+    },
+    "treatment": [
+      {
+        "class": "Blood schizonticide (chloroquine where sensitive, otherwise ACT)",
+        "mechanism": "Kills the erythrocytic stages that cause fever; clears the acute attack but does not touch the dormant liver hypnozoites, so alone it cannot prevent relapse."
+      },
+      {
+        "class": "Radical cure — 8-aminoquinoline (primaquine / tafenoquine)",
+        "mechanism": "The only class that kills dormant hepatic hypnozoites and prevents relapse; generates oxidative radicals lethal to the liver stage — the same oxidative action haemolyses G6PD-deficient red cells, so G6PD status must be known before use."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Chloroquine-resistant P. vivax",
+        "detail": "Reduced chloroquine susceptibility (first and worst around Indonesia / SE Asia) shifts first-line to ACT; the mechanism is distinct from falciparum pfcrt and less well defined."
+      },
+      {
+        "mechanism": "Relapse mimics 'treatment failure'",
+        "detail": "Recurrence weeks later is usually hypnozoite relapse, not blood-stage drug resistance — cured only by an 8-aminoquinoline, not by repeating a blood schizonticide."
+      }
+    ],
+    "transmission": "Bite of an infected female Anopheles mosquito (sporozoites in saliva); also congenital and via transfusion or shared needles. No ordinary person-to-person spread.",
+    "lifecycle": "Sporozoites reach the liver, but some become dormant hypnozoites that persist for weeks–months and later reactivate → relapse. The rest undergo schizogony → merozoites invade reticulocytes → the erythrocytic cycle causes fever → gametocytes are taken up by the next mosquito. The hypnozoite is why vivax (and ovale) relapse and need radical cure.",
+    "routes": [
+      "mosquito",
+      "blood"
+    ]
+  },
+  {
+    "id": "plasmodium-ovale",
+    "name": "Plasmodium ovale",
+    "kingdom": "parasite",
+    "niche": [
+      "cyto",
+      "extra"
+    ],
+    "tier": 2,
+    "sys": [
+      "Systemic",
+      "Haem"
+    ],
+    "fail": "Latency / sanctuary site",
+    "sub": "hypnozoite relapse",
+    "panels": {
+      "resp": "Antibody to merozoite surface antigens; splenic clearance of infected red cells.",
+      "evade": "Like vivax, dormant hepatic hypnozoites cause relapse. It invades reticulocytes but, unlike vivax, can enter Duffy-negative red cells — hence its persistence in West Africa where Duffy-negativity is common.",
+      "dis": "Benign tertian malaria — mild, low parasitaemia, with hypnozoite relapse. Mainly sub-Saharan Africa; usually seen elsewhere as imported cases. Infected red cells are often oval with fimbriated (ragged) ends — the source of the name — with Schüffner's dots."
+    },
+    "engages": [],
+    "breaks": [],
+    "flows": [],
+    "taxonomy": {
+      "class": "protozoa",
+      "subclass": "Apicomplexa (sporozoa)",
+      "detail": "intra-erythrocytic; reticulocyte-restricted; dormant hepatic hypnozoite → relapse; oval / fimbriated infected RBC with Schüffner's dots; Anopheles-transmitted; two subspecies (P. o. curtisi / wallikeri)"
+    },
+    "treatment": [
+      {
+        "class": "Blood schizonticide (chloroquine — usually still sensitive)",
+        "mechanism": "Kills the erythrocytic stages that cause fever and clears the acute attack; does not reach the liver hypnozoites."
+      },
+      {
+        "class": "Radical cure — 8-aminoquinoline (primaquine / tafenoquine)",
+        "mechanism": "Kills dormant hepatic hypnozoites to prevent relapse via oxidative radicals; the same oxidative action haemolyses G6PD-deficient red cells, so G6PD status must be checked first."
+      }
+    ],
+    "resistance": [
+      {
+        "mechanism": "Generally chloroquine-sensitive",
+        "detail": "P. ovale has not developed meaningful chloroquine resistance; recurrence reflects surviving hypnozoites, not blood-stage resistance, so radical cure with an 8-aminoquinoline is what prevents relapse."
+      }
+    ],
+    "transmission": "Bite of an infected female Anopheles mosquito (sporozoites in saliva); also congenital and via transfusion or shared needles. No ordinary person-to-person spread.",
+    "lifecycle": "As for vivax: sporozoites seed the liver, some as dormant hypnozoites that reactivate weeks–months later → relapse; the rest undergo schizogony → merozoites invade reticulocytes → erythrocytic cycle (fever) → gametocytes taken up by the mosquito.",
+    "routes": [
+      "mosquito",
+      "blood"
+    ]
+  },
+  {
     "id": "entamoeba-histolytica",
     "name": "Entamoeba histolytica",
     "kingdom": "parasite",

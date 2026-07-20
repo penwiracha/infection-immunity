@@ -77,6 +77,8 @@ Accessed 2026-07-20.
 | Parvovirus B19 | Graham Beards at English Wikipedia | CC BY 3.0 | [Parvovirus in Blood.jpg](https://commons.wikimedia.org/wiki/File%3AParvovirus%20in%20Blood.jpg) |
 | Pediculus / Phthirus (lice) | Jarmo Holopainen, University of Kuopio | CC BY-SA 2.5 | [Pediculus-egg.jpg](https://commons.wikimedia.org/wiki/File%3APediculus-egg.jpg) |
 | Plasmodium falciparum | Unknown | Public domain | [Plasmodium falciparum rings form parasites4885 lores.jpg](https://commons.wikimedia.org/wiki/File%3APlasmodium%20falciparum%20rings%20form%20parasites4885%20lores.jpg) |
+| Plasmodium ovale | Unknown | Public domain | [Plasmodium ovale 01.png](https://commons.wikimedia.org/wiki/File%3APlasmodium%20ovale%2001.png) |
+| Plasmodium vivax | Unknown | Public domain | [Immature and mature trophozoites of the Plasmodium vivax parasite PHIL 2720 lores.jpg](https://commons.wikimedia.org/wiki/File%3AImmature%20and%20mature%20trophozoites%20of%20the%20Plasmodium%20vivax%20parasite%20PHIL%202720%20lores.jpg) |
 | Pneumocystis jirovecii | Unknown | Public domain | [Smear of Pneumocystis carinii. Toluidine blue stain PHIL 596 lores.jpg](https://commons.wikimedia.org/wiki/File%3ASmear%20of%20Pneumocystis%20carinii.%20Toluidine%20blue%20stain%20PHIL%20596%20lores.jpg) |
 | Poliovirus | User:Graham Beards | CC BY-SA 4.0 | [Polioviruses.jpg](https://commons.wikimedia.org/wiki/File%3APolioviruses.jpg) |
 | Pseudallescheria boydii / Scedosporium | Medmyco at English Wikipedia | CC0 | [Pseudallescheria boydii.jpg](https://commons.wikimedia.org/wiki/File%3APseudallescheria%20boydii.jpg) |

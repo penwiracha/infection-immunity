@@ -20,6 +20,8 @@ species-exclusive drawing — noted in the table.
 | Organism | File | CDC DPDx source URL |
 |---|---|---|
 | *Plasmodium falciparum* | plasmodium-falciparum-lifecycle.gif | https://www.cdc.gov/dpdx/malaria/modules/malaria_LifeCycle.gif |
+| *Plasmodium vivax* | plasmodium-vivax-lifecycle.gif | https://www.cdc.gov/dpdx/malaria/modules/malaria_LifeCycle.gif |
+| *Plasmodium ovale* | plasmodium-ovale-lifecycle.gif | https://www.cdc.gov/dpdx/malaria/modules/malaria_LifeCycle.gif |
 | *Entamoeba histolytica* | entamoeba-histolytica-lifecycle.gif | https://www.cdc.gov/dpdx/amebiasis/modules/amebiasis_LifeCycle.gif |
 | *Giardia lamblia* | giardia-lamblia-lifecycle.gif | https://www.cdc.gov/dpdx/giardiasis/modules/Giardia_LifeCycle.gif |
 | *Toxoplasma gondii* | toxoplasma-gondii-lifecycle.gif | https://www.cdc.gov/dpdx/toxoplasmosis/modules/Toxoplasma_LifeCycle_BAM1.gif |
