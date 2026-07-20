@@ -48,9 +48,14 @@ h1{margin:0 0 6px;font-size:22px}
 .badges .n{color:#0f1115;font-weight:600}
 .scope{font-size:11px;color:var(--dim);margin:-6px 0 14px}
 .scope b{color:var(--txt)}
-.micro{margin:0 0 14px}
+.micro{margin:0 0 10px}
 .microcap{font-size:11px;color:var(--dim);margin-top:6px;line-height:1.5}
 .microcap code{background:var(--panel2);padding:1px 5px;border-radius:4px}
+.lookhint{display:flex;gap:8px;align-items:flex-start;margin:0 0 14px;padding:9px 11px;
+  background:var(--panel2);border-radius:8px;border-left:3px solid var(--k,var(--surf))}
+.lookhint .em{font-size:15px;line-height:1.2}
+.lookhint .lbl{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--dim);margin-bottom:1px}
+.lookhint b{color:var(--txt);font-size:13px;line-height:1.35}
 .blk{margin-bottom:11px;padding:11px 13px;background:var(--panel2);border-radius:8px;border-left:3px solid var(--k,var(--surf))}
 .blk .lab{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
 .blk p{margin:0;font-size:13px}
@@ -215,6 +220,7 @@ function showDetail(o, path){
       ${(o.sys||[]).map(s=>`<span>${s}</span>`).join('')}</div>`:''}
     ${crumb?`<div class="scope">Key: <b>${crumb}</b></div>`:''}
     <div class="micro">${micro}</div>
+    ${o.look?`<div class="lookhint"><span class="em">🔬</span><div><span class="lbl">Down the scope</span><b>${o.look}</b></div></div>`:''}
     ${hasTax?`<div class="blk"><div class="lab">Identification</div><dl class="tax">${taxRows}</dl>
       ${t.note?`<p style="margin-top:8px;color:var(--dim);font-size:12px">${t.note}</p>`:''}</div>`:
       `<div class="blk"><div class="lab">Identification</div><div class="awaiting">Not yet authored.</div></div>`}

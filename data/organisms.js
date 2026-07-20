@@ -11,6 +11,7 @@
     "id": "streptococcus-pneumoniae",
     "routes": ["respiratory"],
     "name": "Streptococcus pneumoniae",
+    "look": "Gram+ lancet-shaped diplococci; α-haemolytic, bile-soluble, optochin-sensitive",
     "kingdom": "bacteria",
     "niche": [
       "extra"
@@ -87,6 +88,7 @@
     "id": "streptococcus-pyogenes",
     "routes": ["respiratory", "skin-contact"],
     "name": "Streptococcus pyogenes (GAS)",
+    "look": "Gram+ cocci in chains; β-haemolytic, bacitracin-sensitive",
     "kingdom": "bacteria",
     "niche": [
       "extra"
@@ -142,6 +144,7 @@
     "id": "staphylococcus-aureus",
     "routes": ["skin-contact", "healthcare"],
     "name": "Staphylococcus aureus",
+    "look": "Gram+ cocci in grape-like clusters; catalase+, coagulase+, golden β-haemolytic colonies",
     "kingdom": "bacteria",
     "niche": [
       "extra"
@@ -204,6 +207,7 @@
     "id": "neisseria-meningitidis",
     "routes": ["respiratory"],
     "name": "Neisseria meningitidis",
+    "look": "Gram– kidney-bean diplococci inside neutrophils (intracellular)",
     "kingdom": "bacteria",
     "niche": [
       "extra"
@@ -253,6 +257,7 @@
     "id": "haemophilus-influenzae-b",
     "routes": ["respiratory"],
     "name": "Haemophilus influenzae b",
+    "look": "Tiny Gram– coccobacilli; needs factors X + V (satellites around S. aureus)",
     "kingdom": "bacteria",
     "niche": [
       "extra"
@@ -308,6 +313,7 @@
     "id": "corynebacterium-diphtheriae",
     "routes": ["respiratory", "skin-contact"],
     "name": "Corynebacterium diphtheriae",
+    "look": "Gram+ club-shaped rods in V/Y 'Chinese-letter' arrays; metachromatic granules (Albert stain)",
     "kingdom": "bacteria",
     "niche": [
       "extra"
@@ -362,6 +368,7 @@
     "id": "bordetella-pertussis",
     "routes": ["respiratory"],
     "name": "Bordetella pertussis",
+    "look": "Tiny faint Gram– coccobacilli",
     "kingdom": "bacteria",
     "niche": [
       "extra"
@@ -411,6 +418,7 @@
     "id": "clostridium-tetani",
     "routes": ["soil", "skin-penetration"],
     "name": "Clostridium tetani",
+    "look": "Gram+ rod with a round TERMINAL spore ('drumstick / tennis racket')",
     "kingdom": "bacteria",
     "niche": [
       "extra"
@@ -468,6 +476,7 @@
     "id": "clostridium-botulinum",
     "routes": ["faeco-oral", "soil"],
     "name": "Clostridium botulinum",
+    "look": "Gram+ rod with subterminal spores",
     "kingdom": "bacteria",
     "niche": [
       "extra"
@@ -522,6 +531,7 @@
     "id": "clostridium-perfringens",
     "routes": ["faeco-oral", "soil"],
     "name": "Clostridium perfringens",
+    "look": "Large boxcar Gram+ rods, spores rarely seen; double-zone β-haemolysis",
     "kingdom": "bacteria",
     "niche": [
       "extra"
@@ -572,6 +582,7 @@
     "id": "vibrio-cholerae",
     "routes": ["faeco-oral"],
     "name": "Vibrio cholerae",
+    "look": "Curved comma-shaped Gram– rod; darting motility",
     "kingdom": "bacteria",
     "niche": [
       "extra"
@@ -621,6 +632,7 @@
     "id": "shigella-eiec",
     "routes": ["faeco-oral"],
     "name": "Shigella / EIEC",
+    "look": "Gram– rod; non-motile, non-lactose-fermenter",
     "kingdom": "bacteria",
     "niche": [
       "extra",
@@ -671,6 +683,7 @@
     "id": "salmonella",
     "routes": ["faeco-oral", "bird"],
     "name": "Salmonella (non-typhoidal)",
+    "look": "Gram– rod; motile; H₂S+ (black colonies on XLD/TSI)",
     "kingdom": "bacteria",
     "niche": [
       "vesic",
@@ -721,6 +734,7 @@
     "id": "salmonella-typhi",
     "routes": ["faeco-oral"],
     "name": "Salmonella Typhi",
+    "look": "Gram– rod; H₂S+; grows from blood culture in enteric fever",
     "kingdom": "bacteria",
     "niche": [
       "vesic"
@@ -770,6 +784,7 @@
     "id": "campylobacter-jejuni",
     "routes": ["faeco-oral", "bird"],
     "name": "Campylobacter jejuni",
+    "look": "Gull-wing / seagull curved Gram– rod; darting motility, grows at 42°C",
     "kingdom": "bacteria",
     "niche": [
       "extra"
@@ -824,6 +839,7 @@
     "id": "escherichia-coli",
     "routes": ["faeco-oral"],
     "name": "Escherichia coli (UPEC/ETEC)",
+    "look": "Gram– rod; lactose-fermenter (pink on MacConkey), green metallic sheen on EMB",
     "kingdom": "bacteria",
     "niche": [
       "extra"
@@ -878,6 +894,7 @@
     "id": "pseudomonas-aeruginosa",
     "routes": ["water-env", "healthcare"],
     "name": "Pseudomonas aeruginosa",
+    "look": "Gram– rod; oxidase+; blue-green pyocyanin pigment, fruity/grape smell",
     "kingdom": "bacteria",
     "niche": [
       "extra"
@@ -933,6 +950,7 @@
     "id": "burkholderia-pseudomallei",
     "routes": ["soil", "skin-penetration", "respiratory"],
     "name": "Burkholderia pseudomallei",
+    "look": "Gram– rod with bipolar 'safety-pin' staining; wrinkled colonies",
     "kingdom": "bacteria",
     "niche": [
       "vesic",
@@ -985,6 +1003,7 @@
     "id": "leptospira-interrogans",
     "routes": ["water-env", "skin-penetration", "rodent"],
     "name": "Leptospira interrogans",
+    "look": "Thin coiled spirochete with hooked ends; seen on dark-field, not Gram",
     "kingdom": "bacteria",
     "niche": [
       "extra"
@@ -1032,6 +1051,7 @@
     "id": "treponema-pallidum",
     "routes": ["sexual", "vertical"],
     "name": "Treponema pallidum",
+    "look": "Thin regular corkscrew spirochete; dark-field or silver stain (too thin for Gram)",
     "kingdom": "bacteria",
     "niche": [
       "extra"
@@ -1083,6 +1103,7 @@
     "id": "neisseria-gonorrhoeae",
     "routes": ["sexual", "vertical"],
     "name": "Neisseria gonorrhoeae",
+    "look": "Gram– diplococci INSIDE neutrophils (intracellular)",
     "kingdom": "bacteria",
     "niche": [
       "extra"
@@ -1136,6 +1157,7 @@
     "id": "chlamydia-trachomatis",
     "routes": ["sexual", "vertical"],
     "name": "Chlamydia trachomatis",
+    "look": "Intracytoplasmic inclusion bodies (Giemsa) in epithelial cells",
     "kingdom": "bacteria",
     "niche": [
       "vesic"
@@ -1182,6 +1204,7 @@
     "id": "haemophilus-ducreyi",
     "routes": ["sexual"],
     "name": "Haemophilus ducreyi",
+    "look": "Gram– coccobacilli in parallel rows — 'school of fish'",
     "kingdom": "bacteria",
     "niche": [
       "extra"
@@ -1231,6 +1254,7 @@
     "id": "gardnerella-bv-flora",
     "routes": ["sexual"],
     "name": "Gardnerella / BV flora",
+    "look": "'Clue cells' — epithelial cells studded with coccobacilli, blurred edge; lactobacilli absent",
     "kingdom": "bacteria",
     "niche": [
       "extra"
@@ -1276,6 +1300,7 @@
     "id": "mycobacterium-tuberculosis",
     "routes": ["respiratory"],
     "name": "Mycobacterium tuberculosis",
+    "look": "Acid-fast (Ziehl–Neelsen) red beaded bacilli, often in cords",
     "kingdom": "bacteria",
     "niche": [
       "vesic"
@@ -1348,6 +1373,7 @@
     "id": "mycobacterium-leprae",
     "routes": ["respiratory", "skin-contact"],
     "name": "Mycobacterium leprae",
+    "look": "Acid-fast bacilli in clumps ('globi') inside macrophages and nerves",
     "kingdom": "bacteria",
     "niche": [
       "vesic"
@@ -1394,6 +1420,7 @@
     "id": "legionella-pneumophila",
     "routes": ["water-env", "respiratory"],
     "name": "Legionella pneumophila",
+    "look": "Faint, poorly-staining Gram– rod; needs silver stain / BCYE agar",
     "kingdom": "bacteria",
     "niche": [
       "vesic"
@@ -1439,6 +1466,7 @@
     "id": "brucella-species",
     "routes": ["livestock", "faeco-oral", "skin-contact"],
     "name": "Brucella species",
+    "look": "Tiny Gram– coccobacilli, 'fine sand' appearance",
     "kingdom": "bacteria",
     "niche": [
       "vesic"
@@ -1485,6 +1513,7 @@
     "id": "listeria-monocytogenes",
     "routes": ["faeco-oral", "vertical"],
     "name": "Listeria monocytogenes",
+    "look": "Gram+ rod; tumbling motility at 25°C; β-haemolytic",
     "kingdom": "bacteria",
     "niche": [
       "cyto",
@@ -1532,6 +1561,7 @@
     "id": "rickettsia-orientia-tsutsugamushi",
     "routes": ["tick-mite", "rodent"],
     "name": "Rickettsia / Orientia tsutsugamushi",
+    "look": "Tiny obligate-intracellular rods (Giemsa/Gimenez) in host-cell cytoplasm",
     "kingdom": "bacteria",
     "niche": [
       "cyto"
@@ -1582,6 +1612,7 @@
     "id": "influenza-a",
     "routes": ["respiratory", "bird", "pig"],
     "name": "Influenza A",
+    "look": "Pleomorphic enveloped virion with surface spikes (haemagglutinin + neuraminidase) on EM",
     "kingdom": "virus",
     "niche": [
       "cyto"
@@ -1630,6 +1661,7 @@
     "id": "sars-cov-2",
     "routes": ["respiratory", "bat"],
     "name": "SARS-CoV-2",
+    "look": "Enveloped virion with club-shaped spikes forming a 'corona' (crown) halo on EM",
     "kingdom": "virus",
     "niche": [
       "cyto"
@@ -1684,6 +1716,7 @@
     "id": "respiratory-syncytial-virus",
     "routes": ["respiratory"],
     "name": "Respiratory syncytial virus",
+    "look": "Cytology: multinucleate syncytia with intracytoplasmic inclusions",
     "kingdom": "virus",
     "niche": [
       "cyto"
@@ -1729,6 +1762,7 @@
     "id": "measles-virus",
     "routes": ["respiratory"],
     "name": "Measles virus",
+    "look": "Warthin–Finkeldey multinucleate giant cells with intranuclear + cytoplasmic inclusions",
     "kingdom": "virus",
     "niche": [
       "cyto"
@@ -1776,6 +1810,7 @@
     "id": "rubella-virus",
     "routes": ["respiratory", "vertical"],
     "name": "Rubella virus",
+    "look": "Pleomorphic enveloped virion (no distinctive light-microscopy picture)",
     "kingdom": "virus",
     "niche": [
       "cyto"
@@ -1822,6 +1857,7 @@
     "id": "varicella-zoster-virus",
     "routes": ["respiratory", "skin-contact"],
     "name": "Varicella zoster virus",
+    "look": "Tzanck smear: multinucleate giant cells with intranuclear (Cowdry A) inclusions",
     "kingdom": "virus",
     "niche": [
       "cyto"
@@ -1864,6 +1900,7 @@
     "id": "herpes-simplex-virus",
     "routes": ["skin-contact", "sexual", "vertical"],
     "name": "Herpes simplex virus",
+    "look": "Tzanck smear: multinucleate giant cells + ground-glass intranuclear (Cowdry A) inclusions",
     "kingdom": "virus",
     "niche": [
       "cyto"
@@ -1926,6 +1963,7 @@
     "id": "cytomegalovirus",
     "routes": ["vertical", "blood", "sexual", "saliva"],
     "name": "Cytomegalovirus",
+    "look": "'Owl's-eye' cell — enlarged cell with a large intranuclear inclusion + clear halo",
     "kingdom": "virus",
     "niche": [
       "cyto"
@@ -1977,6 +2015,7 @@
     "id": "epstein-barr-virus",
     "routes": ["saliva", "sexual"],
     "name": "Epstein–Barr virus",
+    "look": "Blood film: atypical reactive lymphocytes (Downey cells)",
     "kingdom": "virus",
     "niche": [
       "cyto"
@@ -2023,6 +2062,7 @@
     "id": "hepatitis-a-virus",
     "routes": ["faeco-oral"],
     "name": "Hepatitis A virus",
+    "look": "Small naked icosahedral picornavirus (EM)",
     "kingdom": "virus",
     "niche": [
       "cyto"
@@ -2068,6 +2108,7 @@
     "id": "hepatitis-b-virus",
     "routes": ["blood", "sexual", "vertical"],
     "name": "Hepatitis B virus",
+    "look": "EM: 42-nm Dane particles + spheres & filaments; liver 'ground-glass' hepatocytes",
     "kingdom": "virus",
     "niche": [
       "cyto"
@@ -2114,6 +2155,7 @@
     "id": "hepatitis-c-virus",
     "routes": ["blood"],
     "name": "Hepatitis C virus",
+    "look": "Small enveloped flavivirus, hard to visualise (EM only)",
     "kingdom": "virus",
     "niche": [
       "cyto"
@@ -2156,6 +2198,7 @@
     "id": "hepatitis-e-virus",
     "routes": ["faeco-oral", "pig"],
     "name": "Hepatitis E virus",
+    "look": "Small naked icosahedral virion (EM)",
     "kingdom": "virus",
     "niche": [
       "cyto"
@@ -2201,6 +2244,7 @@
     "id": "hiv-1",
     "routes": ["sexual", "blood", "vertical"],
     "name": "HIV-1",
+    "look": "Enveloped virion with a cone-shaped dense core (EM); blood shows falling CD4 count",
     "kingdom": "virus",
     "niche": [
       "cyto"
@@ -2270,6 +2314,7 @@
     "id": "dengue-virus",
     "routes": ["mosquito"],
     "name": "Dengue virus",
+    "look": "Small round enveloped flavivirus particles (EM)",
     "kingdom": "virus",
     "niche": [
       "cyto"
@@ -2311,6 +2356,7 @@
     "id": "chikungunya-virus",
     "routes": ["mosquito"],
     "name": "Chikungunya virus",
+    "look": "Small round enveloped alphavirus particles (EM)",
     "kingdom": "virus",
     "niche": [
       "cyto"
@@ -2353,6 +2399,7 @@
     "id": "zika-virus",
     "routes": ["mosquito", "sexual", "vertical"],
     "name": "Zika virus",
+    "look": "Small round enveloped flavivirus particles (EM)",
     "kingdom": "virus",
     "niche": [
       "cyto"
@@ -2395,6 +2442,7 @@
     "id": "rabies-virus",
     "routes": ["dog", "bat", "skin-penetration"],
     "name": "Rabies virus",
+    "look": "Bullet-shaped virion (EM); Negri bodies — cytoplasmic inclusions in neurons",
     "kingdom": "virus",
     "niche": [
       "cyto"
@@ -2440,6 +2488,7 @@
     "id": "poliovirus",
     "routes": ["faeco-oral"],
     "name": "Poliovirus",
+    "look": "Tiny naked icosahedral picornavirus (EM)",
     "kingdom": "virus",
     "niche": [
       "cyto"
@@ -2485,6 +2534,7 @@
     "id": "mumps-virus",
     "routes": ["respiratory", "saliva"],
     "name": "Mumps virus",
+    "look": "Pleomorphic enveloped paramyxovirus with surface spikes (EM)",
     "kingdom": "virus",
     "niche": [
       "cyto"
@@ -2531,6 +2581,7 @@
     "id": "enteroviruses",
     "routes": ["faeco-oral", "respiratory"],
     "name": "Enteroviruses (EV71, Coxsackie)",
+    "look": "Tiny naked icosahedral picornavirus particles (EM)",
     "kingdom": "virus",
     "niche": [
       "cyto"
@@ -2573,6 +2624,7 @@
     "id": "parvovirus-b19",
     "routes": ["respiratory", "vertical", "blood"],
     "name": "Parvovirus B19",
+    "look": "Tiny naked icosahedral virion (EM); marrow giant pronormoblasts with inclusions",
     "kingdom": "virus",
     "niche": [
       "cyto"
@@ -2619,6 +2671,7 @@
     "id": "human-herpesvirus-6",
     "routes": ["saliva"],
     "name": "Human herpesvirus 6",
+    "look": "Enveloped herpesvirus, icosahedral capsid + tegument (EM)",
     "kingdom": "virus",
     "niche": [
       "cyto"
@@ -2665,6 +2718,7 @@
     "id": "human-papillomavirus",
     "routes": ["sexual", "skin-contact", "vertical"],
     "name": "Human papillomavirus",
+    "look": "Cytology: koilocytes — squamous cells with a perinuclear halo + raisinoid nucleus",
     "kingdom": "virus",
     "niche": [
       "cyto"
@@ -2711,6 +2765,7 @@
     "id": "nipah-virus",
     "routes": ["bat", "pig", "faeco-oral", "respiratory"],
     "name": "Nipah virus",
+    "look": "Pleomorphic enveloped paramyxovirus (EM); syncytia + inclusions in tissue",
     "kingdom": "virus",
     "niche": [
       "cyto"
@@ -2753,6 +2808,7 @@
     "id": "candida-albicans",
     "routes": ["healthcare", "vertical"],
     "name": "Candida albicans",
+    "look": "Budding yeasts + pseudohyphae; forms germ tubes in serum; Gram+",
     "kingdom": "fungus",
     "niche": [
       "extra",
@@ -2829,6 +2885,7 @@
     "id": "cryptococcus-neoformans",
     "routes": ["respiratory", "bird"],
     "name": "Cryptococcus neoformans",
+    "look": "Narrow-based budding yeast with a wide clear capsule halo on India ink",
     "kingdom": "fungus",
     "niche": [
       "extra",
@@ -2875,6 +2932,7 @@
     "id": "talaromyces-marneffei",
     "routes": ["respiratory", "soil", "rodent"],
     "name": "Talaromyces (Penicillium) marneffei",
+    "look": "Intracellular yeasts dividing by fission with a central septum (not budding); red pigment in culture",
     "kingdom": "fungus",
     "niche": [
       "vesic"
@@ -2916,6 +2974,7 @@
     "id": "aspergillus-fumigatus",
     "routes": ["respiratory", "soil"],
     "name": "Aspergillus fumigatus",
+    "look": "Septate hyphae branching at acute (~45°) angles; conidiophore with radiating chains",
     "kingdom": "fungus",
     "niche": [
       "extra"
@@ -2960,6 +3019,7 @@
     "id": "mucorales",
     "routes": ["respiratory", "soil", "skin-penetration"],
     "name": "Mucorales (mucormycosis)",
+    "look": "Broad ribbon-like ASEPTATE hyphae branching at wide (~90°) angles",
     "kingdom": "fungus",
     "niche": [
       "extra"
@@ -3005,6 +3065,7 @@
     "id": "pneumocystis-jirovecii",
     "routes": ["respiratory"],
     "name": "Pneumocystis jirovecii",
+    "look": "Cup / crushed-ping-pong-ball cysts on silver (GMS) stain of BAL",
     "kingdom": "fungus",
     "niche": [
       "extra"
@@ -3049,6 +3110,7 @@
     "id": "dermatophytes",
     "routes": ["skin-contact", "soil", "cat"],
     "name": "Dermatophytes (Trichophyton etc.)",
+    "look": "Septate hyphae + arthrospores in skin/hair (KOH); macroconidia on culture",
     "kingdom": "fungus",
     "niche": [
       "surf"
@@ -3092,6 +3154,7 @@
   {
     "id": "plasmodium-falciparum",
     "name": "Plasmodium falciparum",
+    "look": "Delicate 'double-dot' rings, several per red cell + appliqué (accolé) forms; banana-shaped gametocytes",
     "kingdom": "parasite",
     "niche": [
       "cyto",
@@ -3147,6 +3210,7 @@
   {
     "id": "plasmodium-vivax",
     "name": "Plasmodium vivax",
+    "look": "Enlarged pale red cell, amoeboid trophozoite, abundant fine Schüffner's dots",
     "kingdom": "parasite",
     "niche": [
       "cyto",
@@ -3202,6 +3266,7 @@
   {
     "id": "plasmodium-ovale",
     "name": "Plasmodium ovale",
+    "look": "Oval red cell with fimbriated (ragged) ends, compact trophozoite, Schüffner's dots",
     "kingdom": "parasite",
     "niche": [
       "cyto",
@@ -3253,6 +3318,7 @@
   {
     "id": "entamoeba-histolytica",
     "name": "Entamoeba histolytica",
+    "look": "Trophozoite with ingested red cells (erythrophagocytosis) + central 'bull's-eye' karyosome; cyst with up to 4 nuclei",
     "kingdom": "parasite",
     "niche": [
       "extra"
@@ -3298,6 +3364,7 @@
   {
     "id": "giardia-lamblia",
     "name": "Giardia lamblia",
+    "look": "Pear-shaped trophozoite, two nuclei = 'owl / smiley face'; falling-leaf motility",
     "kingdom": "parasite",
     "niche": [
       "surf"
@@ -3342,6 +3409,7 @@
   {
     "id": "toxoplasma-gondii",
     "name": "Toxoplasma gondii",
+    "look": "Crescent / bow-shaped tachyzoites; tissue cyst packed with bradyzoites",
     "kingdom": "parasite",
     "niche": [
       "vesic"
@@ -3394,6 +3462,7 @@
   {
     "id": "trichomonas-vaginalis",
     "name": "Trichomonas vaginalis",
+    "look": "Pear-shaped trophozoite with jerky twitching motility, flagella + undulating membrane",
     "kingdom": "parasite",
     "niche": [
       "surf"
@@ -3438,6 +3507,7 @@
   {
     "id": "leishmania-species",
     "name": "Leishmania species",
+    "look": "Amastigotes filling macrophages, each with nucleus + rod-shaped kinetoplast (Leishman–Donovan bodies)",
     "kingdom": "parasite",
     "niche": [
       "vesic"
@@ -3488,6 +3558,7 @@
   {
     "id": "free-living-amoebae",
     "name": "Free-living amoebae (Naegleria, Acanthamoeba)",
+    "look": "Double-walled star / polygonal Acanthamoeba cysts; trophozoite with spiky acanthopodia",
     "kingdom": "parasite",
     "niche": [
       "extra"
@@ -3537,6 +3608,7 @@
   {
     "id": "ascaris-lumbricoides",
     "name": "Ascaris lumbricoides",
+    "look": "Golden-brown oval egg with a thick, bumpy (mammillated) shell",
     "kingdom": "parasite",
     "niche": [
       "surf"
@@ -3583,6 +3655,7 @@
   {
     "id": "hookworm",
     "name": "Hookworm (Necator, Ancylostoma)",
+    "look": "Thin-shelled oval egg with clear space around a 4–8-cell ovum; rhabditiform larva has a long buccal cavity",
     "kingdom": "parasite",
     "niche": [
       "surf"
@@ -3629,6 +3702,7 @@
   {
     "id": "strongyloides-stercoralis",
     "name": "Strongyloides stercoralis",
+    "look": "Rhabditiform larva with a SHORT buccal cavity + prominent genital primordium (stool shows larvae, not eggs)",
     "kingdom": "parasite",
     "niche": [
       "surf",
@@ -3676,6 +3750,7 @@
   {
     "id": "enterobius-vermicularis",
     "name": "Enterobius vermicularis",
+    "look": "Egg flattened on one side (D-shaped), colourless; adult pinworm with cephalic alae",
     "kingdom": "parasite",
     "niche": [
       "surf"
@@ -3720,6 +3795,7 @@
   {
     "id": "trichuris-trichiura",
     "name": "Trichuris trichiura",
+    "look": "Barrel / lemon-shaped egg with bipolar clear plugs; whip-shaped adult",
     "kingdom": "parasite",
     "niche": [
       "surf"
@@ -3765,6 +3841,7 @@
   {
     "id": "taenia-solium-cysticercosis",
     "name": "Taenia solium / cysticercosis",
+    "look": "Scolex with 4 suckers + armed rostellum (crown of hooks); round radially-striated egg",
     "kingdom": "parasite",
     "niche": [
       "surf",
@@ -3817,6 +3894,7 @@
   {
     "id": "opisthorchis-viverrini",
     "name": "Opisthorchis viverrini",
+    "look": "Small operculated egg with shoulders + abopercular knob ('light-bulb' shape)",
     "kingdom": "parasite",
     "niche": [
       "surf"
@@ -3863,6 +3941,7 @@
   {
     "id": "schistosoma-species",
     "name": "Schistosoma species",
+    "look": "Egg bears a spine — lateral (mansoni) or terminal (haematobium); adult male & female in copula",
     "kingdom": "parasite",
     "niche": [
       "surf"
@@ -3923,6 +4002,7 @@
   {
     "id": "trichinella-spiralis",
     "name": "Trichinella spiralis",
+    "look": "Coiled larva encysted in a striated-muscle 'nurse cell'",
     "kingdom": "parasite",
     "niche": [
       "surf",
@@ -3969,6 +4049,7 @@
   {
     "id": "gnathostoma-spinigerum",
     "name": "Gnathostoma spinigerum",
+    "look": "Larva with a rounded head-bulb bearing rows of hooklets",
     "kingdom": "parasite",
     "niche": [
       "surf"
@@ -4014,6 +4095,7 @@
   {
     "id": "angiostrongylus-cantonensis",
     "name": "Angiostrongylus cantonensis",
+    "look": "Slender larvae among eosinophils in CSF (eosinophilic meningitis)",
     "kingdom": "parasite",
     "niche": [
       "surf"
@@ -4059,6 +4141,7 @@
   {
     "id": "wuchereria-bancrofti",
     "name": "Wuchereria bancrofti (filariasis)",
+    "look": "Sheathed microfilaria in blood, gently curved, nuclei NOT reaching the tail tip",
     "kingdom": "parasite",
     "niche": [
       "surf"
@@ -4107,6 +4190,7 @@
   {
     "id": "sarcoptes-scabiei",
     "name": "Sarcoptes scabiei",
+    "look": "Round tortoise-shaped mite with short legs; oval eggs + brown faecal pellets in a skin scraping",
     "kingdom": "parasite",
     "niche": [
       "surf"
@@ -4151,6 +4235,7 @@
   {
     "id": "pediculus-phthirus",
     "name": "Pediculus / Phthirus (lice)",
+    "look": "Flattened wingless louse with clawed legs (crab louse squat & broad); nits cemented to hair shafts",
     "kingdom": "parasite",
     "niche": [
       "surf"
@@ -4196,6 +4281,7 @@
   {
     "id": "cutaneous-larva-migrans",
     "name": "Cutaneous larva migrans (Ancylostoma braziliense)",
+    "look": "Clinical sign: serpiginous, raised, itchy migrating skin track (larva rarely seen on biopsy)",
     "kingdom": "parasite",
     "niche": [
       "surf"
@@ -4244,6 +4330,7 @@
     "id": "bacillus-anthracis",
     "routes": ["skin-contact", "respiratory", "soil"],
     "name": "Bacillus anthracis",
+    "look": "Large Gram+ boxcar rods in chains ('bamboo'); non-motile; 'Medusa-head' colonies",
     "kingdom": "bacteria",
     "niche": [
       "extra"
@@ -4294,6 +4381,7 @@
     "id": "yersinia-pestis",
     "routes": ["sandfly-flea", "rodent", "respiratory"],
     "name": "Yersinia pestis",
+    "look": "Gram– rod with bipolar 'safety-pin' (closed) staining (Wayson/Giemsa)",
     "kingdom": "bacteria",
     "niche": [
       "extra",
@@ -4345,6 +4433,7 @@
     "id": "group-b-streptococcus",
     "routes": ["vertical"],
     "name": "Group B Streptococcus",
+    "look": "Gram+ cocci in chains; β-haemolytic, CAMP-test+, bacitracin-resistant",
     "kingdom": "bacteria",
     "niche": [
       "extra"
@@ -4398,6 +4487,7 @@
     "id": "helicobacter-pylori",
     "routes": ["faeco-oral"],
     "name": "Helicobacter pylori",
+    "look": "Curved / S-shaped seagull Gram– rod in gastric mucus; urease+",
     "kingdom": "bacteria",
     "niche": [
       "extra"
@@ -4448,6 +4538,7 @@
     "id": "clostridioides-difficile",
     "routes": ["faeco-oral", "healthcare"],
     "name": "Clostridioides difficile",
+    "look": "Gram+ rod with subterminal spores",
     "kingdom": "bacteria",
     "niche": [
       "extra"
@@ -4505,6 +4596,7 @@
     "id": "trichosporon",
     "routes": ["soil", "healthcare"],
     "name": "Trichosporon",
+    "look": "Hyaline septate hyphae with arthroconidia + blastoconidia (yeast-like)",
     "kingdom": "fungus",
     "reference": true,
     "taxonomy": {
@@ -4537,6 +4629,7 @@
     "id": "rhodotorula",
     "routes": ["water-env", "healthcare"],
     "name": "Rhodotorula",
+    "look": "Round budding yeast; salmon / coral-pink colonies",
     "kingdom": "fungus",
     "reference": true,
     "taxonomy": {
@@ -4569,6 +4662,7 @@
     "id": "malassezia-furfur",
     "routes": ["skin-contact", "healthcare"],
     "name": "Malassezia furfur",
+    "look": "'Spaghetti and meatballs' — short curved hyphae + round yeast clusters on KOH",
     "kingdom": "fungus",
     "reference": true,
     "taxonomy": {
@@ -4601,6 +4695,7 @@
     "id": "histoplasma-capsulatum",
     "routes": ["respiratory", "soil", "bird", "bat"],
     "name": "Histoplasma capsulatum",
+    "look": "Tiny oval yeasts clustered inside macrophages",
     "kingdom": "fungus",
     "reference": true,
     "taxonomy": {
@@ -4637,6 +4732,7 @@
     "id": "blastomyces-dermatitidis",
     "routes": ["respiratory", "soil"],
     "name": "Blastomyces dermatitidis",
+    "look": "Broad-based budding yeast with a thick, refractile double wall",
     "kingdom": "fungus",
     "reference": true,
     "taxonomy": {
@@ -4673,6 +4769,7 @@
     "id": "sporothrix-schenckii",
     "routes": ["skin-penetration", "soil", "cat"],
     "name": "Sporothrix schenckii",
+    "look": "Cigar-shaped yeasts in tissue; 'daisy / rosette' conidia in culture",
     "kingdom": "fungus",
     "reference": true,
     "taxonomy": {
@@ -4709,6 +4806,7 @@
     "id": "coccidioides-immitis",
     "routes": ["respiratory", "soil"],
     "name": "Coccidioides immitis",
+    "look": "Thick-walled spherules packed with endospores in tissue",
     "kingdom": "fungus",
     "reference": true,
     "taxonomy": {
@@ -4745,6 +4843,7 @@
     "id": "paracoccidioides-brasiliensis",
     "routes": ["respiratory", "soil"],
     "name": "Paracoccidioides brasiliensis",
+    "look": "'Mariner's wheel' — central yeast ringed by multiple peripheral buds",
     "kingdom": "fungus",
     "reference": true,
     "taxonomy": {
@@ -4781,6 +4880,7 @@
     "id": "fusarium",
     "routes": ["respiratory", "soil", "skin-penetration"],
     "name": "Fusarium",
+    "look": "Septate hyphae + banana / canoe-shaped multicellular macroconidia",
     "kingdom": "fungus",
     "reference": true,
     "taxonomy": {
@@ -4813,6 +4913,7 @@
     "id": "scedosporium",
     "routes": ["respiratory", "water-env", "skin-penetration"],
     "name": "Pseudallescheria boydii / Scedosporium",
+    "look": "Septate hyphae bearing single oval conidia on long stalks (annellides)",
     "kingdom": "fungus",
     "reference": true,
     "taxonomy": {
@@ -4845,6 +4946,7 @@
     "id": "mycetoma-agents",
     "routes": ["skin-penetration", "soil"],
     "name": "Madurella / Acremonium / Exophiala",
+    "look": "Grains / granules of matted hyphae in pus (colour varies by species)",
     "kingdom": "fungus",
     "reference": true,
     "taxonomy": {
