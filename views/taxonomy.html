@@ -84,6 +84,7 @@ h1{margin:0 0 6px;font-size:22px}
 <script src="../data/enums.js"></script>
 <script src="../data/organisms.js"></script>
 <script src="../data/taxonomy.js"></script>
+<script src="../data/image-credits.js"></script>
 <script>
 const ORG = new Map(ORGANISMS.map(o=>[o.id,o]));
 const COUNTS={}; ORGANISMS.forEach(o=>COUNTS[o.kingdom]=(COUNTS[o.kingdom]||0)+1);
@@ -250,14 +251,24 @@ function mountLifecycle(o){
   })();
 }
 
+/* Attribution caption for a fetched image. Wikimedia Commons images are freely
+   licensed but most require credit (CC BY / CC BY-SA); show author + license +
+   source. Falls back to a plain label when the image carries no credit entry. */
+function micrographCredit(o){
+  const c=(typeof IMAGE_CREDITS!=='undefined'&&IMAGE_CREDITS)?IMAGE_CREDITS[o.id]:null;
+  if(!c) return 'Light micrograph.';
+  const art=(c.artist&&c.artist!=='Unknown')?c.artist:'Unknown author';
+  return `© ${art} · ${c.license} · <a href="${c.source}" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Wikimedia Commons</a>`;
+}
+
 /* Swap the schematic for a real light micrograph if one exists.
    Priority: an explicit `micrograph` field, else images/<id>.(jpg|jpeg|png).
    Falls back silently to the schematic when no image is found. */
 function mountMicrograph(o){
   const slot=side.querySelector('.micro'); if(!slot) return;
   const paint=(src)=>{ slot.innerHTML=
-      `<img src="${src}" alt="Light micrograph of ${o.name}" style="width:100%;max-width:320px;border-radius:8px;display:block;margin:auto">
-       <div class="microcap">Light micrograph.</div>`; };
+      `<img src="${src}" alt="Micrograph of ${o.name}" style="width:100%;max-width:320px;border-radius:8px;display:block;margin:auto">
+       <div class="microcap">${micrographCredit(o)}</div>`; };
   if(!o.micrograph){ const emb=embeddedImg(o.id); if(emb){ paint(emb); return; } }
   const paths = o.micrograph ? [o.micrograph]
     : ['jpg','jpeg','png'].map(e=>`../images/${o.id}.${e}`);

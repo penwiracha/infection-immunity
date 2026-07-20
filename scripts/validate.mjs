@@ -28,12 +28,12 @@ for (const f of [
   "data/enums.js", "data/organisms.js", "data/host-defects.js",
   "data/cascades/extracellular.js",
   "data/cascades/vesicular.js", "data/cascades/cytosolic.js", "data/cascades/surface.js",
-  "data/taxonomy.js", "data/drugs.js", "data/immune-map.js"
+  "data/taxonomy.js", "data/drugs.js", "data/immune-map.js", "data/image-credits.js"
 ]) {
   if (!existsSync(P(f))) continue; // seams may not exist yet
   vm.runInContext(readFileSync(P(f), "utf8"), ctx, { filename: f });
 }
-const { ENUMS, ORGANISMS, HOST_DEFECTS, CASCADES, TAXONOMY, DRUGS, IMMUNE_MAP } = ctx;
+const { ENUMS, ORGANISMS, HOST_DEFECTS, CASCADES, TAXONOMY, DRUGS, IMMUNE_MAP, IMAGE_CREDITS } = ctx;
 
 const errors = [];
 const warnings = [];
@@ -188,6 +188,15 @@ if (IMMUNE_MAP) {
     if (!cId.has(f.from)) err(`immune-map: flow "${id}" from unknown "${f.from}"`);
     if (!cId.has(f.to)) err(`immune-map: flow "${id}" to unknown "${f.to}"`);
     if (!f.detail) err(`immune-map: flow "${id}" missing detail`);
+  }
+}
+
+/* ---- image credits: every entry keys a real organism and carries attribution ---- */
+if (IMAGE_CREDITS) {
+  for (const [id, c] of Object.entries(IMAGE_CREDITS)) {
+    if (!orgIds.has(id)) err(`image-credits: "${id}" is not a known organism`);
+    for (const k of ["artist", "license", "source", "title"])
+      if (!c[k]) err(`image-credits "${id}": missing "${k}"`);
   }
 }
 

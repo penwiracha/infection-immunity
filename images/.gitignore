@@ -7,3 +7,8 @@ images/*
 !*-lifecycle.gif
 !*-lifecycle.jpg
 !*-lifecycle.png
+# Organism micrographs from Wikimedia Commons (freely licensed, credited in
+# micrograph-credits.md) — track them so the offline bundle is reproducible.
+!micrograph-credits.md
+!*.jpg
+!*.png

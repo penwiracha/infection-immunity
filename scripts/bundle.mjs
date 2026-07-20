@@ -16,13 +16,22 @@ const P = (...a) => join(ROOT, ...a);
    Keyed by filename stem: "<id>-lifecycle" for diagrams, "<id>" for micrographs.
    The views read this map (window.__IMG__, on the frame or its parent shell)
    before probing the images/ folder, so the single file shows pictures offline. */
-const MIME = { gif: "image/gif", jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png" };
+// sniff the true image type from magic bytes — micrographs are all saved with a
+// .jpg name even when the bytes are PNG, so the declared data-URI MIME must follow
+// the content, not the extension.
+const sniffMime = (b) =>
+  b[0] === 0xff && b[1] === 0xd8 ? "image/jpeg"
+  : b[0] === 0x89 && b[1] === 0x50 ? "image/png"
+  : b[0] === 0x47 && b[1] === 0x49 ? "image/gif"
+  : null;
 const IMG_MAP = {};
 for (const f of readdirSync(P("images"))) {
   const m = f.match(/^(.+)\.(gif|jpe?g|png)$/i);
   if (!m) continue; // skip README, .gitignore, credits
   const buf = readFileSync(P("images", f));
-  IMG_MAP[m[1]] = `data:${MIME[m[2].toLowerCase()]};base64,${buf.toString("base64")}`;
+  const mime = sniffMime(buf);
+  if (!mime) continue; // not a real image
+  IMG_MAP[m[1]] = `data:${mime};base64,${buf.toString("base64")}`;
 }
 
 /* ---- all data, in load order, as one blob (escaped so </script> is safe) ---- */
@@ -30,7 +39,7 @@ const DATA_FILES = [
   "data/enums.js", "data/organisms.js", "data/host-defects.js", "data/immune-map.js",
   "data/cascades/extracellular.js", "data/cascades/vesicular.js",
   "data/cascades/cytosolic.js", "data/cascades/surface.js",
-  "data/taxonomy.js", "data/drugs.js"
+  "data/taxonomy.js", "data/drugs.js", "data/image-credits.js"
 ];
 const escClose = (s) => s.replace(/<\/script/gi, "<\\/script");
 const DATA_JS = "<script>\n" + DATA_FILES.map((f) => escClose(readFileSync(P(f), "utf8"))).join("\n") + "\n</script>";
