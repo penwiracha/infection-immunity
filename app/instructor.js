@@ -5,6 +5,7 @@
    ============================================================ */
 ;(function () {
   "use strict";
+  try { sessionStorage.removeItem("ii.preview"); } catch (e) { /* ignore */ }   // leaving the student preview
   const { el, clear, fill, fmtDate, fmtDay, toCSV, parseCSV, download, bulletLines } = Safe;
   const { renderLecture, renderQuestion, label } = Render;
   const { toast, modal, confirmBox, signInScreen, avatarMenu } = Shell;

@@ -17,7 +17,13 @@
   const $status = document.getElementById("status");
   let $streak = el("div", { class: "streak" });
   const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  const PREVIEW = /[?&]preview=1/.test(location.search);
+  // Instructor preview of the student view. Remembered for this tab, so moving between sections
+  // (app.html#learn etc.) stays in the preview; opening the instructor dashboard ends it.
+  const PREVIEW = (() => {
+    const q = /[?&]preview=1/.test(location.search);
+    try { if (q) sessionStorage.setItem("ii.preview", "1"); return q || sessionStorage.getItem("ii.preview") === "1"; }
+    catch (e) { return q; }
+  })();
   const TABS = [["home", "Home"], ["learn", "Learn"], ["explore", "Explore"], ["practice", "Practice"], ["progress", "Progress"]];
   const VIEWS = [["niche-map.html", "Niche map"], ["immune-map.html", "Immune map"], ["cascade.html?b=extracellular", "Where it breaks"],
                  ["taxonomy.html", "Taxonomy"], ["drugs.html", "Antimicrobials"]];
@@ -67,7 +73,7 @@
     S.email = sess.user.email;
     const staff = S.profile.role === "instructor" || S.profile.role === "admin";
     if (staff && !PREVIEW) { location.replace("instructor.html"); return; }
-    SiteNav.mount({ role: "student", remember: !staff, active: "home" });
+    SiteNav.mount({ role: "student", remember: !staff, active: "home", preview: staff });
     const userBtn = el("button", { class: "userbtn", type: "button" });
     SiteNav.foot.append($streak, userBtn);
     avatarMenu(userBtn, S.profile, sess.user.email,

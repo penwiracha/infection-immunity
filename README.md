@@ -221,7 +221,7 @@ plus everything submitted or later (admins see all); lecture summaries are **pla
 ```
 supabase test db            # 185 pgTAP tests: supabase/tests/database/
 bash scripts/test-db.sh     # same tests on a plain local Postgres (uses scripts/local-supabase-shim.sql)
-npm i && npx playwright install chromium && node tests/ui/run.mjs   # 29 browser tests with a mock backend
+npm i && npx playwright install chromium && node tests/ui/run.mjs   # 30 browser tests with a mock backend
 ```
 
 They cover: students cannot create, edit or read drafts or answer keys; an instructor cannot

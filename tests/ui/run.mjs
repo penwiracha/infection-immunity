@@ -478,6 +478,19 @@ await test("narrow screen: no horizontal page scroll on the question editor", "i
   await shot(page, "mobile-question");
 });
 
+await test("admin: student view stays in preview while moving between sections", "admin", async (page) => {
+  await page.goto(`${BASE}/views/instructor.html#overview`);
+  await page.locator(".siteside a", { hasText: "Student view" }).click();
+  await page.getByText("Welcome back").waitFor();
+  await page.locator(".siteside a", { hasText: "Practice" }).click();
+  await page.getByText("Choose what to review and how.").waitFor();
+  assert.match(page.url(), /app\.html#practice$/);
+  await page.locator(".siteside a", { hasText: "Back to instructor view" }).click();
+  await page.waitForURL(/instructor\.html/);
+  await page.goto(`${BASE}/views/app.html#home`);
+  await page.waitForURL(/instructor\.html/);   // preview ended: an admin opening the app goes to the dashboard
+});
+
 await browser.close();
 server.close();
 console.log(`\n${passed} passed, ${failed} failed`);

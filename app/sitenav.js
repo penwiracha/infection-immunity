@@ -126,7 +126,8 @@
     nav.appendChild(group(null, staff ? STAFF : STUDENT));
     nav.appendChild(group("Maps", MAPS));
     nav.appendChild(group("Account", [["settings", "Settings", staff ? "instructor.html#settings" : "app.html#settings"]]
-      .concat(staff ? [["student-view", "Student view", "app.html?preview=1"]] : [])));
+      .concat(staff ? [["student-view", "Student view", "app.html?preview=1"]] : [])
+      .concat(opts.preview ? [["instructor-view", "Back to instructor view", "instructor.html#overview"]] : [])));
     aside.appendChild(nav);
     foot = mk("div", "sfoot");
     aside.appendChild(foot);
@@ -157,6 +158,7 @@
     strip.appendChild(mapsTab);
     strip.appendChild(tab("settings", "Settings", staff ? "instructor.html#settings" : "app.html#settings"));
     if (staff) strip.appendChild(tab("student-view", "Student view", "app.html?preview=1"));
+    if (opts.preview) strip.appendChild(tab("instructor-view", "Instructor view", "instructor.html#overview"));
     bar.appendChild(strip);
     acct = mk("div", "sacct"); bar.appendChild(acct);
     const shade = document.querySelector(".siteshade") || mk("div", "siteshade");
