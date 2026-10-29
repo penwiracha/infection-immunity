@@ -124,7 +124,8 @@ project. After signing in, the role decides what each person sees:
 
 Instructors can open the student view from their avatar menu (`app.html?preview=1`).
 Every online page, including the five maps, has the same side navigation (`app/sitenav.js`). The « button hides it and
-☰ Menu brings it back (the choice is remembered per browser); on phones it is always behind ☰ Menu.
+the same sections then appear as tabs along the top (maps in a Maps menu, account button on the right);
+☰ Menu brings the sidebar back (the choice is remembered per browser); on phones it is always behind ☰ Menu.
 
 Instructor time-savers: no peer review, the author clicks **Publish** and a practice question is
 live at once; tick-box bulk actions (Publish, Retire, Delete) in the question bank; a **Today** card on

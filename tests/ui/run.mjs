@@ -158,11 +158,25 @@ await test("side navigation opens and closes, and remembers", "student", async (
   await page.getByRole("button", { name: "Hide the menu" }).click();
   assert.equal(await page.locator(".siteside").isHidden(), true, "sidebar should hide");
   await shot(page, "sidebar-closed");
+  // closed sidebar becomes tabs along the top, with Maps in a dropdown and the account button on the right
+  const strip = page.locator(".sitebar .stabs");
+  assert.equal(await strip.isVisible(), true, "top tabs should show");
+  assert.equal(await strip.locator('a[aria-current="page"]').innerText(), "Home");
+  assert.equal(await page.locator(".sitebar .sacct .userbtn").count(), 1, "account button moves to the top bar");
+  await strip.getByText("Maps ▾").click();
+  await strip.getByRole("link", { name: "Immune map" }).waitFor();
+  await shot(page, "sidebar-closed-maps");
+  await page.keyboard.press("Escape");
+  await strip.getByRole("link", { name: "Practice" }).click();
+  await page.getByText("Choose what to review and how.").waitFor();
+  assert.equal(await strip.locator('a[aria-current="page"]').innerText(), "Practice");
+  await page.goto(`${BASE}/views/app.html#home`);
   await page.reload();
   await page.getByText("Welcome back").waitFor();
   assert.equal(await page.locator(".siteside").isHidden(), true, "closed state remembered");
   await page.getByRole("button", { name: "Show the menu" }).click();
   assert.equal(await page.locator(".siteside").isVisible(), true, "sidebar should show again");
+  assert.equal(await page.locator(".siteside .userbtn").count(), 1, "account button back in the sidebar");
   await page.setViewportSize({ width: 390, height: 800 });
   await page.getByRole("button", { name: "Show the menu" }).click();
   await page.locator(".siteside a", { hasText: "Practice" }).click();
