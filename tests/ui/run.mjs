@@ -325,6 +325,51 @@ await test("sign in with email and password; create account; forgot password", "
   assert.ok(calls.some((c) => c[0] === "resetPassword"), "reset not requested");
 });
 
+await test("settings: change name, email and password (student), research consent", "student", async (page) => {
+  await page.goto(`${BASE}/views/app.html#settings`);
+  await page.getByRole("heading", { name: "Settings" }).waitFor();
+  await page.getByLabel("Name", { exact: true }).fill("Nok P.");
+  await page.getByRole("button", { name: "Save name" }).click();
+  await page.getByText("Name saved.").waitFor();
+  await page.getByLabel("New email").fill("nok.new@student.ac.th");
+  await page.locator("input[autocomplete=current-password]").first().fill("wrong");
+  await page.getByRole("button", { name: "Change email" }).click();
+  await page.getByText("Your current password is not correct.").first().waitFor();
+  await page.locator("input[autocomplete=current-password]").first().fill("correct-horse");
+  await page.getByRole("button", { name: "Change email" }).click();
+  await page.getByText("open the confirmation link").waitFor();
+  await page.locator("input[autocomplete=current-password]").nth(1).fill("correct-horse");
+  await page.locator("input[autocomplete=new-password]").nth(0).fill("new-password-1");
+  await page.locator("input[autocomplete=new-password]").nth(1).fill("new-password-1");
+  await page.getByRole("button", { name: "Change password" }).click();
+  await page.getByText("Password changed.").waitFor();
+  await page.getByText("Research use").waitFor();
+  await shot(page, "settings-student");
+  const calls = await page.evaluate(() => window.__CALLS__);
+  for (const c of ["updateDisplayName", "changeEmail", "updatePassword"]) assert.ok(calls.some((x) => x[0] === c), c + " not called");
+});
+
+await test("admin settings hold the tag lists with file import; overview no longer does", "admin", async (page) => {
+  await page.goto(`${BASE}/views/instructor.html#overview`);
+  await page.getByText("Topic accuracy over time").waitFor();
+  assert.equal(await page.getByText("Tag lists (admins)").count(), 0);
+  await page.goto(`${BASE}/views/instructor.html#settings`);
+  await page.getByText("Tag lists (admins)").waitFor();
+  await page.getByRole("button", { name: "Import tag file" }).waitFor();
+  await shot(page, "settings-admin");
+});
+
+await test("revision views: Back and Home buttons, no emojis on the niche map", "student", async (page) => {
+  for (const v of ["niche-map", "immune-map", "cascade", "taxonomy", "drugs"]) {
+    await page.goto(`${BASE}/views/${v}.html`);
+    assert.equal(await page.locator("nav.viewnav a", { hasText: "Back" }).count(), 1, v + " back");
+    assert.equal(await page.locator("nav.viewnav a", { hasText: "Home" }).count(), 1, v + " home");
+  }
+  await page.goto(`${BASE}/views/niche-map.html`);
+  const text = await page.locator("body").innerText();
+  assert.ok(!/\p{Extended_Pictographic}/u.test(text), "emoji still on the niche map");
+});
+
 await test("home page has a Log in button that opens the app", "student", async (page) => {
   await page.goto(`${BASE}/index.html`);
   assert.equal(await page.locator("#login").getAttribute("href"), "views/app.html");

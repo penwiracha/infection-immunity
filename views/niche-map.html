@@ -75,9 +75,14 @@ h1{margin:0 0 6px;font-size:22px}
 </style>
 </head>
 <body>
+<nav class="viewnav" aria-label="Site" style="display:flex;align-items:center;gap:10px;padding:12px 24px;border-bottom:1px solid #262a33;background:#0f1014;position:sticky;top:0;z-index:30;font:14.5px/1.4 'Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,sans-serif">
+  <a href="../index.html" onclick="if(document.referrer&&history.length>1){history.back();return false}" style="color:#eceef2;text-decoration:none;border:1px solid #33384a;border-radius:8px;padding:7px 14px">&larr; Back</a>
+  <a href="../index.html" style="color:#15122a;background:#9d8cf7;text-decoration:none;border-radius:8px;padding:7px 14px;font-weight:600">Home</a>
+  <span style="margin-left:auto;color:#c9cdd6;font-weight:700;white-space:nowrap">Infection &amp; Immunity</span>
+</nav>
 <header>
   <h1>Infection &amp; Defence — Niche Map</h1>
-  <div class="sub">Branching by <b>where the pathogen lives</b>, because niche &mdash; not taxonomy &mdash; determines which effector arm responds. Coverage keyed to the &#3624;&#3619;&#3623;. national licensing requirement list (&#3585;&#3621;&#3640;&#3656;&#3617; 1 = diagnose &amp; manage independently; &#3585;&#3621;&#3640;&#3656;&#3617; 2 = diagnose, initiate, refer). &middot; <a href="../index.html">home</a></div>
+  <div class="sub">Branching by <b>where the pathogen lives</b>, because niche &mdash; not taxonomy &mdash; determines which effector arm responds. Coverage keyed to the &#3624;&#3619;&#3623;. national licensing requirement list (&#3585;&#3621;&#3640;&#3656;&#3617; 1 = diagnose &amp; manage independently; &#3585;&#3621;&#3640;&#3656;&#3617; 2 = diagnose, initiate, refer).</div>
 </header>
 <div class="bar">
   <div class="grp" id="nb"><span class="gl">Niche</span></div>
@@ -103,7 +108,7 @@ const FAILS = ENUMS.failureModes;       // canonical failure-mode categories
 
 const TAGS=new Map((ENUMS.transmissionTags||[]).map(t=>[t.id,t]));
 function routeTags(o){ if(!o.routes||!o.routes.length) return '';
-  return `<div class="routes">${o.routes.map(r=>{const t=TAGS.get(r);return t?`<span class="rtag" title="${t.kind}: ${t.label}"><span class="e">${t.emoji}</span>${t.label}</span>`:''}).join('')}</div>`; }
+  return `<div class="routes">${o.routes.map(r=>{const t=TAGS.get(r);return t?`<span class="rtag" title="${t.kind}">${t.label}</span>`:''}).join('')}</div>`; }
 
 const S={niche:{},tier:{1:true,2:true},fail:{},route:new Set(),q:""};
 NICHES.forEach(n=>S.niche[n.id]=true);
@@ -128,12 +133,12 @@ const rbar=document.getElementById('rbar');
 const usedRoutes=new Set(); ORGS.forEach(o=>(o.routes||[]).forEach(r=>usedRoutes.add(r)));
 (ENUMS.transmissionTags||[]).filter(t=>usedRoutes.has(t.id)).forEach(t=>{
   const c=document.createElement('div');c.className='chip rchip';c.title=t.kind+': '+t.label;
-  c.innerHTML=`<span class="e">${t.emoji}</span>${t.label}`;
+  c.textContent=t.label;
   c.onclick=()=>{ if(S.route.has(t.id)){S.route.delete(t.id);c.classList.remove('sel');}
     else{S.route.add(t.id);c.classList.add('sel');} render(); };
   rbar.appendChild(c);
 });
-document.getElementById('rhint').textContent = usedRoutes.size ? 'tap to filter · hover for name' : '(none authored yet)';
+document.getElementById('rhint').textContent = usedRoutes.size ? 'tap to filter' : '(none authored yet)';
 
 const tree=document.getElementById('tree'),side=document.getElementById('side'),ct=document.getElementById('ct');
 function pass(o){
@@ -155,8 +160,7 @@ function render(){
     const box=document.createElement('div');box.className='orgs';
     list.forEach(o=>{seen.add(o.name);
       const b=document.createElement('div');b.className='org';
-      const em=(o.routes||[]).map(r=>{const t=TAGS.get(r);return t?`<span class="oe" title="${t.label}">${t.emoji}</span>`:''}).join('');
-      b.innerHTML=`${em}<span>${o.name}</span><span class="t t${o.tier}">${o.tier}</span>`;
+      b.innerHTML=`<span>${o.name}</span><span class="t t${o.tier}">${o.tier}</span>`;
       b.onclick=()=>{show(o,n);document.querySelectorAll('.org').forEach(x=>x.classList.remove('active'));b.classList.add('active');};
       box.appendChild(b);});
     d.appendChild(box);tree.appendChild(d);

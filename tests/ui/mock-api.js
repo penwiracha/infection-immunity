@@ -60,6 +60,9 @@
     async signUp(e, p, n) { call("signUp", e, p, n); return false; },
     async resetPassword(e) { call("resetPassword", e); },
     async updatePassword(p) { call("updatePassword", p); },
+    async updateDisplayName(n) { call("updateDisplayName", n); },
+    async reauth(e, p) { call("reauth", e); if (p !== "correct-horse") throw new Error("Your current password is not correct."); },
+    async changeEmail(e) { call("changeEmail", e); return false; },
     async vocab() { return vocab; }, async upsertVocab(...a) { call("upsertVocab", ...a); },
     async lectureList() {
       return lectures.filter((l) => l.status === "published" || l.author_id === ME || role === "admin").map((l) => ({

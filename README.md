@@ -123,6 +123,9 @@ project. After signing in, the role decides what each person sees:
 | instructors, admins | `views/instructor.html` (automatic redirect) | Overview · Lectures · Questions · Students · Items · Exams · Export |
 
 Instructors can open the student view from their avatar menu (`app.html?preview=1`).
+Everyone signs in with email and password and can change their name, email and password under
+**Settings** (avatar menu). Admins also find the tag lists there, with a CSV/JSON import for
+generated lists. The revision views have Back and Home buttons.
 `views/learn.html` now just forwards to `app.html#learn`. None of these pages are in the offline bundle.
 
 **Students** get: a first-visit consent screen and pre-test (when one is open for their cohort)
@@ -145,7 +148,7 @@ Code: `app/` (browser), `supabase/migrations/` (schema, RLS, functions),
 
 1. Create a Supabase project. Apply the migrations in order and then the seed:
    `supabase link` → `supabase db push` → run `supabase/seed.sql` in the SQL editor
-   (or paste the three migration files and the seed into the SQL editor, in that order).
+   (or paste the four migration files and the seed into the SQL editor, in that order).
 2. Authentication → enable **Email** (magic link). Add the address you host the site at
    (e.g. your GitHub Pages URL) to *Site URL* and *Redirect URLs*.
 3. Put the project URL and the **publishable / anon** key in `app/config.js`. Never the secret key.
@@ -197,9 +200,9 @@ plus everything submitted or later (admins see all); lecture summaries are **pla
 ### Tests
 
 ```
-supabase test db            # 146 pgTAP tests: supabase/tests/database/
+supabase test db            # 152 pgTAP tests: supabase/tests/database/
 bash scripts/test-db.sh     # same tests on a plain local Postgres (uses scripts/local-supabase-shim.sql)
-npm i && npx playwright install chromium && node tests/ui/run.mjs   # 20 browser tests with a mock backend
+npm i && npx playwright install chromium && node tests/ui/run.mjs   # 24 browser tests with a mock backend
 ```
 
 They cover: students cannot create, edit or read drafts or answer keys; an instructor cannot

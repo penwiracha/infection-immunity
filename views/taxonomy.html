@@ -76,9 +76,14 @@ h1{margin:0 0 6px;font-size:22px}
 </style>
 </head>
 <body>
+<nav class="viewnav" aria-label="Site" style="display:flex;align-items:center;gap:10px;padding:12px 24px;border-bottom:1px solid #262a33;background:#0f1014;position:sticky;top:0;z-index:30;font:14.5px/1.4 'Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,sans-serif">
+  <a href="../index.html" onclick="if(document.referrer&&history.length>1){history.back();return false}" style="color:#eceef2;text-decoration:none;border:1px solid #33384a;border-radius:8px;padding:7px 14px">&larr; Back</a>
+  <a href="../index.html" style="color:#15122a;background:#9d8cf7;text-decoration:none;border-radius:8px;padding:7px 14px;font-weight:600">Home</a>
+  <span style="margin-left:auto;color:#c9cdd6;font-weight:700;white-space:nowrap">Infection &amp; Immunity</span>
+</nav>
 <header>
   <h1>Taxonomy browse — identification key</h1>
-  <div class="sub">Click any organism to open its identification detail. The bacteria key follows the Oxford Handbook of ID &amp; Microbiology (Figs 7.1&ndash;7.4). &middot; <a href="../index.html">home</a></div>
+  <div class="sub">Click any organism to open its identification detail. The bacteria key follows the Oxford Handbook of ID &amp; Microbiology (Figs 7.1&ndash;7.4).</div>
 </header>
 <div class="kings" id="kings"></div>
 <div class="wrap">
@@ -97,7 +102,7 @@ const KCOL={bacteria:'var(--extra)',virus:'var(--cyto)',fungus:'var(--vesic)',pa
 const NICHECOL={extra:'var(--extra)',vesic:'var(--vesic)',cyto:'var(--cyto)',surf:'var(--surf)'};
 const TAGS=new Map((ENUMS.transmissionTags||[]).map(t=>[t.id,t]));
 function routeTags(o){ if(!o.routes||!o.routes.length) return '';
-  return `<div class="routes">${o.routes.map(r=>{const t=TAGS.get(r);return t?`<span class="rtag" title="${t.kind}: ${t.label}"><span class="e">${t.emoji}</span>${t.label}</span>`:''}).join('')}</div>`; }
+  return `<div class="routes">${o.routes.map(r=>{const t=TAGS.get(r);return t?`<span class="rtag" title="${t.kind}">${t.label}</span>`:''}).join('')}</div>`; }
 const kh=document.getElementById('kings'), treeEl=document.getElementById('tree'),
       srcEl=null, side=document.getElementById('side');
 let cur='bacteria', selEl=null;

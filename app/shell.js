@@ -154,5 +154,100 @@
     fill(container, el("div", { class: "authwrap" }, form));
   }
 
-  root.Shell = { toast, modal, confirmBox, signInScreen, newPasswordScreen, avatarMenu, initials };
+  /* Account settings: name, email, password (+ research consent for students).
+     opts: {profile, email, student, consent, extra: node} */
+  function settingsPage(container, opts) {
+    const A = root.API;
+    const section = (title, sub, ...kids) => el("div", { class: "panel" }, el("h3", { style: { marginBottom: "4px" } }, title),
+      sub ? el("p", { class: "dim", style: { margin: "0 0 14px" } }, sub) : null, kids);
+    const status = () => el("p", { class: "dim", style: { margin: "10px 0 0" }, role: "status" });
+    const say = (n, t, bad) => { n.textContent = t; n.className = bad ? "err" : "ok"; };
+    let email = opts.email;
+
+    // name
+    const name = el("input", { type: "text", value: opts.profile.display_name || "", maxlength: 80, autocomplete: "name" });
+    const nameMsg = status();
+    const nameBtn = el("button", { class: "btn primary", type: "button" }, "Save name");
+    nameBtn.addEventListener("click", async () => {
+      const v = name.value.trim();
+      if (!v) return say(nameMsg, "Enter a name.", true);
+      nameBtn.disabled = true;
+      try { await A.updateDisplayName(v); opts.profile.display_name = v; say(nameMsg, "Name saved."); }
+      catch (e) { say(nameMsg, e.message, true); }
+      nameBtn.disabled = false;
+    });
+
+    // email
+    const newEmail = el("input", { type: "email", autocomplete: "email", placeholder: "new address" });
+    const emailPw = el("input", { type: "password", autocomplete: "current-password" });
+    const emailMsg = status();
+    const emailBtn = el("button", { class: "btn primary", type: "button" }, "Change email");
+    const current = el("span", null, email);
+    emailBtn.addEventListener("click", async () => {
+      const v = newEmail.value.trim();
+      if (!/^\S+@\S+\.\S+$/.test(v)) return say(emailMsg, "Enter the new email address.", true);
+      if (v.toLowerCase() === email.toLowerCase()) return say(emailMsg, "That is already your email.", true);
+      if (!emailPw.value) return say(emailMsg, "Enter your current password.", true);
+      emailBtn.disabled = true;
+      try {
+        await A.reauth(email, emailPw.value);
+        const done = await A.changeEmail(v);
+        if (done) { email = v; current.textContent = v; say(emailMsg, "Email changed. Use the new address next time you sign in."); }
+        else say(emailMsg, `Almost done: open the confirmation link sent to ${v} (and to your old address if asked). Until then, keep signing in with ${email}.`);
+        newEmail.value = ""; emailPw.value = "";
+      } catch (e) { say(emailMsg, /rate limit/i.test(e.message) ? "Too many emails sent recently. Try again later." : e.message, true); }
+      emailBtn.disabled = false;
+    });
+
+    // password
+    const pwOld = el("input", { type: "password", autocomplete: "current-password" });
+    const pwNew = el("input", { type: "password", autocomplete: "new-password", minlength: 8 });
+    const pwNew2 = el("input", { type: "password", autocomplete: "new-password", minlength: 8 });
+    const pwMsg = status();
+    const pwBtn = el("button", { class: "btn primary", type: "button" }, "Change password");
+    pwBtn.addEventListener("click", async () => {
+      if (!pwOld.value) return say(pwMsg, "Enter your current password.", true);
+      if (pwNew.value.length < 8) return say(pwMsg, "The new password needs at least 8 characters.", true);
+      if (pwNew.value !== pwNew2.value) return say(pwMsg, "The two new passwords do not match.", true);
+      pwBtn.disabled = true;
+      try { await A.reauth(email, pwOld.value); await A.updatePassword(pwNew.value); say(pwMsg, "Password changed."); pwOld.value = pwNew.value = pwNew2.value = ""; }
+      catch (e) { say(pwMsg, e.message, true); }
+      pwBtn.disabled = false;
+    });
+
+    // research consent (students)
+    let research = null;
+    if (opts.student) {
+      const cb = el("input", { type: "checkbox", checked: !!(opts.consent && opts.consent.research) });
+      const rMsg = status();
+      cb.addEventListener("change", async () => {
+        try { await A.setConsent(true, cb.checked); say(rMsg, cb.checked ? "Thank you. Your anonymized results may be used for research." : "Your results will not be used for research."); }
+        catch (e) { cb.checked = !cb.checked; say(rMsg, e.message, true); }
+      });
+      research = section("Research use", "Optional. Changing this does not affect your access or grades.",
+        el("label", { class: "consentbox", style: { marginBottom: 0 } }, cb,
+          el("span", null, "My anonymized results may be used in a medical education research study.")), rMsg);
+    }
+
+    const f = (label, input, hint) => el("label", { class: "f" }, el("span", null, label), input, hint ? el("div", { class: "hint" }, hint) : null);
+    fill(container,
+      el("div", { class: "pagehead" }, el("div", null, el("h1", null, "Settings"),
+        el("p", { class: "sub" }, "Your name, sign-in email and password."))),
+      el("div", { class: "cols" },
+        el("div", null,
+          section("Name", opts.student ? "Shown to your instructors." : "Shown to students and other instructors.", f("Name", name), nameBtn, nameMsg),
+          section("Email", null, el("p", { style: { margin: "0 0 14px" } }, "Current: ", current),
+            el("div", { class: "grid2" }, f("New email", newEmail), f("Current password", emailPw)), emailBtn, emailMsg),
+          section("Password", null,
+            f("Current password", pwOld), el("div", { class: "grid2" }, f("New password", pwNew, "At least 8 characters."), f("Repeat new password", pwNew2)),
+            pwBtn, pwMsg)),
+        el("div", null,
+          section("Your account", null, el("dl", { class: "meta", style: { marginTop: 0 } },
+            el("dt", null, "Role"), el("dd", null, opts.profile.role || "student"),
+            opts.cohort ? [el("dt", null, "Cohort"), el("dd", null, opts.cohort)] : null),
+            el("p", { class: "hint" }, "Only an admin can change roles and cohorts.")),
+          research, opts.extra || null)));
+  }
+
+  root.Shell = { toast, modal, confirmBox, signInScreen, newPasswordScreen, settingsPage, avatarMenu, initials };
 })(typeof globalThis !== "undefined" ? globalThis : this);

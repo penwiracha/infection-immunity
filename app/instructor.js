@@ -84,10 +84,10 @@
       return;
     }
     if (S.me === sess.user.id) return;          // already booted (auth event + initial load)
-    S.me = sess.user.id; S.profile = sess.profile || {};
+    S.me = sess.user.id; S.profile = sess.profile || {}; S.email = sess.user.email;
     S.isAdmin = S.profile.role === "admin";
     avatarMenu(document.getElementById("avatar"), S.profile, sess.user.email,
-      [{ label: "Student view", href: "app.html?preview=1" }, { label: "Revision tool", href: "../index.html" }]);
+      [{ label: "Settings", href: "#settings" }, { label: "Student view", href: "app.html?preview=1" }, { label: "Revision tool", href: "../index.html" }]);
 
     // Students who land here go to their own app; the database enforces roles regardless.
     if (S.profile.role !== "instructor" && S.profile.role !== "admin") { location.replace("app.html"); return; }
@@ -112,6 +112,12 @@
 
   async function route() {
     const [tab, arg] = (location.hash.slice(1) || "overview").split("/");
+    if (tab === "settings") {
+      dirtyGuard = null; setTabs(null);
+      Shell.settingsPage($main, { profile: S.profile, email: S.email, student: false,
+        extra: S.isAdmin ? vocabPanel() : null });
+      return;
+    }
     const t = TABS.some(([id]) => id === tab) ? tab : "overview";
     dirtyGuard = null;
     setTabs(t);
@@ -245,26 +251,68 @@
           returned.length ? el("ul", { class: "history" }, returned.map((q) => el("li", null,
             el("a", { href: "#questions/" + q.question_id }, qCode(q.question_id)), " — ", q.last_return_comment)))
             : el("p", { class: "dim", style: { margin: 0 } }, "No items returned with comments."))),
-      S.isAdmin ? vocabPanel() : null
     );
   }
 
+  /* Admin: the tag lists used to label lectures and questions. Designed to be filled
+     from a generated file (e.g. AI-produced CSV/JSON), with a single-term form for fixes. */
   function vocabPanel() {
     const kinds = ["topic", "disease", "organism", "niche", "failure_mode", "cascade_step", "tier", "bloom", "difficulty"];
-    const kindSel = el("select", null, kinds.map((k) => el("option", { value: k }, k.replace("_", " "))));
-    const id = el("input", { type: "text", placeholder: "id, e.g. bacterial-meningitis" });
-    const lab = el("input", { type: "text", placeholder: "Label shown to people" });
-    const counts = el("p", { class: "dim" }, kinds.map((k) => `${k.replace("_", " ")}: ${S.vocabRows.filter((v) => v.kind === k).length}`).join(" · "));
-    const add = el("button", { class: "btn primary", type: "button" }, "Add or rename term");
-    add.addEventListener("click", async () => {
-      await guard(() => API.upsertVocab(kindSel.value, id.value.trim(), lab.value.trim()), "Saved.");
+    const counts = el("p", { class: "dim", style: { margin: "0 0 14px" } },
+      kinds.map((k) => `${k.replace("_", " ")}: ${S.vocabRows.filter((v) => v.kind === k).length}`).join(" · "));
+    const refresh = async () => {
       S.vocabRows = await API.vocab();
       S.vocab = {}; for (const v of S.vocabRows) (S.vocab[v.kind] ||= {})[v.id] = v.label;
-      id.value = ""; lab.value = ""; route();
+      route();
+    };
+    // bulk import
+    const file = el("input", { type: "file", accept: ".csv,.json,text/csv,application/json" });
+    const result = el("div");
+    const importBtn = el("button", { class: "btn primary", type: "button" }, "Import tag file");
+    importBtn.addEventListener("click", async () => {
+      const f = file.files[0];
+      if (!f) { toast("Choose a .csv or .json file first.", true); return; }
+      let rows;
+      try {
+        const text = await f.text();
+        rows = /\.json$/i.test(f.name) || /^\s*[[{]/.test(text) ? [].concat(JSON.parse(text)) : parseCSV(text);
+      } catch (e) { toast("Could not read the file: " + errMsg(e), true); return; }
+      rows = rows.map((r) => ({ kind: String(r.kind || "").trim(), id: String(r.id || "").trim(), label: String(r.label || "").trim() }));
+      const bad = rows.filter((r) => !kinds.includes(r.kind) || !r.id || !r.label);
+      const good = rows.filter((r) => !bad.includes(r));
+      importBtn.disabled = true;
+      let ok = 0; const failed = [];
+      for (const r of good) {
+        try { await API.upsertVocab(r.kind, r.id, r.label); ok++; } catch (e) { failed.push(`${r.kind}/${r.id}: ${errMsg(e)}`); }
+      }
+      importBtn.disabled = false;
+      fill(result, el("div", { class: failed.length || bad.length ? "banner warn" : "banner info" },
+        `${ok} term${ok === 1 ? "" : "s"} added or renamed.`,
+        bad.length ? el("p", { style: { margin: "6px 0 0" } }, `${bad.length} row${bad.length === 1 ? "" : "s"} skipped: each needs kind, id and label, and kind must be one of: ${kinds.join(", ")}.`) : null,
+        failed.length ? el("ul", null, failed.slice(0, 10).map((x) => el("li", null, x))) : null));
+      if (ok) setTimeout(refresh, 1200);
     });
-    return el("div", { class: "panel" }, el("h3", null, "Tag vocabularies"), counts,
-      el("div", { class: "grid2" }, field("Kind", kindSel), field("Id", id, true), field("Label", lab, true)),
-      add, el("div", { class: "hint" }, "Diseases currently hold the 13 host defects; add clinical syndromes here. Organisms come from data/organisms.js (scripts/gen-vocab-seed.mjs)."));
+    const template = el("button", { class: "btn small", type: "button", onclick: () => download("tag-template.csv",
+      toCSV([{ kind: "disease", id: "bacterial-meningitis", label: "Bacterial meningitis" },
+             { kind: "topic", id: "vaccines", label: "Vaccines and prevention" }], ["kind", "id", "label"]), "text/csv") }, "CSV template");
+
+    // single term
+    const kindSel = el("select", null, kinds.map((k) => el("option", { value: k }, k.replace("_", " "))));
+    const id = el("input", { type: "text", placeholder: "e.g. bacterial-meningitis" });
+    const lab = el("input", { type: "text", placeholder: "Label shown to people" });
+    const add = el("button", { class: "btn", type: "button" }, "Add or rename one term");
+    add.addEventListener("click", async () => {
+      await guard(() => API.upsertVocab(kindSel.value, id.value.trim(), lab.value.trim()), "Saved.");
+      refresh();
+    });
+    return el("div", { class: "panel" }, el("h3", { style: { marginBottom: "4px" } }, "Tag lists (admins)"),
+      el("p", { class: "dim", style: { margin: "0 0 10px" } }, "The fixed lists used to tag lectures and questions: topics, diseases, organisms and so on. Teachers pick from these lists; they do not type tags."),
+      counts,
+      el("p", { class: "label" }, "Import a generated list"),
+      el("p", { class: "hint", style: { margin: "0 0 10px" } }, "CSV with columns kind, id, label (or a JSON array of the same). Existing ids are renamed, new ids are added; nothing is deleted."),
+      el("div", { class: "row", style: { marginBottom: "12px" } }, file, template), importBtn, result,
+      el("p", { class: "label", style: { marginTop: "22px" } }, "Fix one term"),
+      el("div", { class: "grid2" }, field("Kind", kindSel), field("Id", id), field("Label", lab)), add);
   }
 
   // ------------------------------------------------------------------

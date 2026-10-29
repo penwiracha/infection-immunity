@@ -50,6 +50,26 @@
       unwrap(await sb.auth.updateUser({ password }));
     },
     async signOut() { if (sb) await sb.auth.signOut(); },
+
+    // ---- account settings ----
+    async updateDisplayName(name) {
+      need();
+      const { data } = await sb.auth.getSession();
+      const uid = data.session && data.session.user.id;
+      unwrap(await sb.from("profiles").update({ display_name: name }).eq("id", uid));
+    },
+    // Re-checks the current password first, so a borrowed signed-in laptop cannot change it.
+    async reauth(email, password) {
+      need();
+      const r = await sb.auth.signInWithPassword({ email, password });
+      if (r.error) throw new Error(/invalid login/i.test(r.error.message) ? "Your current password is not correct." : r.error.message);
+    },
+    // Returns true if the change is done, false if Supabase emailed a confirmation link first.
+    async changeEmail(newEmail) {
+      need();
+      const data = unwrap(await sb.auth.updateUser({ email: newEmail }, { emailRedirectTo: location.href.split("#")[0] }));
+      return !!(data && data.user && data.user.email === newEmail);
+    },
     // cb(event): event is "PASSWORD_RECOVERY" when someone arrives from a reset-password email.
     onAuth(cb) { if (sb) sb.auth.onAuthStateChange((event) => cb(event)); },
 

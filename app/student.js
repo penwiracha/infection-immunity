@@ -64,10 +64,12 @@
     if (S.me === sess.user.id) return;
     S.me = sess.user.id;
     S.profile = sess.profile || {};
+    S.email = sess.user.email;
     const staff = S.profile.role === "instructor" || S.profile.role === "admin";
     if (staff && !PREVIEW) { location.replace("instructor.html"); return; }
     avatarMenu(document.getElementById("avatar"), S.profile, sess.user.email,
-      [staff ? { label: "Instructor dashboard", href: "instructor.html" } : null, { label: "Revision tool", href: "../index.html" }].filter(Boolean));
+      [{ label: "Settings", href: "#settings" }, staff ? { label: "Instructor dashboard", href: "instructor.html" } : null,
+       { label: "Revision tool", href: "../index.html" }].filter(Boolean));
     for (const v of await API.vocab()) (S.vocab[v.kind] ||= {})[v.id] = v.label;
     await refreshStatus();
     window.addEventListener("hashchange", route);
@@ -95,6 +97,11 @@
     try {
       if (S.gate && tab !== "exam") return await gate();
       if (tab === "exam" && UUID.test(a || "")) { setTabs(null); return await runExam(a); }
+      if (tab === "settings") {
+        setTabs(null);
+        return Shell.settingsPage($main, { profile: S.profile, email: S.email, student: S.profile.role === "student",
+          consent: S.status.consent, cohort: S.status.cohort });
+      }
       const t = TABS.some(([id]) => id === tab) ? tab : "home";
       setTabs(t);
       if (t === "home") await home();
@@ -118,7 +125,7 @@
     modal("Information sheet", [
       el("p", null, "This platform records your study activity: which lectures you open, the questions you answer, how sure you said you were, and your flashcard ratings. It uses this to choose what you review next and to show your progress."),
       el("p", null, "Your instructors can see your activity and scores to support you. Lists shown on screen use short IDs instead of names."),
-      el("p", null, "Research use is separate and optional. If you agree, your answers can be included in a medical-education study with your name and email removed. Saying no does not change your access or your grades. You can change your choice later by asking your course admin."),
+      el("p", null, "Research use is separate and optional. If you agree, your answers can be included in a medical-education study with your name and email removed. Saying no does not change your access or your grades. You can change your choice at any time in Settings (click your initials, top right)."),
       el("p", { class: "dim" }, "Pre-test and check-in scores do not count toward your grade.")
     ]);
   }
