@@ -732,6 +732,10 @@
           : el("p", { class: "dim", style: { margin: 0 } }, "Once you have answered a few questions, your three weakest topics appear here.")));
   }
 
-  API.onAuth(() => boot());
+  API.onAuth((event) => {
+    if (event === "PASSWORD_RECOVERY") { document.getElementById("tabs").hidden = true; Shell.newPasswordScreen($main); return; }
+    if (event === "SIGNED_OUT") { location.reload(); return; }
+    boot();
+  });
   boot();
 })();

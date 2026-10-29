@@ -54,8 +54,12 @@
 
   window.__MOCK_API__ = {
     configured: true,
-    async session() { const p = profiles.find((x) => x.user_id === ME); return { user: { id: ME, email: p.email }, profile: { ...p, id: ME } }; },
-    async signIn() {}, async signOut() {}, onAuth() {},
+    async session() { if (role === "anon") return null; const p = profiles.find((x) => x.user_id === ME); return { user: { id: ME, email: p.email }, profile: { ...p, id: ME } }; },
+    async signOut() {}, onAuth() {},
+    async signInPassword(e, p) { call("signInPassword", e, p); if (p !== "correct-horse") throw new Error("Invalid login credentials"); },
+    async signUp(e, p, n) { call("signUp", e, p, n); return false; },
+    async resetPassword(e) { call("resetPassword", e); },
+    async updatePassword(p) { call("updatePassword", p); },
     async vocab() { return vocab; }, async upsertVocab(...a) { call("upsertVocab", ...a); },
     async lectureList() {
       return lectures.filter((l) => l.status === "published" || l.author_id === ME || role === "admin").map((l) => ({

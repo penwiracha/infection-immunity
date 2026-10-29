@@ -298,6 +298,33 @@ await test("instructor: exams tab and exam editor", "instructor", async (page) =
   await shot(page, "instructor-exam-editor");
 });
 
+await test("sign in with email and password; create account; forgot password", "anon", async (page) => {
+  await page.goto(`${BASE}/views/app.html`);
+  await page.getByLabel("Email").fill("nok@student.ac.th");
+  await page.getByLabel("Password").fill("wrong-password");
+  await shot(page, "signin");
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await page.getByText("Wrong email or password.").waitFor();
+  await page.getByRole("button", { name: "Create an account" }).click();
+  await page.getByLabel("Name").fill("Nok");
+  await page.getByLabel("Email").fill("nok@student.ac.th");
+  await page.locator("input[autocomplete=new-password]").first().fill("long-enough-1");
+  await page.getByLabel("Repeat password").fill("different-123");
+  await page.getByRole("button", { name: "Create account" }).click();
+  await page.getByText("The two passwords do not match.").waitFor();
+  await page.getByLabel("Repeat password").fill("long-enough-1");
+  await page.getByRole("button", { name: "Create account" }).click();
+  await page.getByText("Account created.").waitFor();
+  await page.getByRole("button", { name: "Back to sign in" }).click();
+  await page.getByRole("button", { name: "Forgot your password?" }).click();
+  await page.getByLabel("Email").fill("nok@student.ac.th");
+  await page.getByRole("button", { name: "Email me a reset link" }).click();
+  await page.getByText("a reset link is on its way").waitFor();
+  const calls = await page.evaluate(() => window.__CALLS__);
+  assert.ok(calls.some((c) => c[0] === "signUp" && c[3] === "Nok"), "sign-up not called with the name");
+  assert.ok(calls.some((c) => c[0] === "resetPassword"), "reset not requested");
+});
+
 await test("home page has a Log in button that opens the app", "student", async (page) => {
   await page.goto(`${BASE}/index.html`);
   assert.equal(await page.locator("#login").getAttribute("href"), "views/app.html");

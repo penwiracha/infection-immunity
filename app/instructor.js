@@ -1121,6 +1121,10 @@
           el("p", { class: "dim", style: { margin: 0 } }, "Question exports include answer keys and explanations, and the student summary includes names and emails. Keep both away from students and outside the course team."))));
   }
 
-  API.onAuth(() => boot());
+  API.onAuth((event) => {
+    if (event === "PASSWORD_RECOVERY") { document.getElementById("tabs").hidden = true; Shell.newPasswordScreen($main); return; }
+    if (event === "SIGNED_OUT") { location.reload(); return; }
+    boot();
+  });
   boot();
 })();

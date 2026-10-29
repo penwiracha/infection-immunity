@@ -28,13 +28,30 @@
       const profile = unwrap(await sb.from("profiles").select("*").eq("id", user.id).maybeSingle());
       return { user, profile };
     },
-    async signIn(email) {
+    // Email + password, typed on the site. No email is sent for normal sign-in.
+    async signInPassword(email, password) {
       need();
-      const redirect = location.href.split("#")[0];
-      unwrap(await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: redirect } }));
+      unwrap(await sb.auth.signInWithPassword({ email, password }));
+    },
+    // Returns true when the account is ready to use now (email confirmation is off in Supabase),
+    // false when Supabase has emailed a confirmation link first.
+    async signUp(email, password, displayName) {
+      need();
+      const data = unwrap(await sb.auth.signUp({ email, password,
+        options: { data: { display_name: displayName || "" }, emailRedirectTo: location.href.split("#")[0] } }));
+      return !!(data && data.session);
+    },
+    async resetPassword(email) {
+      need();
+      unwrap(await sb.auth.resetPasswordForEmail(email, { redirectTo: location.href.split("#")[0] }));
+    },
+    async updatePassword(password) {
+      need();
+      unwrap(await sb.auth.updateUser({ password }));
     },
     async signOut() { if (sb) await sb.auth.signOut(); },
-    onAuth(cb) { if (sb) sb.auth.onAuthStateChange(() => cb()); },
+    // cb(event): event is "PASSWORD_RECOVERY" when someone arrives from a reset-password email.
+    onAuth(cb) { if (sb) sb.auth.onAuthStateChange((event) => cb(event)); },
 
     // ---- vocab ----
     async vocab() { return unwrap(await from("vocab").select("*").eq("active", true).order("kind").order("sort")); },
