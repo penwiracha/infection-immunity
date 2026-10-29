@@ -1,0 +1,17 @@
+{
+  "name": "infection-immunity",
+  "private": true,
+  "type": "module",
+  "description": "Infection & Immunity revision tool: static offline views plus Supabase-backed Learn and Instructor pages.",
+  "scripts": {
+    "validate": "node scripts/validate.mjs",
+    "bundle": "node scripts/bundle.mjs",
+    "seed": "node scripts/gen-vocab-seed.mjs",
+    "test:db": "supabase test db",
+    "test:db:local": "bash scripts/test-db.sh",
+    "test:ui": "node tests/ui/run.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.48.2"
+  }
+}

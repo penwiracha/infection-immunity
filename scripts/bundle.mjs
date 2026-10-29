@@ -62,6 +62,8 @@ function processView(file) {
 /* ---- process index.html into the "home" view ---- */
 function processHome() {
   let html = readFileSync(P("index.html"), "utf8");
+  // signed-in pages (Learn, Instructor) need the network and Supabase: not part of the offline file
+  html = html.replace(/<!-- online-only -->[\s\S]*?<!-- \/online-only -->/g, "");
   const map = {
     'views/niche-map.html': 'niche', 'views/immune-map.html': 'immune',
     'views/cascade.html?b=extracellular': 'cascade', 'views/taxonomy.html': 'taxonomy',

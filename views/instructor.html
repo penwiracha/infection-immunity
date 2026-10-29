@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Scripts only from this site and the pinned Supabase client; no inline script can run. -->
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'none'; form-action 'self'">
+<title>Instructor dashboard — Infection &amp; Immunity</title>
+<link rel="stylesheet" href="../app/app.css">
+</head>
+<body>
+<header class="top">
+  <div class="brandwrap">
+    <a class="brand" href="../index.html" title="Back to the revision tool">Infection &amp; Immunity</a>
+    <span class="pill">Instructor</span>
+  </div>
+  <nav class="tabs" id="tabs" role="tablist" aria-label="Instructor sections" hidden></nav>
+  <div class="topright"><button class="avatar" id="avatar" type="button" hidden></button></div>
+</header>
+<main id="main"><p class="dim">Loading…</p></main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="../app/config.js"></script>
+<script src="../app/safe.js"></script>
+<script src="../app/api.js"></script>
+<script src="../app/render.js"></script>
+<script src="../app/shell.js"></script>
+<script src="../app/instructor.js"></script>
+</body>
+</html>
