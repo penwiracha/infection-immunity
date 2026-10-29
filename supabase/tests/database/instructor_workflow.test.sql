@@ -1,4 +1,4 @@
--- Instructor workflow: approve = live, class codes, scheduled check-ins.
+-- Instructor workflow: publishing, class codes, scheduled check-ins.
 begin;
 set search_path = public, extensions;
 select plan(16);
@@ -29,16 +29,14 @@ select pg_temp.as_user(:'admin');
 insert into ids select 'L', save_lecture('{"number":1,"title":"L1","niche":"extra"}');
 insert into ids select 'P', (save_question(pg_temp.q('Practice item', 'practice')) ->> 'version_id')::uuid;
 insert into ids select 'M', (save_question(pg_temp.q('Monthly item', 'monthly')) ->> 'version_id')::uuid;
-select submit_question((select v from ids where k = 'P'));
-select submit_question((select v from ids where k = 'M'));
 select pg_temp.as_user(:'i1');
-select review_question((select v from ids where k = 'P'), 'approved');
-select review_question((select v from ids where k = 'M'), 'approved');
-reset role;
-select is((select status from question_versions where id = (select v from ids where k = 'P')), 'live', 'approved practice item is live at once');
-select is((select status from question_versions where id = (select v from ids where k = 'M')), 'approved', 'approved monthly item waits for an admin');
+select throws_ok(format($$select publish_question_now(%L)$$, (select v from ids where k = 'M')), '42501', null,
+                 'an instructor cannot put a monthly item live');
 select pg_temp.as_user(:'admin');
-select publish_question((select v from ids where k = 'M'));
+select publish_question_now((select v from ids where k = 'P'));
+select publish_question_now((select v from ids where k = 'M'));
+reset role;
+select is((select status from question_versions where id = (select v from ids where k = 'P')), 'live', 'published practice item is live');
 
 -- class codes
 select pg_temp.as_user(:'i1');

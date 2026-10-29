@@ -95,15 +95,11 @@
       const versions = unwrap(await from("question_versions").select("*").eq("question_id", qid).order("version", { ascending: false }));
       const ids = versions.map((v) => v.id);
       const keys = ids.length ? unwrap(await from("question_keys").select("*").in("version_id", ids)) : [];
-      const reviews = ids.length ? unwrap(await from("question_reviews").select("*").in("version_id", ids).order("created_at", { ascending: false })) : [];
       const item = unwrap(await from("questions").select("*").eq("id", qid).single());
-      return { item, versions, keys, reviews };
+      return { item, versions, keys };
     },
     saveQuestion: (p) => rpc("save_question", { p }),
     validateQuestion: (p) => rpc("validate_question", { p }),
-    submitQuestion: (v) => rpc("submit_question", { p_version: v }),
-    reviewQuestion: (v, decision, comment) => rpc("review_question", { p_version: v, p_decision: decision, p_comment: comment || null }),
-    publishQuestion: (v) => rpc("publish_question", { p_version: v }),
     publishQuestionNow: (v) => rpc("publish_question_now", { p_version: v }),
     questionUsage: (q) => rpc("question_usage", { p_question: q }),
     deleteQuestion: (q, force) => rpc("delete_question", { p_question: q, p_force: !!force }),

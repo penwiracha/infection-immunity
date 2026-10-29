@@ -5,7 +5,7 @@
 -- =====================================================================
 begin;
 set search_path = public, extensions;
-select plan(79);
+select plan(78);
 
 \set admin   '00000000-0000-0000-0000-0000000000a1'
 \set i1      '00000000-0000-0000-0000-0000000000b1'
@@ -133,25 +133,20 @@ select throws_ok(format($$select save_question(%L::jsonb)$$, pg_temp.qpayload('S
 select throws_ok($$insert into question_keys (version_id, correct_option_id, explanation) values (gen_random_uuid(), 'A', 'x')$$,
                  '42501', null, 'student cannot write answer keys');
 select throws_ok($$update question_versions set stem = 'pwned'$$, '42501', null, 'student cannot edit question versions');
-select throws_ok(format($$select submit_question(%L)$$, (select v from ids where k = 'Q1v1')), '42501', null,
-                 'student cannot submit a question');
+select throws_ok(format($$select publish_question_now(%L)$$, (select v from ids where k = 'Q1v1')), '42501', null,
+                 'student cannot publish a question');
 
--- other instructors see drafts only once submitted
+-- other instructors do not see my drafts and cannot publish them
 select pg_temp.as_user(:'i2');
 select is((select count(*)::int from question_versions where id = (select v from ids where k = 'Q1v1')), 0,
           'other instructor cannot see my draft question');
-select pg_temp.as_user(:'i1');
-select lives_ok(format($$select submit_question(%L)$$, (select v from ids where k = 'Q1v1')), 'author submits for review');
-select pg_temp.as_user(:'i2');
-select is((select count(*)::int from question_versions where id = (select v from ids where k = 'Q1v1')), 1,
-          'other instructor sees it once in review');
+select throws_ok(format($$select publish_question_now(%L)$$, (select v from ids where k = 'Q1v1')), '42501', null,
+                 'other instructor cannot publish my draft');
 
 -- =====================================================================
--- 4. Review rules and pool restrictions
+-- 4. Publishing and pool restrictions
 -- =====================================================================
 select pg_temp.as_user(:'i1');
-select throws_ok(format($$select review_question(%L, 'approved')$$, (select v from ids where k = 'Q1v1')), '42501', null,
-                 'author cannot approve their own question');
 select throws_ok(format($$select save_question(%L::jsonb)$$, pg_temp.qpayload('Monthly item', '{"pool":"monthly"}')), '42501', null,
                  'instructor cannot create an item in the monthly pool');
 select throws_ok(format($$select save_question(%L::jsonb)$$, pg_temp.qpayload('Pretest item', '{"pool":"pretest"}')), '42501', null,
@@ -163,25 +158,24 @@ select throws_ok(format($$select save_question(%L::jsonb)$$,
                                          jsonb_build_object('question_id', (select v from ids where k = 'Q1'), 'pool', 'pretest'))),
                  '42501', null, 'instructor cannot change the pool while editing');
 
-select pg_temp.as_user(:'i2');
-select throws_ok(format($$select review_question(%L, 'returned', '')$$, (select v from ids where k = 'Q1v1')), '22023', null,
-                 'returning an item requires a comment');
-select lives_ok(format($$select review_question(%L, 'approved', 'Clear stem')$$, (select v from ids where k = 'Q1v1')),
-                'a different instructor approves');
-select pg_temp.as_user(:'i1');
-select is((select status from question_versions where id = (select v from ids where k = 'Q1v1')), 'live', 'approving a practice item puts it live');
+select lives_ok(format($$select publish_question_now(%L)$$, (select v from ids where k = 'Q1v1')), 'the author publishes directly');
+select is((select status from question_versions where id = (select v from ids where k = 'Q1v1')), 'live', 'publishing a practice item puts it live at once');
+select throws_ok($$update question_versions set status = 'in_review'$$, '42501', null, 'instructors cannot set review states directly');
+reset role;
+select throws_ok(format($$update question_versions set status = 'approved' where id = %L$$, (select v from ids where k = 'Q1v1')),
+                 '23514', null, 'review states no longer exist');
 
--- admin-only pools: admin may create pretest items; students never see them in practice
-select pg_temp.as_user(:'admin');
-insert into ids select 'Q2', (save_question(pg_temp.qpayload('Pretest: capsule function?', '{"pool":"pretest"}')) ->> 'question_id')::uuid;
+-- admin-only pools: an instructor's item moved to pretest needs an admin to go live; students never see it in practice
+select pg_temp.as_user(:'i1');
+insert into ids select 'Q2', (save_question(pg_temp.qpayload('Pretest: capsule function?')) ->> 'question_id')::uuid;
 insert into ids select 'Q2v1', id from question_versions where question_id = (select v from ids where k = 'Q2');
-select submit_question((select v from ids where k = 'Q2v1'));
-select pg_temp.as_user(:'i2');
-select review_question((select v from ids where k = 'Q2v1'), 'approved');
-select throws_ok(format($$select publish_question(%L)$$, (select v from ids where k = 'Q2v1')), '42501', null,
-                 'only an admin can put a pretest item live');
 select pg_temp.as_user(:'admin');
-select lives_ok(format($$select publish_question(%L)$$, (select v from ids where k = 'Q2v1')), 'admin puts the pretest item live');
+select set_question_pool((select v from ids where k = 'Q2'), 'pretest');
+select pg_temp.as_user(:'i1');
+select throws_ok(format($$select publish_question_now(%L)$$, (select v from ids where k = 'Q2v1')), '42501',
+                 'only an admin can put pretest items live', 'only an admin can put a pretest item live');
+select pg_temp.as_user(:'admin');
+select lives_ok(format($$select publish_question_now(%L)$$, (select v from ids where k = 'Q2v1')), 'admin puts the pretest item live');
 
 -- =====================================================================
 -- 5. Students see live practice items but never keys; answers are recorded
@@ -207,7 +201,7 @@ select is((select (r ->> 'new_version')::boolean from edit_result), true, 'editi
 select is((select (r ->> 'version')::int from edit_result), 2, 'the new version is version 2');
 insert into ids select 'Q1v2', (r ->> 'version_id')::uuid from edit_result;
 select is((select status from question_versions where id = (select v from ids where k = 'Q1v1')), 'live',
-          'version 1 keeps serving students while version 2 is reviewed');
+          'version 1 keeps serving students while version 2 is a draft');
 
 reset role;
 select throws_ok(format($$update question_versions set stem = 'rewritten' where id = %L$$, (select v from ids where k = 'Q1v1')),
@@ -216,9 +210,7 @@ select throws_ok(format($$update question_keys set correct_option_id = 'A' where
                  '55000', null, 'a live version''s answer key cannot be changed');
 
 select pg_temp.as_user(:'i1');
-select submit_question((select v from ids where k = 'Q1v2'));
-select pg_temp.as_user(:'i2');
-select review_question((select v from ids where k = 'Q1v2'), 'approved');
+select publish_question_now((select v from ids where k = 'Q1v2'));
 reset role;
 select is((select status from question_versions where id = (select v from ids where k = 'Q1v1')), 'superseded', 'version 1 is superseded');
 select is((select count(*)::int from answers where version_id = (select v from ids where k = 'Q1v1')), 2,
@@ -276,10 +268,10 @@ select is((select count(*)::int from answers a join question_versions v on v.id 
 select set_eq(
   format($$select distinct action from audit_log where table_name = 'question_versions'
            and new_values ->> 'question_id' = %L$$, (select v from ids where k = 'Q1')),
-  array['create', 'edit', 'submit', 'approve', 'publish', 'supersede', 'retire'],
-  'every question create, edit, submit, approval, publish and retirement is in audit_log');
-select ok(exists (select 1 from audit_log where table_name = 'question_reviews' and action = 'approve' and actor_id = :'i2'),
-          'the approval itself is audited with the reviewer as actor');
+  array['create', 'edit', 'publish', 'supersede', 'retire'],
+  'every question create, edit, publish and retirement is in audit_log');
+select ok(exists (select 1 from audit_log where table_name = 'question_versions' and action = 'publish' and actor_id = :'i1'),
+          'publishing is audited with the author as actor');
 select ok(exists (select 1 from audit_log where table_name = 'questions' and action = 'retire'
                   and row_id = (select v::text from ids where k = 'Q1') and actor_id = :'i1'),
           'retirement is audited on the item');

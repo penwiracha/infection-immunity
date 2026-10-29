@@ -35,8 +35,8 @@
   const versions = [
     { id: "v1", question_id: "q1", version: 1, status: "live", stem: XSS_STEM, options: opt(["C3b opsonisation", "Polysaccharide capsule", "IgA protease", "<b>Antigenic</b> variation"]),
       niche: "extra", topic: "evasion", lecture_id: lectures[0].id, organism_ids: ["streptococcus-pneumoniae"], disease_ids: [], tier: "1",
-      failure_mode: "Capsule / anti-phagocytic", bloom: "understand", difficulty: "medium", author_id: "u-i1", approved_by: "u-i2", updated_at: now, approved_at: now },
-    { id: "v2", question_id: "q2", version: 1, status: "in_review", stem: "Which complement deficiency predisposes to recurrent Neisseria bacteraemia?",
+      failure_mode: "Capsule / anti-phagocytic", bloom: "understand", difficulty: "medium", author_id: "u-i1", updated_at: now, live_at: now },
+    { id: "v2", question_id: "q2", version: 1, status: "draft", stem: "Which complement deficiency predisposes to recurrent Neisseria bacteraemia?",
       options: opt(["C1 inhibitor", "C3", "C5–C9", "MPO"]), niche: "extra", topic: "host-defect", lecture_id: lectures[0].id,
       organism_ids: ["neisseria-meningitidis"], disease_ids: [], tier: "1", failure_mode: null, bloom: "apply", difficulty: "easy",
       author_id: "u-i2", updated_at: now }
@@ -47,7 +47,7 @@
   ];
   const items = { q1: { id: "q1", pool: "practice", author_id: "u-i1", source: "manual", retired_at: null },
                   q2: { id: "q2", pool: "practice", author_id: "u-i2", source: "ai", retired_at: null } };
-  const reviews = [{ id: "r1", version_id: "v1", reviewer_id: "u-i2", decision: "approved", comment: "Good", created_at: now }];
+  const reviews = [];
   const log = (window.__CALLS__ = []);
   const call = (name, ...args) => { log.push([name, ...args]); };
   const lecFor = (id) => lectures.find((l) => l.id === id);
@@ -95,9 +95,6 @@
     },
     async saveQuestion(p) { call("saveQuestion", p); return { question_id: p.question_id || "q9", version_id: "v9", version: 2, new_version: true }; },
     async validateQuestion() { return []; },
-    async submitQuestion(v) { call("submitQuestion", v); },
-    async reviewQuestion(...a) { call("reviewQuestion", ...a); },
-    async publishQuestion(v) { call("publishQuestion", v); },
     async publishQuestionNow(v) { call("publishQuestionNow", v); const x = versions.find((y) => y.id === v); if (x && x.status === "live") throw new Error("this version is already live"); },
     async questionUsage(q) { return q === "q1" ? { answers: 40, reviews: 12, exams: 0 } : { answers: 0, reviews: 0, exams: 0 }; },
     async deleteQuestion(q, force) { call("deleteQuestion", q, force); },

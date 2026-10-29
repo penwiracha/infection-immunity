@@ -32,18 +32,14 @@ create function pg_temp.q(p_stem text, p_pool text, p_niche text, p_topic text) 
 $$;
 grant execute on function pg_temp.q(text, text, text, text) to public;
 
--- make + publish one item through the real workflow: author i1 (or admin), reviewer i2
+-- make + publish one item through the real workflow (as the admin)
 create function pg_temp.live_item(k text, p jsonb) returns void language plpgsql as $$
 declare r jsonb;
 begin
   perform pg_temp.as_user('00000000-0000-0000-0000-0000000000a1');
   r := save_question(p);
   insert into ids values (k, (r ->> 'question_id')::uuid), (k || 'v', (r ->> 'version_id')::uuid);
-  perform submit_question((r ->> 'version_id')::uuid);
-  perform pg_temp.as_user('00000000-0000-0000-0000-0000000000b2');
-  perform review_question((r ->> 'version_id')::uuid, 'approved');
-  perform pg_temp.as_user('00000000-0000-0000-0000-0000000000a1');
-  if coalesce(p ->> 'pool', 'practice') <> 'practice' then perform publish_question((r ->> 'version_id')::uuid); end if;
+  perform publish_question_now((r ->> 'version_id')::uuid);
   execute 'reset role';
 end $$;
 grant execute on function pg_temp.live_item(text, jsonb) to public;

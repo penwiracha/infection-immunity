@@ -125,7 +125,7 @@ await test("instructor: question editor + student preview keep tags as text; liv
 });
 
 await test("publish directly (no peer review); delete with a usage warning", "instructor", async (page) => {
-  await page.goto(`${BASE}/views/instructor.html#questions/q2`);   // someone else's item in review: no approve buttons any more
+  await page.goto(`${BASE}/views/instructor.html#questions/q2`);   // someone else's draft: no approve buttons
   assert.equal(await page.getByRole("button", { name: /^Approve/ }).count(), 0);
   await page.goto(`${BASE}/views/instructor.html#questions/q1`);
   await page.getByRole("button", { name: "Delete" }).click();

@@ -159,7 +159,7 @@ Code: `app/` (browser), `supabase/migrations/` (schema, RLS, functions),
 
 1. Create a Supabase project. Apply the migrations in order and then the seed:
    `supabase link` → `supabase db push` → run `supabase/seed.sql` in the SQL editor
-   (or paste the six migration files and the seed into the SQL editor, in that order).
+   (or paste the seven migration files and the seed into the SQL editor, in that order).
 2. Authentication → enable **Email** (password sign-in; email confirmation can be switched on later). Add the address you host the site at
    (e.g. your GitHub Pages URL) to *Site URL* and *Redirect URLs*.
 3. Put the project URL and the **publishable / anon** key in `app/config.js`. Never the secret key.
@@ -200,8 +200,8 @@ one missed day and resets after two.
 `draft → live → superseded | retired`. There is no peer review: the author (or an admin) clicks
 **Publish** (`publish_question_now`). Only admins can put **pretest** or **monthly** items live.
 Editing a live item opens a new version, and the live one keeps serving students until the new
-one is published. (The older `in_review`/`approved` states and `review_question` remain in the
-database but the app no longer uses them.)
+one is published. (Migration 0007 removed the old review states and functions; any version still
+"in review" or "approved" went back to draft. `question_reviews` is kept as read-only history.)
 Non-draft versions are frozen, so each answer stays linked to exactly the text the student saw.
 Retiring removes the item from every pool and keeps all its data.
 **Deleting** (`delete_question`, `delete_exam`) is for mistakes: the author or an admin can delete a
@@ -219,7 +219,7 @@ plus everything submitted or later (admins see all); lecture summaries are **pla
 ### Tests
 
 ```
-supabase test db            # 185 pgTAP tests: supabase/tests/database/
+supabase test db            # 184 pgTAP tests: supabase/tests/database/
 bash scripts/test-db.sh     # same tests on a plain local Postgres (uses scripts/local-supabase-shim.sql)
 npm i && npx playwright install chromium && node tests/ui/run.mjs   # 30 browser tests with a mock backend
 ```

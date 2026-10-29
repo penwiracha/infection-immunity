@@ -19,8 +19,8 @@
   };
   const TABS = [["overview", "Overview"], ["lectures", "Lectures"], ["questions", "Questions"],
                 ["students", "Students"], ["items", "Items"], ["exams", "Exams"], ["export", "Export"]];
-  const STATUSES = ["draft", "in_review", "approved", "live", "superseded", "retired"];
-  const STATUS_LABEL = { draft: "Draft", in_review: "In review", approved: "Approved", live: "Live",
+  const STATUSES = ["draft", "live", "superseded", "retired"];
+  const STATUS_LABEL = { draft: "Draft", live: "Live",
                          superseded: "Superseded", retired: "Retired", published: "Published" };
   const POOLS = ["practice", "pretest", "monthly"];
   const statusChip = (s) => el("span", { class: "status " + s }, STATUS_LABEL[s] || s);
@@ -121,7 +121,7 @@
     }
     const t = TABS.some(([id]) => id === tab) ? tab : "overview";
     API.questionList().then((qs) => SiteNav.setBadge("questions",
-      qs.filter((q) => ["draft", "in_review", "approved"].includes(q.status) && q.version_author === S.me && !q.retired_at).length)).catch(() => {});
+      qs.filter((q) => q.status === "draft" && q.version_author === S.me && !q.retired_at).length)).catch(() => {});
     dirtyGuard = null;
     setTabs(t);
     fill($main, el("p", { class: "dim" }, "Loading…"));
@@ -179,8 +179,6 @@
     const students = studs.filter((s) => s.role === "student");
     const monthly = ov.monthly_exam_id ? await API.examDetail(ov.monthly_exam_id).catch(() => null) : null;
     const doneCodes = new Set(monthly ? monthly.attempts.filter((a) => a.submitted_at).map((a) => a.code) : []);
-    const toReview = questions.filter((q) => q.status === "in_review" && q.version_author !== S.me);
-    const returned = questions.filter((q) => q.status === "draft" && q.version_author === S.me && q.last_return_comment);
 
     const reasons = (s) => {
       const d = daysSince(s.last_active);
@@ -228,7 +226,7 @@
       el("td", { class: "stemcell" }, (q.stem || "").slice(0, 140)), el("td", null, q.author_name || "—"),
       el("td", { class: "mono" }, fmtDay(q.updated_at)));
 
-    const myDrafts = questions.filter((q) => ["draft", "in_review", "approved"].includes(q.status) && q.version_author === S.me && !q.retired_at);
+    const myDrafts = questions.filter((q) => q.status === "draft" && q.version_author === S.me && !q.retired_at);
     const [examsNow, schedules] = await Promise.all([API.examList(S.cohort).catch(() => []), API.scheduleList().catch(() => [])]);
     const soon = examsNow.filter((e) => e.status === "open" && e.closes_at && daysSince(e.closes_at) > -3 && daysSince(e.closes_at) < 0);
     const monthlyLive = questions.filter((q) => q.pool === "monthly" && q.live_version_id && !q.retired_at).length;
@@ -516,7 +514,7 @@
       const poolSel = el("select", { style: { width: "auto" } }, POOLS.map((p) => el("option", { value: p }, "Move to " + p)));
       fill(bulk, el("b", null, `${sel.size} selected`),
         el("button", { class: "btn small good", type: "button", onclick: () => runBulk("Published", (r) => {
-          if (!["draft", "in_review", "approved"].includes(r.status)) throw new Error("already " + r.status);
+          if (r.status !== "draft") throw new Error("already " + r.status);
           return API.publishQuestionNow(r.version_id);
         }) }, "Publish"),
         S.isAdmin ? [poolSel, el("button", { class: "btn small", type: "button", onclick: () => runBulk("Moved", (r) => API.setQuestionPool(r.question_id, poolSel.value)) }, "Move")] : null,
@@ -722,12 +720,12 @@
   async function questionEditor(qid) {
     const isNew = qid === "new";
     if (!S.lectures.length) S.lectures = await API.lectureList();
-    let data = { item: null, versions: [], keys: [], reviews: [] };
+    let data = { item: null, versions: [], keys: [] };
     if (!isNew) data = await API.getQuestion(qid);
-    const { item, versions, keys, reviews } = data;
+    const { item, versions, keys } = data;
     if (!isNew && !item) throw new Error("Question not found, or it is a draft by another instructor.");
     const keyOf = (vid) => keys.find((k) => k.version_id === vid) || {};
-    const open = versions.find((v) => ["draft", "in_review", "approved"].includes(v.status));
+    const open = versions.find((v) => v.status === "draft");
     const live = versions.find((v) => v.status === "live");
     const work = open || versions[0] || null;              // the version the form shows
     const wkey = work ? keyOf(work.id) : {};
@@ -737,7 +735,6 @@
     const willCreateVersion = !isNew && !open && !retired;
     const canEdit = !retired && (S.isAdmin || pool === "practice") &&
       (isNew || willCreateVersion || iAmVersionAuthor || S.isAdmin);
-    const lastReturn = work && reviews.find((r) => r.version_id === work.id && r.decision === "returned");
 
     // ---- form state ----
     const st = {
@@ -862,7 +859,7 @@
       });
       actions.push(saveBtn);
     }
-    const canPublish = work && ["draft", "in_review", "approved"].includes(work.status) && !retired &&
+    const canPublish = work && work.status === "draft" && !retired &&
       (iAmVersionAuthor || (item && item.author_id === S.me) || S.isAdmin) && (pool === "practice" || S.isAdmin);
     if (canPublish) {
       submitBtn = el("button", { class: "btn good", type: "button" }, live ? `Publish v${work.version} (replaces v${live.version})` : "Publish");
@@ -875,7 +872,6 @@
     } else if (work && work.status === "draft" && pool !== "practice" && !S.isAdmin) {
       actions.push(el("span", { class: "hint" }, "An admin publishes pre-test and monthly items."));
     }
-    const reviewPanel = null;
     const preview = el("button", { class: "btn", type: "button", onclick: () => {
       const p = payload();
       modal("Preview — exactly what a student sees", el("div", { class: "preview-frame" },
@@ -924,9 +920,6 @@
     const history = versions.length ? el("div", { class: "panel" }, el("h3", null, "Versions"),
       el("ul", { class: "history" }, versions.map((v) => el("li", null, statusChip(v.status), ` v${v.version} · `, fmtDate(v.updated_at),
         v.live_at ? ` · published ${fmtDay(v.live_at)}` : "")))) : null;
-    const revList = null && reviews.length ? el("div", { class: "panel" }, el("h3", null, "Review history"),
-      el("ul", { class: "history" }, reviews.map((r) => el("li", null, r.decision === "approved" ? "✓ Approved" : "↩ Returned",
-        ` v${(versions.find((v) => v.id === r.version_id) || {}).version || "?"} · ${fmtDate(r.created_at)}`, r.comment ? ` — ${r.comment}` : "")))) : null;
 
     fill($main,
       backlink("#questions", "Question bank"),
@@ -951,7 +944,7 @@
           errBox),
         el("div", { class: "sidebar" },
           el("div", { class: "panel" }, el("div", { class: "row" }, actions), poolAdmin),
-          reviewPanel, history, revList)));
+          history)));
     drawOptions();
   }
 
