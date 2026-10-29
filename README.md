@@ -123,11 +123,11 @@ project. After signing in, the role decides what each person sees:
 | instructors, admins | `views/instructor.html` (automatic redirect) | Overview · Lectures · Questions · Students · Items · Exams · Export |
 
 Instructors can open the student view from their avatar menu (`app.html?preview=1`).
-Every online page, including the five maps, has the same side navigation (`app/sitenav.js`); on
-phones it folds into a Menu button.
+Every online page, including the five maps, has the same side navigation (`app/sitenav.js`). The « button hides it and
+☰ Menu brings it back (the choice is remembered per browser); on phones it is always behind ☰ Menu.
 
-Instructor time-savers: approving a **practice** question puts it live at once; a review queue
-(**Approve & next / Return & next**); tick-box bulk actions in the question bank; a **Today** card on
+Instructor time-savers: no peer review, the author clicks **Publish** and a practice question is
+live at once; tick-box bulk actions (Publish, Retire, Delete) in the question bank; a **Today** card on
 the Overview; **class codes** (students type their cohort's code at sign-up or in Settings); and
 **monthly check-in schedules** that create, fill and open each month's check-in by themselves
 (the app runs `run_due_schedules()` whenever someone signs in, so no background job is needed).
@@ -135,7 +135,7 @@ The **AI prompt** button (Question bank, or a lecture) builds a ready-to-paste p
 listing the allowed tag ids, so the reply imports directly as drafts.
 Everyone signs in with email and password and can change their name, email and password under
 **Settings** (avatar menu). Admins also find the tag lists there, with a CSV/JSON import for
-generated lists. The revision views have Back and Home buttons.
+generated lists.
 `views/learn.html` now just forwards to `app.html#learn`. None of these pages are in the offline bundle.
 
 **Students** get: a first-visit consent screen and pre-test (when one is open for their cohort)
@@ -158,15 +158,15 @@ Code: `app/` (browser), `supabase/migrations/` (schema, RLS, functions),
 
 1. Create a Supabase project. Apply the migrations in order and then the seed:
    `supabase link` → `supabase db push` → run `supabase/seed.sql` in the SQL editor
-   (or paste the five migration files and the seed into the SQL editor, in that order).
-2. Authentication → enable **Email** (magic link). Add the address you host the site at
+   (or paste the six migration files and the seed into the SQL editor, in that order).
+2. Authentication → enable **Email** (password sign-in; email confirmation can be switched on later). Add the address you host the site at
    (e.g. your GitHub Pages URL) to *Site URL* and *Redirect URLs*.
 3. Put the project URL and the **publishable / anon** key in `app/config.js`. Never the secret key.
 4. Host the folder over https (GitHub Pages works). The app does not work from `file://`.
 5. Sign in once, then make yourself the first admin in the SQL editor:
    `update public.profiles set role = 'admin' where email = 'you@…';`
    From then on, grant instructor roles from the **Students** tab.
-6. To run the course: create a cohort (Students tab) and share its class code with students; move approved
+6. To run the course: create a cohort (Students tab) and share its class code with students; move published
    questions into the **pretest** and **monthly** pools (admins, on each question); then in
    **Exams** create the pre-test for the cohort, auto-pick items and open it. Students in that
    cohort take it right after their next sign-in. Open a monthly check-in each month the same way.
@@ -183,7 +183,7 @@ one missed day and resets after two.
   published lectures and live **practice** questions; pretest and monthly items are never
   readable by students.
 - The browser never writes tables. Every change goes through a SECURITY DEFINER function that
-  checks the caller's role (`save_question`, `review_question`, `publish_lecture`, …).
+  checks the caller's role (`save_question`, `publish_question_now`, `delete_question`, `publish_lecture`, …).
 - Answer keys and explanations live in `question_keys`, readable by instructors only. Students
   get the key for one practice item only after answering it (`submit_answer()`) or turning its
   flashcard over (`reveal_card()`). Pre-test and monthly items are never readable by students:
@@ -196,33 +196,41 @@ one missed day and resets after two.
 
 ### Question workflow
 
-`draft → in_review → approved → live → superseded | retired`. One approval by an instructor
-other than the version's author; a return needs a comment. Editing a live item opens a new
-version, and the live one keeps serving students until the new one is approved and put live.
+`draft → live → superseded | retired`. There is no peer review: the author (or an admin) clicks
+**Publish** (`publish_question_now`). Only admins can put **pretest** or **monthly** items live.
+Editing a live item opens a new version, and the live one keeps serving students until the new
+one is published. (The older `in_review`/`approved` states and `review_question` remain in the
+database but the app no longer uses them.)
 Non-draft versions are frozen, so each answer stays linked to exactly the text the student saw.
-Retiring removes the item from every pool and keeps all its data. New items go to the
+Retiring removes the item from every pool and keeps all its data.
+**Deleting** (`delete_question`, `delete_exam`) is for mistakes: the author or an admin can delete a
+question no student has answered and that is not in an exam; any instructor can delete an exam no
+student has started. Once students have used it, only an admin can delete it (the students' answers
+or results go with it, after a warning); everyone else retires the question or closes the exam.
+A deleted scheduled check-in is not recreated that month. Every delete is recorded in `audit_log`. New items go to the
 **practice** pool; only admins can choose **pretest** or **monthly**. Imports (CSV or JSON,
 templates in the Import dialog) and AI-generated items always arrive as drafts.
 
-Decisions taken (2026-10-29): **one** approver per item; instructors see **their own drafts**
+Decisions taken (2026-10-29): **no peer review** (originally one approver; removed at the
+course team's request); instructors see **their own drafts**
 plus everything submitted or later (admins see all); lecture summaries are **plain-text bullets**.
 
 ### Tests
 
 ```
-supabase test db            # 168 pgTAP tests: supabase/tests/database/
+supabase test db            # 185 pgTAP tests: supabase/tests/database/
 bash scripts/test-db.sh     # same tests on a plain local Postgres (uses scripts/local-supabase-shim.sql)
-npm i && npx playwright install chromium && node tests/ui/run.mjs   # 27 browser tests with a mock backend
+npm i && npx playwright install chromium && node tests/ui/run.mjs   # 29 browser tests with a mock backend
 ```
 
 They cover: students cannot create, edit or read drafts or answer keys; an instructor cannot
-approve their own item or place it in pretest/monthly; roles cannot be self-assigned (including
+publish someone else's item, put pretest/monthly items live, or delete what students have used; roles cannot be self-assigned (including
 via sign-up metadata); editing a live item creates a new version and leaves past answers alone;
 `<script>` and `<img onerror>` in lecture and question text display as text; every create, edit,
 approval, publish and retirement writes `audit_log`; exam items and keys never reach students,
 consent is required before an exam, a submitted exam is final, the spaced-review schedule,
 confidence ratings, bookmarks and cohort filters behave as intended; and in the browser the
-consent → pre-test → unlock flow, flashcards, Progress, Explore, the instructor pickers and the Exams tab.
+consent → pre-test → unlock flow, publish and delete, the sidebar toggle, flashcards, Progress, Explore, the instructor pickers and the Exams tab.
 
 ## Roadmap (seams already in place)
 

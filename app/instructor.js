@@ -120,7 +120,7 @@
     }
     const t = TABS.some(([id]) => id === tab) ? tab : "overview";
     API.questionList().then((qs) => SiteNav.setBadge("questions",
-      qs.filter((q) => q.status === "in_review" && q.version_author !== S.me).length)).catch(() => {});
+      qs.filter((q) => ["draft", "in_review", "approved"].includes(q.status) && q.version_author === S.me && !q.retired_at).length)).catch(() => {});
     dirtyGuard = null;
     setTabs(t);
     fill($main, el("p", { class: "dim" }, "Loading…"));
@@ -227,16 +227,14 @@
       el("td", { class: "stemcell" }, (q.stem || "").slice(0, 140)), el("td", null, q.author_name || "—"),
       el("td", { class: "mono" }, fmtDay(q.updated_at)));
 
-    const myDrafts = questions.filter((q) => q.status === "draft" && q.version_author === S.me && !q.retired_at);
+    const myDrafts = questions.filter((q) => ["draft", "in_review", "approved"].includes(q.status) && q.version_author === S.me && !q.retired_at);
     const [examsNow, schedules] = await Promise.all([API.examList(S.cohort).catch(() => []), API.scheduleList().catch(() => [])]);
     const soon = examsNow.filter((e) => e.status === "open" && e.closes_at && daysSince(e.closes_at) > -3 && daysSince(e.closes_at) < 0);
     const monthlyLive = questions.filter((q) => q.pool === "monthly" && q.live_version_id && !q.retired_at).length;
     const short = schedules.filter((x) => x.active && x.n_items > monthlyLive);
     const todo = [
-      toReview.length ? [`${toReview.length} question${toReview.length === 1 ? "" : "s"} waiting for your review`, "#questions/" + toReview[0].question_id, "Start reviewing"] : null,
-      returned.length ? [`${returned.length} of your questions returned with comments`, "#questions/" + returned[0].question_id, "Open"] : null,
       flagged.length ? [`${flagged.length} student${flagged.length === 1 ? "" : "s"} to check in with`, "#students", "See list"] : null,
-      myDrafts.length ? [`${myDrafts.length} of your drafts not yet submitted`, "#questions", "Open drafts"] : null,
+      myDrafts.length ? [`${myDrafts.length} of your draft${myDrafts.length === 1 ? "" : "s"} not yet published`, "#questions", "Open drafts"] : null,
       ...soon.map((e) => [`${e.title} closes ${fmtDay(e.closes_at)} · ${e.submitted} of ${e.eligible} done`, "#exams/" + e.id, "Open"]),
       short.length ? [`The monthly pool has ${monthlyLive} live item${monthlyLive === 1 ? "" : "s"}; your schedule needs ${Math.max(...short.map((x) => x.n_items))}`, "#questions", "Add items"] : null,
       !S.cohorts.length ? ["No class yet: create a cohort and share its class code", "#students", "Set up"] : null
@@ -264,16 +262,13 @@
             flagBody)),
           el("div", { class: "row", style: { marginTop: "14px" } }, namesBtn, el("a", { class: "btn small", href: "#students" }, "All students")),
           el("p", { class: "foot" }, "Pseudonymous IDs by default. Showing names is limited to course staff and is logged."))),
-      el("div", { class: "cols" },
-        el("div", { class: "panel" }, el("h3", null, "Waiting for your review"),
-          toReview.length ? el("div", { class: "tablewrap" }, el("table", null,
-            el("thead", null, el("tr", null, ["Item", "Stem", "Author", "Submitted"].map((h) => el("th", null, h)))),
-            el("tbody", null, toReview.map(qRow))))
-            : el("p", { class: "dim", style: { margin: 0 } }, "Nothing to review. Items you wrote never appear here; someone else has to approve them.")),
-        el("div", { class: "panel" }, el("h3", null, "Returned to you"),
-          returned.length ? el("ul", { class: "history" }, returned.map((q) => el("li", null,
-            el("a", { href: "#questions/" + q.question_id }, qCode(q.question_id)), " — ", q.last_return_comment)))
-            : el("p", { class: "dim", style: { margin: 0 } }, "No items returned with comments."))),
+      el("div", { class: "panel" }, el("h3", null, "Your unpublished drafts"),
+        myDrafts.length ? el("div", { class: "tablewrap" }, el("table", null,
+          el("thead", null, el("tr", null, ["Item", "Stem", "Lecture", "Updated"].map((h) => el("th", null, h)))),
+          el("tbody", null, myDrafts.slice(0, 10).map((q) => el("tr", { class: "click", onclick: () => (location.hash = "questions/" + q.question_id) },
+            el("td", { class: "mono" }, qCode(q.question_id)), el("td", { class: "stemcell" }, (q.stem || "").slice(0, 140)),
+            el("td", null, q.lecture_number != null ? `L${q.lecture_number}` : "—"), el("td", { class: "mono" }, fmtDay(q.updated_at)))))))
+          : el("p", { class: "dim", style: { margin: 0 } }, "Nothing waiting. New and imported questions appear here until you publish them.")),
     );
   }
 
@@ -493,10 +488,7 @@
     search.addEventListener("input", () => { F.q = search.value; draw(); });
     const body = el("tbody");
     const countEl = el("span", { class: "dim" });
-    const toReview = qs.filter((q) => q.status === "in_review" && q.version_author !== S.me);
-    const reviewBtn = el("button", { class: "btn chipbtn", type: "button", "aria-pressed": String(F.mine === "review") },
-      `Waiting for my review (${toReview.length})`);
-    reviewBtn.addEventListener("click", () => { F.mine = F.mine === "review" ? "" : "review"; reviewBtn.setAttribute("aria-pressed", String(F.mine === "review")); draw(); });
+    if (F.mine === "review") F.mine = "";
     const draftsBtn = el("button", { class: "btn chipbtn", type: "button", "aria-pressed": String(F.mine === "drafts") },
       `My drafts (${qs.filter((q) => q.status === "draft" && q.version_author === S.me).length})`);
     draftsBtn.addEventListener("click", () => { F.mine = F.mine === "drafts" ? "" : "drafts"; draftsBtn.setAttribute("aria-pressed", String(F.mine === "drafts")); draw(); });
@@ -522,22 +514,26 @@
       if (!sel.size) return;
       const poolSel = el("select", { style: { width: "auto" } }, POOLS.map((p) => el("option", { value: p }, "Move to " + p)));
       fill(bulk, el("b", null, `${sel.size} selected`),
-        el("button", { class: "btn small", type: "button", onclick: () => runBulk("Submitted for review", (r) => {
-          if (r.status !== "draft") throw new Error("only drafts can be submitted");
-          return API.submitQuestion(r.version_id);
-        }) }, "Submit for review"),
+        el("button", { class: "btn small good", type: "button", onclick: () => runBulk("Published", (r) => {
+          if (!["draft", "in_review", "approved"].includes(r.status)) throw new Error("already " + r.status);
+          return API.publishQuestionNow(r.version_id);
+        }) }, "Publish"),
         S.isAdmin ? [poolSel, el("button", { class: "btn small", type: "button", onclick: () => runBulk("Moved", (r) => API.setQuestionPool(r.question_id, poolSel.value)) }, "Move")] : null,
         el("button", { class: "btn small danger", type: "button", onclick: async () => {
           const ok = await confirmBox(`Retire ${sel.size} item${sel.size === 1 ? "" : "s"}?`, "They leave every student pool. All versions and answers are kept.", "Retire", true);
           if (ok) runBulk("Retired", (r) => API.retireQuestion(r.question_id));
         } }, "Retire"),
+        el("button", { class: "btn small danger", type: "button", onclick: async () => {
+          const ok = await confirmBox(`Delete ${sel.size} item${sel.size === 1 ? "" : "s"}?`,
+            "Items students have not used are deleted for good. Items with student answers are skipped (retire those instead)" + (S.isAdmin ? "." : ", unless an admin deletes them."), "Delete", true);
+          if (ok) runBulk("Deleted", (r) => API.deleteQuestion(r.question_id, false));
+        } }, "Delete"),
         el("button", { class: "btn small", type: "button", onclick: () => { sel.clear(); draw(); } }, "Clear selection"));
     }
 
     function draw() {
       const q = F.q.trim().toLowerCase();
       visible = qs.filter((r) =>
-        (F.mine !== "review" || (r.status === "in_review" && r.version_author !== S.me)) &&
         (F.mine !== "drafts" || (r.status === "draft" && r.version_author === S.me)) &&
         (!F.status || r.status === F.status || (F.status === "live" && r.live_version_id && !r.retired_at)) &&
         (!F.pool || r.pool === F.pool) && (!F.niche || r.niche === F.niche) && (!F.topic || r.topic === F.topic) &&
@@ -566,18 +562,17 @@
           el("td", null, r.author_name || "—"),
           el("td", null, fmtDay(r.updated_at)));
       }) : el("tr", null, el("td", { colspan: 11, class: "empty" },
-        F.mine === "review" ? "Nothing waiting for your review." : qs.length ? "No items match these filters." : "No questions yet.")));
+        qs.length ? "No items match these filters." : "No questions yet.")));
       drawBulk();
     }
 
     fill($main,
-      pagehead("Question bank", "Write, review and release questions. Approved practice questions go live straight away.",
+      pagehead("Question bank", "Write questions, preview them and publish. Tick several to publish, retire or delete them together.",
         el("button", { class: "btn", type: "button", onclick: () => promptDialog() }, "AI prompt"),
         el("button", { class: "btn", type: "button", onclick: importDialog }, "Import CSV / JSON"),
         el("button", { class: "btn primary", type: "button", onclick: () => (location.hash = "questions/new") }, "New question")),
       el("div", { class: "panel" },
-      el("div", { class: "row", style: { gap: "8px", marginBottom: "14px" } }, reviewBtn, draftsBtn,
-        toReview.length ? el("a", { class: "btn small primary", href: "#questions/" + toReview[0].question_id }, "Start reviewing") : null),
+      el("div", { class: "row", style: { gap: "8px", marginBottom: "14px" } }, draftsBtn),
       el("div", { class: "searchrow" }, el("div", { style: { flex: "1" } }, search), countEl),
       el("div", { class: "filters" },
         mk("status", "Status", STATUSES.map((s) => [s, STATUS_LABEL[s]])),
@@ -672,7 +667,7 @@
         el("li", null, "Choose the settings, then click Copy prompt."),
         el("li", null, "Paste it into any AI chat (ChatGPT, Claude, Gemini…)."),
         el("li", null, "Save the reply as a file called questions.json (Notepad → Save as → All files)."),
-        el("li", null, "Questions → Import CSV / JSON → choose the file and tick AI-generated. Everything arrives as drafts for review.")),
+        el("li", null, "Questions → Import CSV / JSON → choose the file and tick AI-generated. Everything arrives as drafts: check them, tick the good ones and click Publish.")),
       el("div", { class: "grid2" }, field("How many", n), field("Options per question", nOpt), field("Lecture", lecSel), field("Difficulty", mix)),
       field("Focus", focus),
       out
@@ -702,6 +697,25 @@
     if (!p.topic) e.push("Tag a topic.");
     if (!p.lecture_id) e.push("Tag a lecture.");
     return e;
+  }
+
+  /* Delete with a clear warning; admins may delete items students already used. */
+  async function deleteQuestionFlow(qid) {
+    let u = { answers: 0, reviews: 0, exams: 0 };
+    try { u = await API.questionUsage(qid); } catch (e) { /* show the plain confirm */ }
+    if (+u.exams > 0) { modal("Cannot delete yet", el("p", null, `This question is part of ${u.exams} exam${+u.exams === 1 ? "" : "s"}. Remove it from the exam (or delete the exam) first, or retire the question instead.`)); return false; }
+    const used = +u.answers > 0 || +u.reviews > 0;
+    if (used && !S.isAdmin) {
+      modal("Students have used this question", el("p", null, `It has ${u.answers} answer${+u.answers === 1 ? "" : "s"}. Deleting it would erase those results, so only an admin can do that. Retire it instead: it leaves every student pool and keeps the data.`));
+      return false;
+    }
+    const ok = await confirmBox(used ? "Delete this question and its answers?" : "Delete this question?",
+      used ? [el("div", { class: "banner bad" }, `${u.answers} student answer${+u.answers === 1 ? "" : "s"} and their review history will be deleted too. This cannot be undone.`),
+              el("p", null, "If you only want students to stop seeing it, choose Retire instead.")]
+           : "It is removed for good, with all its versions. A copy stays in the audit log.", "Delete", true);
+    if (!ok) return false;
+    await guard(() => API.deleteQuestion(qid, used), "Question deleted.");
+    return true;
   }
 
   async function questionEditor(qid) {
@@ -847,50 +861,20 @@
       });
       actions.push(saveBtn);
     }
-    if (work && work.status === "draft" && (iAmVersionAuthor || S.isAdmin) && !retired) {
-      submitBtn = el("button", { class: "btn good", type: "button" }, "Submit for review");
+    const canPublish = work && ["draft", "in_review", "approved"].includes(work.status) && !retired &&
+      (iAmVersionAuthor || (item && item.author_id === S.me) || S.isAdmin) && (pool === "practice" || S.isAdmin);
+    if (canPublish) {
+      submitBtn = el("button", { class: "btn good", type: "button" }, live ? `Publish v${work.version} (replaces v${live.version})` : "Publish");
       submitBtn.addEventListener("click", async () => {
         if (dirty) { toast("Save your changes first.", true); return; }
-        await guard(() => API.submitQuestion(work.id), "Submitted. Another instructor needs to approve it.");
+        await guard(() => API.publishQuestionNow(work.id), pool === "practice" ? "Published — students can answer it now." : "Published to the " + pool + " pool.");
         route();
       });
       actions.push(submitBtn);
+    } else if (work && work.status === "draft" && pool !== "practice" && !S.isAdmin) {
+      actions.push(el("span", { class: "hint" }, "An admin publishes pre-test and monthly items."));
     }
-    let reviewPanel = null;
-    if (work && work.status === "in_review" && !retired) {
-      if (iAmVersionAuthor) {
-        reviewPanel = el("div", { class: "banner info" }, "Waiting for another instructor to review. Editing pulls it back to draft.");
-      } else {
-        const comment = el("textarea", { rows: 3, placeholder: "Comment (required when returning)" });
-        const approve = el("button", { class: "btn good", type: "button" }, pool === "practice" ? "Approve & next" : "Approve");
-        const ret = el("button", { class: "btn danger", type: "button" }, "Return & next");
-        const nextInQueue = async () => {
-          const qs = await API.questionList().catch(() => []);
-          const next = qs.find((x) => x.status === "in_review" && x.version_author !== S.me && x.question_id !== qid);
-          if (next) location.hash = "questions/" + next.question_id;
-          else { toast("Your review queue is empty."); location.hash = "questions"; }
-        };
-        approve.addEventListener("click", async () => {
-          await guard(() => API.reviewQuestion(work.id, "approved", comment.value),
-            pool === "practice" ? "Approved — it is live for students now." : "Approved. An admin puts exam items live.");
-          nextInQueue();
-        });
-        ret.addEventListener("click", async () => {
-          if (!comment.value.trim()) { toast("Add a comment explaining what to change.", true); comment.focus(); return; }
-          await guard(() => API.reviewQuestion(work.id, "returned", comment.value), "Returned to the author.");
-          nextInQueue();
-        });
-        reviewPanel = el("div", { class: "panel" }, el("h3", null, "Review"),
-          el("p", { class: "dim" }, "Check the stem, the key, the explanation and the tags. Try it in the student preview."),
-          comment, el("div", { class: "row", style: { marginTop: "8px" } }, approve, ret));
-      }
-    }
-    if (work && work.status === "approved" && !retired &&
-        (S.isAdmin || ((iAmVersionAuthor || work.approved_by === S.me) && pool === "practice"))) {
-      const goLive = el("button", { class: "btn good", type: "button" }, live ? `Put v${work.version} live (replaces v${live.version})` : "Put live");
-      goLive.addEventListener("click", async () => { await guard(() => API.publishQuestion(work.id), "Live — students can now answer it."); route(); });
-      actions.push(goLive);
-    }
+    const reviewPanel = null;
     const preview = el("button", { class: "btn", type: "button", onclick: () => {
       const p = payload();
       modal("Preview — exactly what a student sees", el("div", { class: "preview-frame" },
@@ -911,6 +895,11 @@
         await guard(() => API.retireQuestion(qid), "Retired."); route();
       } }, "Retire"));
     }
+    if (!isNew && (item.author_id === S.me || S.isAdmin)) {
+      actions.push(el("button", { class: "btn danger", type: "button", onclick: async () => {
+        if (await deleteQuestionFlow(qid)) location.hash = "questions";
+      } }, "Delete"));
+    }
     let poolAdmin = null;
     if (!isNew && S.isAdmin && !retired) {
       const ps = el("select", null, POOLS.map((p) => el("option", { value: p, selected: p === pool }, p)));
@@ -925,24 +914,23 @@
     const banners = [
       retired ? el("div", { class: "banner bad" }, `Retired ${fmtDay(item.retired_at)}. Out of all student pools; its data is kept.`) : null,
       willCreateVersion && live ? el("div", { class: "banner warn" },
-        `Version ${live.version} is live. Saving creates version ${versions[0].version + 1} as a draft; students keep seeing version ${live.version} until the new one is approved and put live. Past answers stay linked to the version each student saw.`) : null,
+        `Version ${live.version} is live. Saving creates version ${versions[0].version + 1} as a draft; students keep seeing version ${live.version} until you publish the new one. Past answers stay linked to the version each student saw.`) : null,
       !canEdit && !retired && !isNew ? el("div", { class: "banner info" },
         pool !== "practice" ? `This is a ${pool} item; only admins can edit it.` : "Read only — another instructor has an open version of this item.") : null,
-      lastReturn && work.status === "draft" ? el("div", { class: "banner warn" }, el("b", null, "Returned by reviewer: "), lastReturn.comment) : null,
-      item && item.source === "ai" ? el("div", { class: "banner info" }, "AI-generated item — check facts and the key carefully before approving.") : null
+      item && item.source === "ai" && work && work.status !== "live" ? el("div", { class: "banner info" }, "AI-generated item — check the facts and the key carefully before publishing.") : null
     ];
 
     const history = versions.length ? el("div", { class: "panel" }, el("h3", null, "Versions"),
       el("ul", { class: "history" }, versions.map((v) => el("li", null, statusChip(v.status), ` v${v.version} · `, fmtDate(v.updated_at),
-        v.approved_at ? ` · approved ${fmtDay(v.approved_at)}` : "")))) : null;
-    const revList = reviews.length ? el("div", { class: "panel" }, el("h3", null, "Review history"),
+        v.live_at ? ` · published ${fmtDay(v.live_at)}` : "")))) : null;
+    const revList = null && reviews.length ? el("div", { class: "panel" }, el("h3", null, "Review history"),
       el("ul", { class: "history" }, reviews.map((r) => el("li", null, r.decision === "approved" ? "✓ Approved" : "↩ Returned",
         ` v${(versions.find((v) => v.id === r.version_id) || {}).version || "?"} · ${fmtDate(r.created_at)}`, r.comment ? ` — ${r.comment}` : "")))) : null;
 
     fill($main,
       backlink("#questions", "Question bank"),
       pagehead(isNew ? "New question" : qCode(qid),
-        isNew ? "New items start as practice drafts and need one approval from another instructor."
+        isNew ? "Save it as a draft, preview it, then publish. Drafts are visible only to you."
               : `Version ${work.version} · ${pool} pool · ${vlabel("topic", work.topic)}`,
         work ? statusChip(work.status) : statusChip("draft")),
       banners,
@@ -1024,10 +1012,10 @@
       lecture_number: 3, organism_ids: ["streptococcus-pneumoniae"], disease_ids: [], tier: "1", bloom: "apply", difficulty: "medium" }], null, 2), "application/json") }, "JSON template");
     const results = el("div");
     modal("Import questions", [
-      el("div", { class: "banner info" }, "Every imported item becomes a draft owned by you and goes through the normal review. Status and pool columns in the file are ignored", S.isAdmin ? " (admins: pool is honoured)." : ".",
+      el("div", { class: "banner info" }, "Every imported item becomes a draft owned by you; check it and publish it. Status and pool columns in the file are ignored", S.isAdmin ? " (admins: pool is honoured)." : ".",
         " Writing questions with an AI chat? ", el("button", { class: "linkbtn", type: "button", onclick: () => promptDialog() }, "Get the prompt"), "."),
       el("label", { class: "f" }, el("span", null, "File (.csv or .json)"), file),
-      el("div", { class: "row" }, el("label", null, srcHuman, " Written by people"), el("label", null, srcAI, " AI-generated (flagged for reviewers)")),
+      el("div", { class: "row" }, el("label", null, srcHuman, " Written by people"), el("label", null, srcAI, " AI-generated (marked so you check it carefully)")),
       el("div", { class: "row", style: { margin: "10px 0" } }, el("span", { class: "dim" }, "Templates:"), tmplCSV, tmplJSON),
       el("p", { class: "hint" }, "CSV columns: " + CSV_COLS.join(", ") + ". Lists use “;”. Use lecture_number or lecture_id; tag ids must match the vocabularies."),
       info, results
@@ -1182,7 +1170,7 @@
               el("td", null, el("span", { class: "flag" }, s.flag.t)),
               el("td", { class: "dim", style: { minWidth: "150px" } }, wrongNote(s)))))))
             : el("p", { class: "dim", style: { margin: 0 } }, "No answers yet. Statistics appear once students answer live items."),
-          el("p", { class: "foot" }, "Correct = share of students who answered right. Discrimination = how well the item separates strong from weak students; below 0.20 needs review. Open an item to edit, return or retire it.")),
+          el("p", { class: "foot" }, "Correct = share of students who answered right. Discrimination = how well the item separates strong from weak students; below 0.20 needs review. Open an item to edit, retire or delete it.")),
         el("div", { class: "panel" }, el("h3", null, "Reading the flags"),
           el("ul", { class: "history" },
             el("li", null, el("b", null, "Too hard"), " — 30% or fewer correct. Check the key first."),
@@ -1297,6 +1285,19 @@
     const draft = e.status === "draft";
     const form = examForm(e);
     const saveBtn = el("button", { class: "btn primary", type: "button", onclick: async () => { await guard(() => API.saveExam(form.payload()), "Saved."); route(); } }, "Save settings");
+    const delBtn = el("button", { class: "btn danger", type: "button", onclick: async () => {
+      const started = d.attempts.length;
+      if (started && !S.isAdmin) {
+        modal("Students have started this exam", el("p", null, `${started} student${started === 1 ? " has" : "s have"} started it. Deleting it would erase their results, so only an admin can. You can close it instead.`));
+        return;
+      }
+      const ok = await confirmBox(started ? "Delete this exam and its results?" : "Delete this exam?",
+        started ? [el("div", { class: "banner bad" }, `${started} student attempt${started === 1 ? "" : "s"} and scores will be deleted. This cannot be undone.`)]
+                : (e.schedule_id ? "It will not be created again this month by the schedule." : "Its questions stay in the question bank."), "Delete", true);
+      if (!ok) return;
+      await guard(() => API.deleteExam(id, started > 0), "Exam deleted.");
+      location.hash = "exams";
+    } }, "Delete");
     const statusBtn = e.status === "draft"
       ? el("button", { class: "btn good", type: "button", onclick: async () => {
           const ok = await confirmBox("Open this exam?", `${d.items.length} items. Students in ${e.cohort || "every cohort"} can start it from ${fmtDate(e.opens_at)}. Items are pinned to their current live versions.`, "Open exam");
@@ -1331,7 +1332,7 @@
     fill($main,
       backlink("#exams", "Exams"),
       pagehead(e.title, `${KIND[e.kind]} · ${e.cohort || "every student"} · ${e.duration_min} minutes`,
-        el("span", { class: "status " + (e.status === "open" ? "live" : e.status === "closed" ? "retired" : "draft") }, e.status), statusBtn),
+        el("span", { class: "status " + (e.status === "open" ? "live" : e.status === "closed" ? "retired" : "draft") }, e.status), statusBtn, delBtn),
       el("div", { class: "cards" },
         stat("Items", d.items.length, draft ? "Edit the list below" : "Pinned to versions"),
         stat("Submitted", submitted.length, `${d.attempts.length - submitted.length} in progress`),
@@ -1347,7 +1348,7 @@
               el("td", null, vlabel("topic", it.topic)), el("td", null, Render.shortNiche(S.vocab, it.niche)),
               el("td", { class: "num" }, it.n ? pct(it.pct) : "—"),
               el("td", null, draft ? el("button", { class: "btn small", type: "button", onclick: () => removeItem(it.question_id) }, "Remove") : null))))))
-            : el("p", { class: "dim", style: { margin: 0 } }, d.pool_live ? "No items yet. Auto-pick or choose them." : `The ${e.kind} pool is empty. An admin needs to move approved questions into it first.`)),
+            : el("p", { class: "dim", style: { margin: 0 } }, d.pool_live ? "No items yet. Auto-pick or choose them." : `The ${e.kind} pool is empty. An admin needs to move published questions into it first.`)),
         el("div", null,
           el("div", { class: "panel" }, el("h3", null, "Settings"), form.node, saveBtn),
           el("div", { class: "panel" }, el("h3", null, "Attempts"),

@@ -24,18 +24,28 @@
   .siteside .sbadge{margin-left:auto;background:#9d8cf7;color:#15122a;font-size:11.5px;font-weight:700;border-radius:999px;padding:0 7px;min-width:20px;text-align:center}
   .siteside .sfoot{margin-top:auto;padding-top:14px;border-top:1px solid #262a33}
   .siteside .sfoot:empty{display:none}
-  .sitebar{display:none}
+  .siteside .stop{display:flex;align-items:center;justify-content:space-between;gap:6px}
+  .siteside .sclose{background:transparent;border:1px solid transparent;color:#8f97a6;border-radius:8px;width:32px;height:32px;
+    font-size:18px;line-height:1;cursor:pointer;flex:none}
+  .siteside .sclose:hover{border-color:#33384a;color:#eceef2;background:#1d212a}
+  .sitebar{display:none;align-items:center;gap:12px;position:sticky;top:0;z-index:35;background:#0f1014;
+    border-bottom:1px solid #262a33;padding:10px 16px;font:15px/1.4 "Segoe UI",-apple-system,Roboto,sans-serif}
+  .sitebar button{background:transparent;color:#eceef2;border:1px solid #33384a;border-radius:8px;padding:6px 12px;font:inherit;cursor:pointer}
+  .sitebar button:hover{background:#1d212a}
+  .sitebar b{color:#eceef2}
+  .siteshade{display:none}
+  body.sidecollapsed.has-siteside{padding-left:0}
+  body.sidecollapsed .siteside{display:none}
+  body.sidecollapsed .sitebar{display:flex}
   body.nonav .siteside, body.nonav .sitebar{display:none !important}
   body.nonav.has-siteside{padding-left:0}
+  .siteside a:focus-visible,.siteside button:focus-visible,.sitebar button:focus-visible{outline:2px solid #7a6cf0;outline-offset:1px}
   @media (max-width:900px){
     body.has-siteside{padding-left:0}
     .siteside{transform:translateX(-100%);transition:transform .18s ease;box-shadow:0 0 40px rgba(0,0,0,.5)}
+    body.sidecollapsed .siteside{display:flex}
     body.sideopen .siteside{transform:none}
-    .sitebar{display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:35;background:#0f1014;
-      border-bottom:1px solid #262a33;padding:10px 16px;font:15px/1.4 "Segoe UI",-apple-system,Roboto,sans-serif}
-    .sitebar button{background:transparent;color:#eceef2;border:1px solid #33384a;border-radius:8px;padding:6px 12px;font:inherit;cursor:pointer}
-    .sitebar b{color:#eceef2}
-    .siteshade{display:none}
+    .sitebar{display:flex}
     body.sideopen .siteshade{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:39}
   }
   @media print{.siteside,.sitebar{display:none}body.has-siteside{padding-left:0}}`;
@@ -81,7 +91,13 @@
     aside.setAttribute("aria-label", "Site");
     const brand = mk("a", "sbrand", "Infection & Immunity");
     brand.href = staff ? "instructor.html#overview" : "app.html#home";
-    aside.appendChild(brand);
+    const close = mk("button", "sclose", "«");
+    close.type = "button";
+    close.title = "Hide the menu";
+    close.setAttribute("aria-label", "Hide the menu");
+    close.addEventListener("click", () => setOpen(false));
+    const top = mk("div", "stop"); top.appendChild(brand); top.appendChild(close);
+    aside.appendChild(top);
     if (staff) aside.appendChild(mk("span", "spill", "Instructor"));
     const nav = mk("nav"); nav.setAttribute("aria-label", "Sections");
     nav.appendChild(group(null, staff ? STAFF : STUDENT));
@@ -96,15 +112,29 @@
     bar.textContent = "";
     const menu = mk("button", null, "☰ Menu");
     menu.type = "button";
-    menu.setAttribute("aria-label", "Open the menu");
-    menu.addEventListener("click", () => document.body.classList.toggle("sideopen"));
+    menu.setAttribute("aria-label", "Show the menu");
+    menu.addEventListener("click", () => setOpen(true));
     bar.appendChild(menu); bar.appendChild(mk("b", null, "Infection & Immunity"));
     const shade = document.querySelector(".siteshade") || mk("div", "siteshade");
-    shade.onclick = () => document.body.classList.remove("sideopen");
+    shade.onclick = () => setOpen(false);
     document.body.prepend(shade); document.body.prepend(bar); document.body.prepend(aside);
     document.body.classList.add("has-siteside");
+    try { document.body.classList.toggle("sidecollapsed", localStorage.getItem("ii.side") === "closed"); } catch (e) { /* ignore */ }
+    if (!keyBound) {
+      keyBound = true;
+      document.addEventListener("keydown", (e) => { if (e.key === "Escape" && document.body.classList.contains("sideopen")) setOpen(false); });
+    }
     setActive(opts.active);
     return { foot };
+  }
+  let keyBound = false;
+  const narrow = () => window.matchMedia("(max-width: 900px)").matches;
+  /* Open or close the side navigation. Phones: a slide-over. Larger screens: it hides and
+     the choice is remembered on this browser. */
+  function setOpen(open) {
+    if (narrow()) { document.body.classList.toggle("sideopen", open); return; }
+    document.body.classList.toggle("sidecollapsed", !open);
+    try { localStorage.setItem("ii.side", open ? "open" : "closed"); } catch (e) { /* ignore */ }
   }
   function setActive(id) {
     for (const [k, a] of Object.entries(items)) {
@@ -121,5 +151,5 @@
   }
   function hide(on) { document.body.classList.toggle("nonav", !!on); }
 
-  root.SiteNav = { mount, setActive, setBadge, hide, get foot() { return foot; } };
+  root.SiteNav = { mount, setActive, setBadge, hide, setOpen, get foot() { return foot; } };
 })(typeof globalThis !== "undefined" ? globalThis : this);

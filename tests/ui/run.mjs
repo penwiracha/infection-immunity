@@ -124,16 +124,50 @@ await test("instructor: question editor + student preview keep tags as text; liv
   assert.ok(!calls.some((c) => c[0] === "submitAnswer"), "preview must not record answers");
 });
 
-await test("instructor: cannot approve own item; reviewer sees approve/return on another's", "instructor", async (page) => {
-  await page.goto(`${BASE}/views/instructor.html#questions/q1`);
+await test("publish directly (no peer review); delete with a usage warning", "instructor", async (page) => {
+  await page.goto(`${BASE}/views/instructor.html#questions/q2`);   // someone else's item in review: no approve buttons any more
   assert.equal(await page.getByRole("button", { name: /^Approve/ }).count(), 0);
+  await page.goto(`${BASE}/views/instructor.html#questions/q1`);
+  await page.getByRole("button", { name: "Delete" }).click();
+  await page.getByText("Students have used this question").waitFor();   // instructors cannot delete answered items
+  await page.locator(".modal").getByRole("button", { name: "Close" }).click();
+  assert.ok(!(await page.evaluate(() => window.__CALLS__)).some((c) => c[0] === "deleteQuestion"));
+  await page.goto(`${BASE}/views/instructor.html#questions/new`);
+  await page.getByRole("heading", { name: "New question" }).waitFor();
+  await shot(page, "question-new");
+});
+
+await test("admin: publish a draft, delete an unused item, delete an exam", "admin", async (page) => {
   await page.goto(`${BASE}/views/instructor.html#questions/q2`);
-  await page.getByRole("button", { name: "Approve & next" }).waitFor();
-  assert.equal(await page.getByRole("button", { name: "Return & next" }).count(), 1);
-  assert.ok(await page.getByText("AI-generated item").count() === 1);
-  await page.getByRole("button", { name: "Return & next" }).click();
-  assert.ok(!(await page.evaluate(() => window.__CALLS__)).some((c) => c[0] === "reviewQuestion"), "returned without a comment");
-  await shot(page, "question-review");
+  await page.getByRole("button", { name: "Publish" }).click();
+  assert.ok((await page.evaluate(() => window.__CALLS__)).some((c) => c[0] === "publishQuestionNow" && c[1] === "v2"));
+  await page.goto(`${BASE}/views/instructor.html#questions/q2`);
+  await page.getByRole("button", { name: "Delete" }).click();
+  await page.locator(".modal").getByRole("button", { name: "Delete" }).click();
+  await page.waitForFunction(() => window.__CALLS__.some((c) => c[0] === "deleteQuestion" && c[1] === "q2" && c[2] === false));
+  await page.goto(`${BASE}/views/instructor.html#exams/ffffffff-ffff-ffff-ffff-ffffffffffff`);
+  await page.getByRole("button", { name: "Delete" }).click();
+  await page.getByText("Delete this exam and its results?").waitFor();
+  await page.locator(".modal").getByRole("button", { name: "Delete" }).click();
+  await page.waitForFunction(() => window.__CALLS__.some((c) => c[0] === "deleteExam" && c[2] === true));
+});
+
+await test("side navigation opens and closes, and remembers", "student", async (page) => {
+  await page.goto(`${BASE}/views/app.html#home`);
+  await page.getByText("Welcome back").waitFor();
+  await page.getByRole("button", { name: "Hide the menu" }).click();
+  assert.equal(await page.locator(".siteside").isHidden(), true, "sidebar should hide");
+  await shot(page, "sidebar-closed");
+  await page.reload();
+  await page.getByText("Welcome back").waitFor();
+  assert.equal(await page.locator(".siteside").isHidden(), true, "closed state remembered");
+  await page.getByRole("button", { name: "Show the menu" }).click();
+  assert.equal(await page.locator(".siteside").isVisible(), true, "sidebar should show again");
+  await page.setViewportSize({ width: 390, height: 800 });
+  await page.getByRole("button", { name: "Show the menu" }).click();
+  await page.locator(".siteside a", { hasText: "Practice" }).click();
+  await page.getByText("Choose what to review and how.").waitFor();
+  assert.equal(await page.evaluate(() => document.body.classList.contains("sideopen")), false, "phone menu closes after choosing");
 });
 
 await test("instructor: new question validates and only admins choose pretest/monthly", "instructor", async (page) => {
@@ -155,7 +189,7 @@ await test("admin: pool choice enabled; students tab role controls; own role loc
   await page.goto(`${BASE}/views/instructor.html#questions/new`);
   assert.equal(await page.locator("select").filter({ has: page.locator("option[value=monthly]") }).first().isDisabled(), false);
   await page.goto(`${BASE}/views/instructor.html#students`);
-  await page.getByLabel("Show").selectOption("");
+  await page.locator("label.control", { hasText: /^Show/ }).locator("select").selectOption("");
   const ownRole = page.locator("tr", { hasText: "admin@uni.ac.th" }).locator("select[title]");
   assert.equal(await ownRole.isDisabled(), true);
   await shot(page, "tab-students-admin");
@@ -163,7 +197,7 @@ await test("admin: pool choice enabled; students tab role controls; own role loc
 
 await test("instructor: overview, items, export tabs render", "instructor", async (page) => {
   await page.goto(`${BASE}/views/instructor.html#overview`);
-  await page.getByText("Waiting for your review").first().waitFor();
+  await page.getByText("Your unpublished drafts").first().waitFor();
   await shot(page, "tab-overview");
   await page.goto(`${BASE}/views/instructor.html#items`);
   await page.getByText("Weak discrimination").first().waitFor();
@@ -372,21 +406,18 @@ await test("map pages: side navigation (no Back/Home bar), no emojis on the nich
   assert.ok(!/\p{Extended_Pictographic}/u.test(text), "emoji still on the niche map");
 });
 
-await test("instructor workflow: Today card, review queue, bulk actions, AI prompt", "admin", async (page) => {
+await test("instructor workflow: Today card, bulk actions, AI prompt", "admin", async (page) => {
   await page.goto(`${BASE}/views/instructor.html#overview`);
   await page.getByText("Today").first().waitFor();
-  assert.ok((await page.locator(".panel.accent").first().textContent()).includes("waiting for your review"), "Today card lists reviews");
+  assert.ok((await page.locator(".panel.accent").first().textContent()).includes("to check in with"), "Today card lists students to check in with");
   await shot(page, "instructor-overview-today");
   assert.equal(await page.locator(".siteside a[aria-current=page]", { hasText: "Overview" }).count(), 1);
   await page.goto(`${BASE}/views/instructor.html#questions`);
-  await page.getByRole("button", { name: /Waiting for my review/ }).click();
-  assert.equal(await page.locator("tbody tr").count(), 1, "review filter");
-  await page.getByRole("button", { name: /Waiting for my review/ }).click();
   await page.locator("tbody input[type=checkbox]").first().check();
   await page.getByText("1 selected").waitFor();
   await shot(page, "instructor-bulk");
-  await page.getByRole("button", { name: "Submit for review" }).click();
-  await page.getByText("Some items were skipped").waitFor();   // a live item cannot be submitted: reported, not silently ignored
+  await page.getByRole("button", { name: "Publish", exact: true }).click();
+  await page.getByText("Some items were skipped").waitFor();   // an already-live item cannot be published again: reported, not silently ignored
   await page.locator(".modal").getByRole("button", { name: "Close" }).click();
   await page.getByRole("button", { name: "AI prompt" }).click();
   const prompt = await page.locator(".modal textarea").inputValue();
