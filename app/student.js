@@ -14,8 +14,8 @@
   const { toast, modal, confirmBox, signInScreen, avatarMenu } = Shell;
 
   const $main = document.getElementById("main");
-  const $tabs = document.getElementById("tabs");
-  const $streak = document.getElementById("streak");
+  const $status = document.getElementById("status");
+  let $streak = el("div", { class: "streak" });
   const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   const PREVIEW = /[?&]preview=1/.test(location.search);
   const TABS = [["home", "Home"], ["learn", "Learn"], ["explore", "Explore"], ["practice", "Practice"], ["progress", "Progress"]];
@@ -57,7 +57,7 @@
   async function boot() {
     const sess = await API.session().catch(() => null);
     if (!sess) {
-      $tabs.hidden = true;
+      document.body.classList.add("nonav");
       signInScreen($main, "Use your university email.", "After you sign in, you will take a short pre-test. The course content opens when you finish.");
       return;
     }
@@ -67,10 +67,13 @@
     S.email = sess.user.email;
     const staff = S.profile.role === "instructor" || S.profile.role === "admin";
     if (staff && !PREVIEW) { location.replace("instructor.html"); return; }
-    avatarMenu(document.getElementById("avatar"), S.profile, sess.user.email,
-      [{ label: "Settings", href: "#settings" }, staff ? { label: "Instructor dashboard", href: "instructor.html" } : null,
-       { label: "Revision tool", href: "../index.html" }].filter(Boolean));
+    SiteNav.mount({ role: "student", remember: !staff, active: "home" });
+    const userBtn = el("button", { class: "userbtn", type: "button" });
+    SiteNav.foot.append($streak, userBtn);
+    avatarMenu(userBtn, S.profile, sess.user.email,
+      [staff ? { label: "Instructor dashboard", href: "instructor.html" } : null, { label: "Revision home page", href: "../index.html" }].filter(Boolean));
     for (const v of await API.vocab()) (S.vocab[v.kind] ||= {})[v.id] = v.label;
+    await API.runDueSchedules().catch(() => {});   // opens this month's scheduled check-in if its day has come
     await refreshStatus();
     window.addEventListener("hashchange", route);
     route();
@@ -85,9 +88,8 @@
   }
 
   function setTabs(active) {
-    if (S.gate) { $tabs.hidden = true; return; }
-    $tabs.hidden = false;
-    fill($tabs, TABS.map(([id, name]) => el("a", { class: "tab", href: "#" + id, "aria-selected": String(id === active) }, name)));
+    SiteNav.hide(S.gate);
+    if (!S.gate) SiteNav.setActive(active);
   }
 
   async function route() {
@@ -96,11 +98,12 @@
     const [tab, a, b] = location.hash.slice(1).split("/");
     try {
       if (S.gate && tab !== "exam") return await gate();
-      if (tab === "exam" && UUID.test(a || "")) { setTabs(null); return await runExam(a); }
+      if (tab === "exam" && UUID.test(a || "")) { setTabs("home"); return await runExam(a); }
       if (tab === "settings") {
-        setTabs(null);
+        setTabs("settings");
         return Shell.settingsPage($main, { profile: S.profile, email: S.email, student: S.profile.role === "student",
-          consent: S.status.consent, cohort: S.status.cohort });
+          consent: S.status.consent, cohort: S.status.cohort,
+          onCohort: async () => { await API.runDueSchedules().catch(() => {}); await refreshStatus(); } });
       }
       const t = TABS.some(([id]) => id === tab) ? tab : "home";
       setTabs(t);
@@ -137,6 +140,22 @@
     const platform = el("input", { type: "checkbox", checked: !!st.consent });
     const research = el("input", { type: "checkbox", checked: !!(st.consent && st.consent.research) });
     const go = el("button", { class: "btn primary", type: "button", disabled: !st.consent }, hasPre ? "Start pre-test" : "Continue");
+    const code = el("input", { type: "text", placeholder: "e.g. K7M2QX", maxlength: 12, style: { textTransform: "uppercase" } });
+    const codeMsg = el("p", { class: "hint", role: "status" });
+    const codeBtn = el("button", { class: "btn", type: "button" }, "Join class");
+    codeBtn.addEventListener("click", async () => {
+      if (!code.value.trim()) { codeMsg.textContent = "Enter the class code from your instructor."; return; }
+      codeBtn.disabled = true;
+      try {
+        const nm = await API.joinCohort(code.value);
+        codeMsg.textContent = `You are in class ${nm}.`;
+        await API.runDueSchedules().catch(() => {});
+        await refreshStatus(); route();
+      } catch (e) { codeMsg.textContent = /not found/i.test(e.message) ? "That class code was not found." : e.message; codeBtn.disabled = false; }
+    });
+    const classBox = st.cohort_id ? null : el("div", { class: "consentbox", style: { display: "block", cursor: "default" } },
+      el("b", null, "Your class code"), el("small", { style: { margin: "2px 0 10px" } }, "From your instructor. It puts you in your class so the right pre-test opens."),
+      el("div", { class: "row" }, el("div", { style: { flex: "1", minWidth: "160px" } }, code), codeBtn), codeMsg);
     platform.addEventListener("change", () => { go.disabled = !platform.checked; });
     go.addEventListener("click", async () => {
       go.disabled = true;
@@ -155,6 +174,7 @@
           el("li", null, `${pre.n_items} question${pre.n_items === 1 ? "" : "s"}, about ${pre.duration_min} minutes.`),
           el("li", null, "It is low-stakes: your score does not count toward your grade."),
           el("li", null, "You can flag a question and come back to it before you submit.")) : null,
+        classBox,
         el("label", { class: "consentbox" }, platform, el("span", null,
           "I agree to use the platform and have my study activity recorded to personalize my practice.",
           el("small", null, "Required to continue."))),
@@ -179,17 +199,18 @@
     const kindLabel = data.kind === "pretest" ? "Pre-test" : "Check-in";
     let submitting = false;
 
+    const timerEl = el("p", { class: "timer", "aria-live": "off" });
     const tick = () => {
       const used = Math.max(0, Math.floor((Date.now() - started) / 1000));
       const mm = String(Math.floor(used / 60)).padStart(2, "0"), ss = String(used % 60).padStart(2, "0");
-      $streak.textContent = `Time used ${mm}:${ss} · Progress is saved`;
+      $status.textContent = timerEl.textContent = `Time used ${mm}:${ss} · Progress is saved`;
       if (Date.now() > deadline && !submitting) { toast("Time is up — submitting your answers."); submit(); }
     };
     tick(); S.timer = setInterval(tick, 1000);
 
     const left = el("div", { class: "panel" });
     const grid = el("div", { class: "qgrid", role: "group", "aria-label": "Questions" });
-    const right = el("div", { class: "panel" }, el("h3", null, "Questions"), grid,
+    const right = el("div", { class: "panel" }, timerEl, el("h3", null, "Questions"), grid,
       el("p", { class: "hint", style: { marginBottom: "16px" } }, "Purple outline: answered. Dashed amber: flagged. Filled: current."),
       el("button", { class: "btn", type: "button", onclick: () => review() }, "Review and submit"));
 
@@ -740,7 +761,7 @@
   }
 
   API.onAuth((event) => {
-    if (event === "PASSWORD_RECOVERY") { document.getElementById("tabs").hidden = true; Shell.newPasswordScreen($main); return; }
+    if (event === "PASSWORD_RECOVERY") { document.body.classList.add("nonav"); Shell.newPasswordScreen($main); return; }
     if (event === "SIGNED_OUT") { location.reload(); return; }
     boot();
   });

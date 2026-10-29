@@ -10,12 +10,11 @@
   const { toast, modal, confirmBox, signInScreen, avatarMenu } = Shell;
 
   const $main = document.getElementById("main");
-  const $tabs = document.getElementById("tabs");
   const S = {
     me: null, profile: null, isAdmin: false,
     vocab: {}, vocabRows: [], lectures: [], questions: [],
     cohort: "", days: 30, cohorts: [], cohortSize: {},
-    qFilters: { status: "", pool: "", niche: "", topic: "", author: "", lecture: "", tier: "", difficulty: "", q: "" }
+    qFilters: { mine: "", status: "", pool: "", niche: "", topic: "", author: "", lecture: "", tier: "", difficulty: "", q: "" }
   };
   const TABS = [["overview", "Overview"], ["lectures", "Lectures"], ["questions", "Questions"],
                 ["students", "Students"], ["items", "Items"], ["exams", "Exams"], ["export", "Export"]];
@@ -44,7 +43,7 @@
     el("div", { class: "l" }, l), el("div", { class: "n" }, String(n)), s ? el("div", { class: "s" }, s) : null);
   const control = (labelText, input) => el("label", { class: "control" }, labelText, input);
   async function loadCohorts() {
-    S.cohorts = await API.cohorts().catch(() => []);
+    S.cohorts = await API.cohortList().catch(() => API.cohorts().catch(() => []));
     const all = await API.studentSummary(null, null).catch(() => []);
     S.cohortSize = {};
     for (const r of all) if (r.role === "student") S.cohortSize[r.cohort_id || ""] = (S.cohortSize[r.cohort_id || ""] || 0) + 1;
@@ -79,19 +78,22 @@
     let sess;
     try { sess = await API.session(); } catch (e) { sess = null; }
     if (!sess) {
-      $tabs.hidden = true;
+      document.body.classList.add("nonav");
       signInScreen($main, "Use your university email.", "Instructor access is granted by an admin after you first sign in.");
       return;
     }
     if (S.me === sess.user.id) return;          // already booted (auth event + initial load)
     S.me = sess.user.id; S.profile = sess.profile || {}; S.email = sess.user.email;
     S.isAdmin = S.profile.role === "admin";
-    avatarMenu(document.getElementById("avatar"), S.profile, sess.user.email,
-      [{ label: "Settings", href: "#settings" }, { label: "Student view", href: "app.html?preview=1" }, { label: "Revision tool", href: "../index.html" }]);
 
     // Students who land here go to their own app; the database enforces roles regardless.
     if (S.profile.role !== "instructor" && S.profile.role !== "admin") { location.replace("app.html"); return; }
+    SiteNav.mount({ role: "staff", active: "overview" });
+    const userBtn = el("button", { class: "userbtn", type: "button" });
+    SiteNav.foot.append(userBtn);
+    avatarMenu(userBtn, S.profile, sess.user.email, [{ label: "Revision home page", href: "../index.html" }]);
     try { const saved = JSON.parse(localStorage.getItem("ii.scope") || "{}"); S.cohort = saved.cohort || ""; S.days = saved.days || 30; } catch (e) { /* storage off */ }
+    await API.runDueSchedules().catch(() => {});
     await loadCohorts();
     S.vocabRows = await API.vocab();
     S.vocab = {};
@@ -101,10 +103,8 @@
   }
 
   function setTabs(active) {
-    $tabs.hidden = false;
-    fill($tabs, TABS.map(([id, name]) =>
-      el("button", { class: "tab", role: "tab", "aria-selected": String(id === active), type: "button",
-        onclick: () => { location.hash = id; } }, name)));
+    SiteNav.hide(false);
+    SiteNav.setActive(active);
   }
 
   let dirtyGuard = null;   // returns true when there are unsaved changes
@@ -113,12 +113,14 @@
   async function route() {
     const [tab, arg] = (location.hash.slice(1) || "overview").split("/");
     if (tab === "settings") {
-      dirtyGuard = null; setTabs(null);
+      dirtyGuard = null; setTabs("settings");
       Shell.settingsPage($main, { profile: S.profile, email: S.email, student: false,
         extra: S.isAdmin ? vocabPanel() : null });
       return;
     }
     const t = TABS.some(([id]) => id === tab) ? tab : "overview";
+    API.questionList().then((qs) => SiteNav.setBadge("questions",
+      qs.filter((q) => q.status === "in_review" && q.version_author !== S.me).length)).catch(() => {});
     dirtyGuard = null;
     setTabs(t);
     fill($main, el("p", { class: "dim" }, "Loading…"));
@@ -160,7 +162,8 @@
     }
     search.addEventListener("input", draw);
     draw(); drawSel();
-    return { node: el("div", { class: "picker" }, search, list, chosen), get: () => [...sel], set onChange(f) { onChange = f; } };
+    return { node: el("div", { class: "picker" }, search, list, chosen), get: () => [...sel],
+      set: (ids) => { sel.clear(); (ids || []).forEach((i) => sel.add(i)); draw(); drawSel(); }, set onChange(f) { onChange = f; } };
   }
   const field = (labelText, input, required, hint) =>
     el("label", { class: "f" }, el("span", null, labelText, required ? el("b", null, " *") : null), input, hint ? el("div", { class: "hint" }, hint) : null);
@@ -224,8 +227,28 @@
       el("td", { class: "stemcell" }, (q.stem || "").slice(0, 140)), el("td", null, q.author_name || "—"),
       el("td", { class: "mono" }, fmtDay(q.updated_at)));
 
+    const myDrafts = questions.filter((q) => q.status === "draft" && q.version_author === S.me && !q.retired_at);
+    const [examsNow, schedules] = await Promise.all([API.examList(S.cohort).catch(() => []), API.scheduleList().catch(() => [])]);
+    const soon = examsNow.filter((e) => e.status === "open" && e.closes_at && daysSince(e.closes_at) > -3 && daysSince(e.closes_at) < 0);
+    const monthlyLive = questions.filter((q) => q.pool === "monthly" && q.live_version_id && !q.retired_at).length;
+    const short = schedules.filter((x) => x.active && x.n_items > monthlyLive);
+    const todo = [
+      toReview.length ? [`${toReview.length} question${toReview.length === 1 ? "" : "s"} waiting for your review`, "#questions/" + toReview[0].question_id, "Start reviewing"] : null,
+      returned.length ? [`${returned.length} of your questions returned with comments`, "#questions/" + returned[0].question_id, "Open"] : null,
+      flagged.length ? [`${flagged.length} student${flagged.length === 1 ? "" : "s"} to check in with`, "#students", "See list"] : null,
+      myDrafts.length ? [`${myDrafts.length} of your drafts not yet submitted`, "#questions", "Open drafts"] : null,
+      ...soon.map((e) => [`${e.title} closes ${fmtDay(e.closes_at)} · ${e.submitted} of ${e.eligible} done`, "#exams/" + e.id, "Open"]),
+      short.length ? [`The monthly pool has ${monthlyLive} live item${monthlyLive === 1 ? "" : "s"}; your schedule needs ${Math.max(...short.map((x) => x.n_items))}`, "#questions", "Add items"] : null,
+      !S.cohorts.length ? ["No class yet: create a cohort and share its class code", "#students", "Set up"] : null
+    ].filter(Boolean);
+    const today = el("div", { class: "panel accent" }, el("div", { class: "eyebrow" }, "Today"),
+      todo.length ? todo.map(([t, href, act]) => el("div", { class: "listrow" }, el("span", null, t),
+        el("a", { href, onclick: act === "Open drafts" ? () => { S.qFilters.mine = "drafts"; } : null }, act)))
+                  : el("p", { style: { margin: 0, color: "var(--ink2)" } }, "You are all caught up."));
+
     fill($main,
       pagehead("Cohort overview", "How the class is doing and who needs help.", scopeControls()),
+      today,
       el("div", { class: "cards" },
         stat("Active this week", `${ov.active_week || 0} of ${N}`, N ? `${Math.round(100 * (ov.active_week || 0) / N)}% of the cohort` : "No students yet", "#students"),
         stat("Average score", pct(ov.avg), ov.pretest_avg != null ? `Pre-test was ${pct(ov.pretest_avg)}` : `Over ${periodText()}`, "#items"),
@@ -292,6 +315,22 @@
         failed.length ? el("ul", null, failed.slice(0, 10).map((x) => el("li", null, x))) : null));
       if (ok) setTimeout(refresh, 1200);
     });
+    const tagPrompt = el("button", { class: "btn small", type: "button", onclick: async () => {
+      const existing = (k) => S.vocabRows.filter((v) => v.kind === k).map((v) => v.id).join(", ") || "(none)";
+      const text = [
+        "You are building tag lists for an Infection & Immunity course for Thai medical students (ศรว. 2567).",
+        "Produce new entries for these lists: topic (teaching topics) and disease (clinical syndromes and diseases a student must recognise).",
+        "Return ONLY CSV with the header line kind,id,label and one row per entry. No other text.",
+        "- kind: topic or disease",
+        "- id: lowercase words joined by hyphens, e.g. bacterial-meningitis. Never change or reuse an existing id.",
+        "- label: the name people will see, e.g. Bacterial meningitis",
+        "- Use standard terminology (Harrison's Infectious Diseases). No duplicates of the existing ids below.",
+        "Existing topic ids: " + existing("topic"),
+        "Existing disease ids: " + existing("disease")
+      ].join("\n");
+      try { await navigator.clipboard.writeText(text); toast("Prompt copied. Paste it into your AI chat, save the reply as tags.csv and import it here."); }
+      catch (e) { modal("AI prompt for tag lists", el("textarea", { rows: 12, readonly: true, value: text })); }
+    } }, "Copy AI prompt");
     const template = el("button", { class: "btn small", type: "button", onclick: () => download("tag-template.csv",
       toCSV([{ kind: "disease", id: "bacterial-meningitis", label: "Bacterial meningitis" },
              { kind: "topic", id: "vaccines", label: "Vaccines and prevention" }], ["kind", "id", "label"]), "text/csv") }, "CSV template");
@@ -310,7 +349,7 @@
       counts,
       el("p", { class: "label" }, "Import a generated list"),
       el("p", { class: "hint", style: { margin: "0 0 10px" } }, "CSV with columns kind, id, label (or a JSON array of the same). Existing ids are renamed, new ids are added; nothing is deleted."),
-      el("div", { class: "row", style: { marginBottom: "12px" } }, file, template), importBtn, result,
+      el("div", { class: "row", style: { marginBottom: "12px" } }, file, template, tagPrompt), importBtn, result,
       el("p", { class: "label", style: { marginTop: "22px" } }, "Fix one term"),
       el("div", { class: "grid2" }, field("Kind", kindSel), field("Id", id), field("Label", lab)), add);
   }
@@ -386,6 +425,7 @@
       modal("Preview — exactly what a student sees", el("div", { class: "preview-frame" },
         el("div", { class: "preview-tag" }, "Student Learn tab"), renderLecture(p, S.vocab)));
     } }, "Preview as student");
+    const promptBtn = isNew ? null : el("button", { class: "btn", type: "button", onclick: () => promptDialog({ ...lec, ...payload(), id }) }, "AI prompt for questions");
 
     let pubBtn = null;
     if (!isNew && canEdit) {
@@ -427,7 +467,7 @@
           errBox),
         el("div", { class: "sidebar" },
           el("div", { class: "panel" },
-            el("div", { class: "row" }, saveBtn, previewBtn, pubBtn),
+            el("div", { class: "row" }, saveBtn, previewBtn, pubBtn, promptBtn),
             el("dl", { class: "meta" },
               isNew ? null : [el("dt", null, "Last edited"), el("dd", null, fmtDate(lec.updated_at)),
                               el("dt", null, "Published"), el("dd", null, fmtDate(lec.published_at)),
@@ -441,6 +481,7 @@
     const [qs, lecs] = await Promise.all([API.questionList(), API.lectureList()]);
     S.questions = qs; S.lectures = lecs;
     const F = S.qFilters;
+    const sel = new Set();
     const authors = [...new Map(qs.map((q) => [q.version_author, q.author_name || "—"])).entries()];
     const mk = (key, labelText, options) => {
       const s = el("select", null, el("option", { value: "" }, "All"), options.map(([v, l]) => el("option", { value: v, selected: F[key] === v }, l)));
@@ -452,37 +493,91 @@
     search.addEventListener("input", () => { F.q = search.value; draw(); });
     const body = el("tbody");
     const countEl = el("span", { class: "dim" });
+    const toReview = qs.filter((q) => q.status === "in_review" && q.version_author !== S.me);
+    const reviewBtn = el("button", { class: "btn chipbtn", type: "button", "aria-pressed": String(F.mine === "review") },
+      `Waiting for my review (${toReview.length})`);
+    reviewBtn.addEventListener("click", () => { F.mine = F.mine === "review" ? "" : "review"; reviewBtn.setAttribute("aria-pressed", String(F.mine === "review")); draw(); });
+    const draftsBtn = el("button", { class: "btn chipbtn", type: "button", "aria-pressed": String(F.mine === "drafts") },
+      `My drafts (${qs.filter((q) => q.status === "draft" && q.version_author === S.me).length})`);
+    draftsBtn.addEventListener("click", () => { F.mine = F.mine === "drafts" ? "" : "drafts"; draftsBtn.setAttribute("aria-pressed", String(F.mine === "drafts")); draw(); });
+
+    // bulk actions
+    const bulk = el("div", { class: "banner info", hidden: true, style: { display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" } });
+    let visible = [];
+    const selectAll = el("input", { type: "checkbox", "aria-label": "Select all shown" });
+    selectAll.addEventListener("change", () => { visible.forEach((r) => (selectAll.checked ? sel.add(r.question_id) : sel.delete(r.question_id))); draw(); });
+    async function runBulk(label, fn) {
+      const ids = [...sel];
+      let ok = 0; const fails = [];
+      for (const id of ids) {
+        const r = qs.find((q) => q.question_id === id);
+        try { await fn(r); ok++; } catch (e) { fails.push(`${qCode(id)}: ${errMsg(e)}`); }
+      }
+      toast(`${label}: ${ok} of ${ids.length} done.` + (fails.length ? ` ${fails.length} skipped.` : ""), fails.length > 0);
+      if (fails.length) modal("Some items were skipped", el("ul", null, fails.slice(0, 20).map((f) => el("li", null, f))));
+      route();
+    }
+    function drawBulk() {
+      bulk.hidden = sel.size === 0;
+      if (!sel.size) return;
+      const poolSel = el("select", { style: { width: "auto" } }, POOLS.map((p) => el("option", { value: p }, "Move to " + p)));
+      fill(bulk, el("b", null, `${sel.size} selected`),
+        el("button", { class: "btn small", type: "button", onclick: () => runBulk("Submitted for review", (r) => {
+          if (r.status !== "draft") throw new Error("only drafts can be submitted");
+          return API.submitQuestion(r.version_id);
+        }) }, "Submit for review"),
+        S.isAdmin ? [poolSel, el("button", { class: "btn small", type: "button", onclick: () => runBulk("Moved", (r) => API.setQuestionPool(r.question_id, poolSel.value)) }, "Move")] : null,
+        el("button", { class: "btn small danger", type: "button", onclick: async () => {
+          const ok = await confirmBox(`Retire ${sel.size} item${sel.size === 1 ? "" : "s"}?`, "They leave every student pool. All versions and answers are kept.", "Retire", true);
+          if (ok) runBulk("Retired", (r) => API.retireQuestion(r.question_id));
+        } }, "Retire"),
+        el("button", { class: "btn small", type: "button", onclick: () => { sel.clear(); draw(); } }, "Clear selection"));
+    }
 
     function draw() {
       const q = F.q.trim().toLowerCase();
-      const rows = qs.filter((r) =>
+      visible = qs.filter((r) =>
+        (F.mine !== "review" || (r.status === "in_review" && r.version_author !== S.me)) &&
+        (F.mine !== "drafts" || (r.status === "draft" && r.version_author === S.me)) &&
         (!F.status || r.status === F.status || (F.status === "live" && r.live_version_id && !r.retired_at)) &&
         (!F.pool || r.pool === F.pool) && (!F.niche || r.niche === F.niche) && (!F.topic || r.topic === F.topic) &&
         (!F.author || r.version_author === F.author) && (!F.lecture || r.lecture_id === F.lecture) &&
         (!F.tier || r.tier === F.tier) && (!F.difficulty || r.difficulty === F.difficulty) &&
         (!q || (r.stem || "").toLowerCase().includes(q)))
         .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
-      countEl.textContent = `${rows.length} of ${qs.length} items`;
-      fill(body, rows.length ? rows.map((r) => el("tr", { class: "click", onclick: () => (location.hash = "questions/" + r.question_id) },
-        el("td", { class: "mono" }, qCode(r.question_id)),
-        el("td", { class: "stemcell" }, (r.stem || "").length > 150 ? r.stem.slice(0, 150) + "…" : r.stem),
-        el("td", null, statusChip(r.status), r.live_version_id && r.status !== "live" && !r.retired_at ? el("div", { class: "hint" }, `v${r.live_version} live`) : null),
-        el("td", null, r.pool),
-        el("td", null, r.lecture_number != null ? `L${r.lecture_number}` : "—"),
-        el("td", null, el("span", { class: "chip" }, vlabel("topic", r.topic)), r.tier ? el("span", { class: "chip" }, "Tier " + r.tier) : null,
-          r.difficulty ? el("span", { class: "chip" }, r.difficulty) : null),
-        el("td", { class: "num" }, "v" + r.version),
-        el("td", { class: "num" }, r.answers ? `${Math.round(r.pct_correct)}% (${r.answers})` : "—"),
-        el("td", null, r.author_name || "—"),
-        el("td", null, fmtDay(r.updated_at))))
-        : el("tr", null, el("td", { colspan: 10, class: "empty" }, qs.length ? "No items match these filters." : "No questions yet.")));
+      countEl.textContent = `${visible.length} of ${qs.length} items`;
+      selectAll.checked = visible.length > 0 && visible.every((r) => sel.has(r.question_id));
+      fill(body, visible.length ? visible.map((r) => {
+        const cb = el("input", { type: "checkbox", checked: sel.has(r.question_id), "aria-label": "Select " + qCode(r.question_id) });
+        cb.addEventListener("click", (e) => e.stopPropagation());
+        cb.addEventListener("change", () => { cb.checked ? sel.add(r.question_id) : sel.delete(r.question_id); drawBulk();
+          selectAll.checked = visible.every((x) => sel.has(x.question_id)); });
+        return el("tr", { class: "click", onclick: () => (location.hash = "questions/" + r.question_id) },
+          el("td", null, cb),
+          el("td", { class: "mono" }, qCode(r.question_id)),
+          el("td", { class: "stemcell" }, (r.stem || "").length > 150 ? r.stem.slice(0, 150) + "…" : r.stem),
+          el("td", null, statusChip(r.status), r.live_version_id && r.status !== "live" && !r.retired_at ? el("div", { class: "hint" }, `v${r.live_version} live`) : null),
+          el("td", null, r.pool),
+          el("td", null, r.lecture_number != null ? `L${r.lecture_number}` : "—"),
+          el("td", null, el("span", { class: "chip" }, vlabel("topic", r.topic)), r.tier ? el("span", { class: "chip" }, "Tier " + r.tier) : null,
+            r.difficulty ? el("span", { class: "chip" }, r.difficulty) : null),
+          el("td", { class: "num" }, "v" + r.version),
+          el("td", { class: "num" }, r.answers ? `${Math.round(r.pct_correct)}% (${r.answers})` : "—"),
+          el("td", null, r.author_name || "—"),
+          el("td", null, fmtDay(r.updated_at)));
+      }) : el("tr", null, el("td", { colspan: 11, class: "empty" },
+        F.mine === "review" ? "Nothing waiting for your review." : qs.length ? "No items match these filters." : "No questions yet.")));
+      drawBulk();
     }
 
     fill($main,
-      pagehead("Question bank", "Write, review and release questions. Answer keys stay hidden from students.",
+      pagehead("Question bank", "Write, review and release questions. Approved practice questions go live straight away.",
+        el("button", { class: "btn", type: "button", onclick: () => promptDialog() }, "AI prompt"),
         el("button", { class: "btn", type: "button", onclick: importDialog }, "Import CSV / JSON"),
         el("button", { class: "btn primary", type: "button", onclick: () => (location.hash = "questions/new") }, "New question")),
       el("div", { class: "panel" },
+      el("div", { class: "row", style: { gap: "8px", marginBottom: "14px" } }, reviewBtn, draftsBtn,
+        toReview.length ? el("a", { class: "btn small primary", href: "#questions/" + toReview[0].question_id }, "Start reviewing") : null),
       el("div", { class: "searchrow" }, el("div", { style: { flex: "1" } }, search), countEl),
       el("div", { class: "filters" },
         mk("status", "Status", STATUSES.map((s) => [s, STATUS_LABEL[s]])),
@@ -493,10 +588,101 @@
         mk("lecture", "Lecture", lecs.map((l) => [l.id, `L${l.number} ${l.title}`])),
         mk("tier", "Tier", vopts("tier")),
         mk("difficulty", "Difficulty", vopts("difficulty"))),
+      bulk,
       el("div", { class: "tablewrap" }, el("table", null,
-        el("thead", null, el("tr", null, ["Item", "Stem", "Status", "Pool", "Lecture", "Tags", "Ver", "Correct (n)", "Author", "Updated"].map((h, i) => el("th", { class: i === 6 || i === 7 ? "num" : null }, h)))),
+        el("thead", null, el("tr", null, el("th", null, selectAll),
+          ["Item", "Stem", "Status", "Pool", "Lecture", "Tags", "Ver", "Correct (n)", "Author", "Updated"].map((h, i) => el("th", { class: i === 6 || i === 7 ? "num" : null }, h)))),
         body))));
     draw();
+  }
+
+  /* The ground prompt: instructors paste it into any AI chat; the reply imports as-is. */
+  function questionPrompt(o) {
+    const list = (kind) => S.vocabRows.filter((v) => v.kind === kind).map((v) => `${v.id} (${v.label})`).join("; ");
+    const ids = (kind) => S.vocabRows.filter((v) => v.kind === kind).map((v) => v.id).join(", ");
+    const lec = o.lecture;
+    return [
+      `You are writing single-best-answer multiple-choice questions for an Infection & Immunity course for Thai medical students (ศรว. 2567 licensing level).`,
+      ``,
+      `Write ${o.n} questions${lec ? ` for Lecture ${lec.number}: ${lec.title}` : ""}${o.focus ? `, focusing on: ${o.focus}` : ""}.`,
+      lec && lec.summary ? `Lecture summary:\n${bulletLines(lec.summary).map((b) => "- " + b).join("\n")}` : null,
+      ``,
+      `Rules`,
+      `- Each stem is a short clinical vignette or a mechanism question with one clear best answer.`,
+      `- ${o.options} options per question, exactly one correct. Options are similar in length and style. Wrong options must be plausible to a student who half-knows the topic.`,
+      `- Do not use "all of the above", "none of the above" or negatives such as "EXCEPT" or "NOT".`,
+      `- explanation: 2 to 4 sentences saying why the answer is right and why the most tempting wrong option is wrong.`,
+      `- Use only well-established facts (Harrison's Infectious Diseases, Oxford Handbook of Infectious Diseases and Microbiology). If you are not sure of a fact, leave that question out.`,
+      `- Mix of difficulty: ${o.mix}.`,
+      `- Tag every question using ONLY the ids listed under "Allowed values". Never invent an id; leave a list empty if nothing fits.`,
+      ``,
+      `Output`,
+      `Return ONLY a JSON array, with no text before or after it, in exactly this shape:`,
+      `[`,
+      `  {`,
+      `    "stem": "A 6-year-old after splenectomy presents with...",`,
+      `    "options": ["...", "...", "...", "..."],`,
+      `    "correct": "B",`,
+      `    "explanation": "...",`,
+      `    "niche": "extra",`,
+      `    "topic": "evasion",`,
+      `    "lecture_number": ${lec ? lec.number : 1},`,
+      `    "organism_ids": ["streptococcus-pneumoniae"],`,
+      `    "disease_ids": [],`,
+      `    "tier": "1",`,
+      `    "failure_mode": "Capsule / anti-phagocytic",`,
+      `    "bloom": "apply",`,
+      `    "difficulty": "medium"`,
+      `  }`,
+      `]`,
+      `"correct" is the letter of the right option: A is the first option, B the second, and so on.`,
+      ``,
+      `Allowed values`,
+      `niche (where the pathogen lives): ${list("niche")}`,
+      `topic: ${ids("topic")}`,
+      `lecture_number: ${S.lectures.map((l) => `${l.number} (${l.title})`).join("; ") || "1"}`,
+      `tier: 1 (diagnose and manage independently), 2 (diagnose, start treatment, refer)`,
+      `bloom: ${ids("bloom")}`,
+      `difficulty: ${ids("difficulty")}`,
+      `failure_mode (copy the text exactly): ${ids("failure_mode")}`,
+      `organism_ids: ${ids("organism")}`,
+      `disease_ids: ${ids("disease") || "(none yet: use [])"}`
+    ].filter((x) => x !== null).join("\n");
+  }
+
+  function promptDialog(lecture) {
+    const n = el("input", { type: "number", min: 1, max: 50, value: 10, style: { width: "100px" } });
+    const nOpt = el("select", { style: { width: "auto" } }, [3, 4, 5].map((k) => el("option", { value: k, selected: k === 4 }, k + " options")));
+    const lecSel = el("select", null, el("option", { value: "" }, "Any lecture"),
+      S.lectures.map((l) => el("option", { value: l.id, selected: lecture && lecture.id === l.id }, `L${l.number} · ${l.title}`)));
+    const focus = el("input", { type: "text", placeholder: "Optional, e.g. complement deficiencies and Neisseria" });
+    const mix = el("select", null, ["mostly medium, a few easy and hard", "mostly easy (for practice)", "mostly hard (for exams)"].map((m) => el("option", { value: m }, m)));
+    const out = el("textarea", { rows: 12, readonly: true, style: { fontFamily: "ui-monospace,Consolas,monospace", fontSize: "12.5px" } });
+    let lecFull = lecture || null;
+    async function build() {
+      if (lecSel.value && (!lecFull || lecFull.id !== lecSel.value)) lecFull = await API.getLecture(lecSel.value).catch(() => S.lectures.find((l) => l.id === lecSel.value));
+      if (!lecSel.value) lecFull = null;
+      out.value = questionPrompt({ n: Math.max(1, Math.min(50, +n.value || 10)), options: +nOpt.value, lecture: lecFull, focus: focus.value.trim(), mix: mix.value });
+    }
+    [n, nOpt, lecSel, mix].forEach((x) => x.addEventListener("change", build));
+    focus.addEventListener("input", build);
+    build();
+    modal("AI prompt for new questions", [
+      el("ol", { class: "history", style: { listStyle: "decimal", paddingLeft: "20px" } },
+        el("li", null, "Choose the settings, then click Copy prompt."),
+        el("li", null, "Paste it into any AI chat (ChatGPT, Claude, Gemini…)."),
+        el("li", null, "Save the reply as a file called questions.json (Notepad → Save as → All files)."),
+        el("li", null, "Questions → Import CSV / JSON → choose the file and tick AI-generated. Everything arrives as drafts for review.")),
+      el("div", { class: "grid2" }, field("How many", n), field("Options per question", nOpt), field("Lecture", lecSel), field("Difficulty", mix)),
+      field("Focus", focus),
+      out
+    ], [
+      { label: "Close" },
+      { label: "Copy prompt", cls: "primary", onClick: async () => {
+        try { await navigator.clipboard.writeText(out.value); toast("Prompt copied. Paste it into your AI chat."); }
+        catch (e) { out.select(); toast("Press Ctrl+C to copy the selected prompt.", true); }
+      } }
+    ]);
   }
 
   // ------------------------------------------------------------------
@@ -615,6 +801,16 @@
     });
     expl.addEventListener("input", () => changed());
     Object.values(tags).forEach((t) => t.addEventListener("change", () => changed()));
+    // Picking a lecture fills in its niche, organisms and diseases where they are still empty.
+    tags.lecture.addEventListener("change", async () => {
+      if (!tags.lecture.value || !canEdit) return;
+      const L = await API.getLecture(tags.lecture.value).catch(() => null);
+      if (!L) return;
+      if (!tags.niche.value && L.niche) tags.niche.value = L.niche;
+      if (!orgs.get().length && (L.organism_ids || []).length) orgs.set(L.organism_ids);
+      if (!dis.get().length && (L.disease_ids || []).length) dis.set(L.disease_ids);
+      changed();
+    });
     orgs.onChange = () => changed(); dis.onChange = () => changed();
 
     async function checkDupes() {
@@ -666,12 +862,23 @@
         reviewPanel = el("div", { class: "banner info" }, "Waiting for another instructor to review. Editing pulls it back to draft.");
       } else {
         const comment = el("textarea", { rows: 3, placeholder: "Comment (required when returning)" });
-        const approve = el("button", { class: "btn good", type: "button" }, "Approve");
-        const ret = el("button", { class: "btn danger", type: "button" }, "Return to author");
-        approve.addEventListener("click", async () => { await guard(() => API.reviewQuestion(work.id, "approved", comment.value), "Approved."); route(); });
+        const approve = el("button", { class: "btn good", type: "button" }, pool === "practice" ? "Approve & next" : "Approve");
+        const ret = el("button", { class: "btn danger", type: "button" }, "Return & next");
+        const nextInQueue = async () => {
+          const qs = await API.questionList().catch(() => []);
+          const next = qs.find((x) => x.status === "in_review" && x.version_author !== S.me && x.question_id !== qid);
+          if (next) location.hash = "questions/" + next.question_id;
+          else { toast("Your review queue is empty."); location.hash = "questions"; }
+        };
+        approve.addEventListener("click", async () => {
+          await guard(() => API.reviewQuestion(work.id, "approved", comment.value),
+            pool === "practice" ? "Approved — it is live for students now." : "Approved. An admin puts exam items live.");
+          nextInQueue();
+        });
         ret.addEventListener("click", async () => {
           if (!comment.value.trim()) { toast("Add a comment explaining what to change.", true); comment.focus(); return; }
-          await guard(() => API.reviewQuestion(work.id, "returned", comment.value), "Returned to the author."); route();
+          await guard(() => API.reviewQuestion(work.id, "returned", comment.value), "Returned to the author.");
+          nextInQueue();
         });
         reviewPanel = el("div", { class: "panel" }, el("h3", null, "Review"),
           el("p", { class: "dim" }, "Check the stem, the key, the explanation and the tags. Try it in the student preview."),
@@ -817,7 +1024,8 @@
       lecture_number: 3, organism_ids: ["streptococcus-pneumoniae"], disease_ids: [], tier: "1", bloom: "apply", difficulty: "medium" }], null, 2), "application/json") }, "JSON template");
     const results = el("div");
     modal("Import questions", [
-      el("div", { class: "banner info" }, "Every imported item becomes a draft owned by you and goes through the normal review. Status and pool columns in the file are ignored", S.isAdmin ? " (admins: pool is honoured)." : "."),
+      el("div", { class: "banner info" }, "Every imported item becomes a draft owned by you and goes through the normal review. Status and pool columns in the file are ignored", S.isAdmin ? " (admins: pool is honoured)." : ".",
+        " Writing questions with an AI chat? ", el("button", { class: "linkbtn", type: "button", onclick: () => promptDialog() }, "Get the prompt"), "."),
       el("label", { class: "f" }, el("span", null, "File (.csv or .json)"), file),
       el("div", { class: "row" }, el("label", null, srcHuman, " Written by people"), el("label", null, srcAI, " AI-generated (flagged for reviewers)")),
       el("div", { class: "row", style: { margin: "10px 0" } }, el("span", { class: "dim" }, "Templates:"), tmplCSV, tmplJSON),
@@ -896,9 +1104,24 @@
     fill($main,
       pagehead("Students", `Activity over ${periodText()}. ${S.isAdmin ? "You can grant roles here; nobody can change their own role." : "Only admins can grant roles."}`,
         scopeControls(), control("Show", rf), newCohort),
+      el("div", { class: "panel" }, el("h3", { style: { marginBottom: "4px" } }, "Class codes"),
+        el("p", { class: "dim", style: { margin: "0 0 12px" } }, "Share a class code with your students. They type it when they create their account (or later in Settings) and land in the right cohort."),
+        S.cohorts.length ? el("div", { class: "tablewrap" }, el("table", null,
+          el("thead", null, el("tr", null, ["Cohort", "Class code", "Students", ""].map((h, i) => el("th", { class: i === 2 ? "num" : null }, h)))),
+          el("tbody", null, S.cohorts.map((c) => el("tr", null, el("td", null, c.name),
+            el("td", { class: "mono", style: { fontSize: "17px", letterSpacing: "2px", fontWeight: 700 } }, c.join_code || "—"),
+            el("td", { class: "num" }, String(c.students != null ? c.students : (S.cohortSize[c.id] || 0))),
+            el("td", null, el("div", { class: "row", style: { gap: "6px" } },
+              el("button", { class: "btn small", type: "button", onclick: async () => {
+                try { await navigator.clipboard.writeText(c.join_code); toast("Code copied."); } catch (e) { toast(c.join_code); } } }, "Copy"),
+              el("button", { class: "btn small", type: "button", onclick: async () => {
+                const ok = await confirmBox("Make a new code?", "The old code stops working. Students already in the class stay in it.", "New code");
+                if (!ok) return;
+                await guard(() => API.newCohortCode(c.id), "New code made."); await loadCohorts(); route();
+              } }, "New code")))))))) : el("p", { class: "dim", style: { margin: 0 } }, "No cohorts yet. Click New cohort above.")),
       el("div", { class: "panel" },
         el("div", { class: "row", style: { justifyContent: "space-between", marginBottom: "8px" } },
-          el("span", { class: "dim" }, "Assign each student to a cohort so the Overview, Items and Exams pages can be filtered."), namesBtn),
+          el("span", { class: "dim" }, "Students with a class code are placed automatically. You can still move anyone here."), namesBtn),
         el("div", { class: "tablewrap" }, el("table", null,
           el("thead", null, el("tr", null, ["Student", "Email", "Cohort", "Role", "Answers", "Correct", "Active days", "Lectures", "Last active", "Research"]
             .map((h, i) => el("th", { class: i >= 4 && i <= 7 ? "num" : null }, h)))),
@@ -1016,12 +1239,56 @@
           el("td", { class: "num" }, String(e.n_items)), el("td", { class: "num" }, `${e.submitted} of ${e.eligible}`),
           el("td", { class: "num" }, pct(e.avg_score)), el("td", null, el("span", { class: "status " + (e.status === "open" ? "live" : e.status === "closed" ? "retired" : "draft") }, e.status)))))))
         : el("div", { class: "empty" }, "No exams yet. Create the pre-test first: students take it right after they sign in.")),
+      await schedulePanel(),
       el("div", { class: "panel" }, el("h3", null, "How exams work"),
         el("ul", { class: "history" },
           el("li", null, "Items come from the pre-test or monthly pool. Only admins can place questions in those pools (Question bank → item → Pool)."),
           el("li", null, "When an open pre-test exists for a student's cohort, they record consent and take it before the rest of the app opens."),
           el("li", null, "Students never see pre-test or monthly questions anywhere else, and they see only their score and niche breakdown afterwards."),
           el("li", null, "Opening an exam pins each item to its live version, so later edits do not change a running exam."))));
+  }
+
+  async function schedulePanel() {
+    const list = await API.scheduleList().catch(() => []);
+    const form = (x) => {
+      const f = {
+        cohort: el("select", { disabled: !!x }, S.cohorts.map((c) => el("option", { value: c.id, selected: x ? x.cohort_id === c.id : c.id === S.cohort }, c.name))),
+        title: el("input", { type: "text", value: x ? x.title : "Monthly check-in" }),
+        day: el("input", { type: "number", min: 1, max: 28, value: x ? x.day_of_month : 1 }),
+        n: el("input", { type: "number", min: 1, max: 200, value: x ? x.n_items : 20 }),
+        mins: el("input", { type: "number", min: 5, max: 240, value: x ? x.duration_min : 30 }),
+        open: el("input", { type: "number", min: 1, max: 28, value: x ? x.open_days : 7 }),
+        active: el("input", { type: "checkbox", checked: x ? x.active : true })
+      };
+      const node = [el("div", { class: "grid2" }, field("Cohort", f.cohort, true), field("Title", f.title, true),
+        field("Day of the month", f.day, true, "1 to 28. It opens at midnight (Bangkok time) that day."), field("Questions", f.n, true, "Picked from the monthly pool, spread across niches."),
+        field("Minutes allowed", f.mins, true), field("Days it stays open", f.open, true)),
+        el("label", { style: { display: "flex", gap: "8px", alignItems: "center" } }, f.active, "Active")];
+      const payload = () => ({ id: x ? x.id : null, cohort_id: f.cohort.value, title: f.title.value, day_of_month: f.day.value,
+        n_items: f.n.value, duration_min: f.mins.value, open_days: f.open.value, active: f.active.checked });
+      return { node, payload };
+    };
+    const open = (x) => {
+      if (!S.cohorts.length) { toast("Create a cohort first (Students tab).", true); return; }
+      const fm = form(x);
+      modal(x ? "Edit schedule" : "New monthly schedule", fm.node, [{ label: "Cancel" }, { label: "Save", cls: "primary", onClick: async (close) => {
+        await guard(() => API.saveSchedule(fm.payload()), "Schedule saved.");
+        await API.runDueSchedules().catch(() => {});
+        close(); route();
+      } }]);
+    };
+    return el("div", { class: "panel" },
+      el("div", { class: "row", style: { justifyContent: "space-between", marginBottom: "6px" } },
+        el("h3", { style: { margin: 0 } }, "Monthly check-in schedule"),
+        el("button", { class: "btn small", type: "button", onclick: () => open(null) }, "New schedule")),
+      el("p", { class: "dim", style: { margin: "0 0 12px" } }, "Set it once: each month on the chosen day the check-in is created, filled from the monthly pool and opened for the cohort. No clicks needed."),
+      list.length ? el("div", { class: "tablewrap" }, el("table", null,
+        el("thead", null, el("tr", null, ["Cohort", "Title", "Day", "Questions", "Minutes", "Open for", "Last made", "Status"].map((h) => el("th", null, h)))),
+        el("tbody", null, list.map((x) => el("tr", { class: "click", onclick: () => open(x) },
+          el("td", null, x.cohort), el("td", null, x.title), el("td", { class: "mono" }, `${x.day_of_month}${["st", "nd", "rd"][((x.day_of_month + 90) % 100 - 10) % 10 - 1] || "th"}`),
+          el("td", { class: "num" }, String(x.n_items)), el("td", { class: "num" }, String(x.duration_min)), el("td", null, `${x.open_days} days`),
+          el("td", { class: "mono" }, x.last_period || "—"), el("td", null, el("span", { class: "status " + (x.active ? "live" : "retired") }, x.active ? "active" : "paused")))))))
+        : el("p", { class: "dim", style: { margin: 0 } }, "No schedule yet."));
   }
 
   async function examEditor(id) {
@@ -1170,7 +1437,7 @@
   }
 
   API.onAuth((event) => {
-    if (event === "PASSWORD_RECOVERY") { document.getElementById("tabs").hidden = true; Shell.newPasswordScreen($main); return; }
+    if (event === "PASSWORD_RECOVERY") { document.body.classList.add("nonav"); Shell.newPasswordScreen($main); return; }
     if (event === "SIGNED_OUT") { location.reload(); return; }
     boot();
   });

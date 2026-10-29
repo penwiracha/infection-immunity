@@ -9,14 +9,10 @@
 <title>Instructor dashboard — Infection &amp; Immunity</title>
 <link rel="stylesheet" href="../app/app.css">
 </head>
-<body>
-<header class="top">
-  <div class="brandwrap">
-    <a class="brand" href="../index.html" title="Back to the revision tool">Infection &amp; Immunity</a>
-    <span class="pill">Instructor</span>
-  </div>
-  <nav class="tabs" id="tabs" role="tablist" aria-label="Instructor sections" hidden></nav>
-  <div class="topright"><button class="avatar" id="avatar" type="button" hidden></button></div>
+<body class="nonav">
+<header class="top gatebar">
+  <a class="brand" href="../index.html">Infection &amp; Immunity</a>
+  <span class="status" id="status" aria-live="polite"></span>
 </header>
 <main id="main"><p class="dim">Loading…</p></main>
 
@@ -26,6 +22,7 @@
 <script src="../app/api.js"></script>
 <script src="../app/render.js"></script>
 <script src="../app/shell.js"></script>
+<script src="../app/sitenav.js"></script>
 <script src="../app/instructor.js"></script>
 </body>
 </html>

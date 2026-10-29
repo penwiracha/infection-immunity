@@ -23,7 +23,17 @@ button,input,select,textarea{font:inherit;color:inherit}
 .k{font-size:12px;color:var(--dim)}
 .eyebrow{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
 
-/* ---------- header ---------- */
+/* ---------- header (only while the side navigation is hidden: sign-in, consent, pre-test) ---------- */
+.top.gatebar{display:none}
+body.nonav .top.gatebar{display:flex}
+.gatebar .status{margin-left:auto;color:var(--ink2);font-size:14px}
+.userbtn{display:flex;align-items:center;gap:10px;width:100%;background:transparent;border:none;border-radius:8px;padding:8px 10px;cursor:pointer;color:var(--ink);text-align:left;font:inherit}
+.userbtn:hover{background:var(--panel2)}
+.userbtn .avatar{flex:none}
+.userbtn small{display:block;color:var(--dim);font-size:12px}
+.siteside .streak{padding:0 10px 8px;font-size:13.5px}
+.siteside .menu{left:12px;right:auto;top:auto;bottom:70px;position:fixed}
+.timer{font-size:13.5px;color:var(--ink2);margin:0 0 14px}
 .top{display:flex;align-items:center;gap:28px;height:64px;padding:0 32px;border-bottom:1px solid var(--line);position:relative}
 .brand{font-weight:700;font-size:16.5px;white-space:nowrap;color:var(--ink);text-decoration:none}
 .pill{display:inline-block;border:1px solid var(--line2);border-radius:999px;padding:2px 10px;font-size:12px;color:var(--ink2);white-space:nowrap}

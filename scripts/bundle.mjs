@@ -47,6 +47,8 @@ const DATA_JS = "<script>\n" + DATA_FILES.map((f) => escClose(readFileSync(P(f),
 /* ---- process one view into a fully self-contained document string ---- */
 function processView(file) {
   let html = readFileSync(P("views", file), "utf8");
+  // the side navigation links into the online app; the offline file has its own top bar
+  html = html.replace(/<!-- online-only -->[\s\S]*?<!-- \/online-only -->\n?/g, "");
   // 1. replace the external data <script src> block with the inlined data
   const hadData = /<script src="\.\.\/data\//.test(html);
   html = html.replace(/[ \t]*<script src="\.\.\/data\/[^"]+"><\/script>\n?/g, "");

@@ -126,12 +126,12 @@ await test("instructor: question editor + student preview keep tags as text; liv
 
 await test("instructor: cannot approve own item; reviewer sees approve/return on another's", "instructor", async (page) => {
   await page.goto(`${BASE}/views/instructor.html#questions/q1`);
-  assert.equal(await page.getByRole("button", { name: "Approve" }).count(), 0);
+  assert.equal(await page.getByRole("button", { name: /^Approve/ }).count(), 0);
   await page.goto(`${BASE}/views/instructor.html#questions/q2`);
-  await page.getByRole("button", { name: "Approve" }).waitFor();
-  assert.equal(await page.getByRole("button", { name: "Return to author" }).count(), 1);
+  await page.getByRole("button", { name: "Approve & next" }).waitFor();
+  assert.equal(await page.getByRole("button", { name: "Return & next" }).count(), 1);
   assert.ok(await page.getByText("AI-generated item").count() === 1);
-  await page.getByRole("button", { name: "Return to author" }).click();
+  await page.getByRole("button", { name: "Return & next" }).click();
   assert.ok(!(await page.evaluate(() => window.__CALLS__)).some((c) => c[0] === "reviewQuestion"), "returned without a comment");
   await shot(page, "question-review");
 });
@@ -177,7 +177,8 @@ await test("student opening the instructor page is sent to the student app", "st
   await page.goto(`${BASE}/views/instructor.html`);
   await page.waitForURL(/app\.html/);
   await page.getByText("Welcome back").waitFor();
-  assert.equal(await page.locator(".tab", { hasText: "Exams" }).count(), 0);
+  assert.equal(await page.locator(".siteside a", { hasText: "Exams" }).count(), 0);
+  assert.equal(await page.locator(".siteside a", { hasText: "Practice" }).count(), 1);
 });
 
 await test("instructor opening the student app is sent to the dashboard", "instructor", async (page) => {
@@ -189,14 +190,14 @@ await test("instructor opening the student app is sent to the dashboard", "instr
 await test("first visit: consent, then the pre-test, then unlock", "student", async (page) => {
   await page.goto(`${BASE}/views/app.html`);
   await page.getByText("Before you start").waitFor();
-  assert.equal(await page.locator("#tabs").isHidden(), true, "tabs should be hidden before the pre-test");
+  assert.equal(await page.locator(".siteside").isHidden(), true, "side navigation should be hidden before the pre-test");
   const start = page.getByRole("button", { name: "Start pre-test" });
   assert.equal(await start.isDisabled(), true, "start enabled without consent");
   await shot(page, "gate-consent");
   await page.locator(".consentbox input").first().check();
   await start.click();
   await page.getByText("Pre-test · Question 1 of 3").waitFor();
-  assert.match(await page.locator("#streak").textContent(), /Time used \d\d:\d\d · Progress is saved/);
+  assert.match(await page.locator("#status").textContent(), /Time used \d\d:\d\d · Progress is saved/);
   await page.locator(".opt").nth(1).click();
   await page.getByRole("button", { name: "Sure", exact: true }).click();
   await page.getByRole("button", { name: "Next" }).click();
@@ -222,7 +223,7 @@ await test("first visit: consent, then the pre-test, then unlock", "student", as
 await test("student home: study next, weak spots, stats, check-in", "student", async (page) => {
   await page.goto(`${BASE}/views/app.html#home`);
   await page.getByText("Study this next").waitFor();
-  assert.match(await page.locator("#streak").textContent(), /12-day streak/);
+  assert.match(await page.locator(".siteside .streak").textContent(), /12-day streak/);
   assert.ok((await page.locator("main").textContent()).includes("You missed 5 of your last 8 questions"));
   assert.ok((await page.locator("main").textContent()).includes("Opens in 6 days"));
   await shot(page, "student-home");
@@ -359,16 +360,64 @@ await test("admin settings hold the tag lists with file import; overview no long
   await shot(page, "settings-admin");
 });
 
-await test("revision views: Back and Home buttons, no emojis on the niche map", "student", async (page) => {
+await test("map pages: side navigation (no Back/Home bar), no emojis on the niche map", "student", async (page) => {
   for (const v of ["niche-map", "immune-map", "cascade", "taxonomy", "drugs"]) {
     await page.goto(`${BASE}/views/${v}.html`);
-    assert.equal(await page.locator("nav.viewnav a", { hasText: "Back" }).count(), 1, v + " back");
-    assert.equal(await page.locator("nav.viewnav a", { hasText: "Home" }).count(), 1, v + " home");
+    assert.equal(await page.locator("nav.viewnav").count(), 0, v + " still has the old Back/Home bar");
+    assert.equal(await page.locator(`.siteside a[aria-current=page]`).count(), 1, v + " side navigation marks the page");
+    assert.equal(await page.locator(".siteside a", { hasText: "Niche map" }).count(), 1, v + " maps listed");
   }
   await page.goto(`${BASE}/views/niche-map.html`);
   const text = await page.locator("body").innerText();
   assert.ok(!/\p{Extended_Pictographic}/u.test(text), "emoji still on the niche map");
 });
+
+await test("instructor workflow: Today card, review queue, bulk actions, AI prompt", "admin", async (page) => {
+  await page.goto(`${BASE}/views/instructor.html#overview`);
+  await page.getByText("Today").first().waitFor();
+  assert.ok((await page.locator(".panel.accent").first().textContent()).includes("waiting for your review"), "Today card lists reviews");
+  await shot(page, "instructor-overview-today");
+  assert.equal(await page.locator(".siteside a[aria-current=page]", { hasText: "Overview" }).count(), 1);
+  await page.goto(`${BASE}/views/instructor.html#questions`);
+  await page.getByRole("button", { name: /Waiting for my review/ }).click();
+  assert.equal(await page.locator("tbody tr").count(), 1, "review filter");
+  await page.getByRole("button", { name: /Waiting for my review/ }).click();
+  await page.locator("tbody input[type=checkbox]").first().check();
+  await page.getByText("1 selected").waitFor();
+  await shot(page, "instructor-bulk");
+  await page.getByRole("button", { name: "Submit for review" }).click();
+  await page.getByText("Some items were skipped").waitFor();   // a live item cannot be submitted: reported, not silently ignored
+  await page.locator(".modal").getByRole("button", { name: "Close" }).click();
+  await page.getByRole("button", { name: "AI prompt" }).click();
+  const prompt = await page.locator(".modal textarea").inputValue();
+  for (const t of ["Return ONLY a JSON array", "\"correct\": \"B\"", "streptococcus-pneumoniae", "Allowed values"])
+    assert.ok(prompt.includes(t), "prompt missing " + t);
+  await shot(page, "instructor-prompt");
+});
+
+await test("class codes, schedules", "admin", async (page) => {
+  await page.goto(`${BASE}/views/instructor.html#students`);
+  await page.getByText("K7M2QX").waitFor();
+  await page.goto(`${BASE}/views/instructor.html#exams`);
+  await page.getByText("Monthly check-in schedule").waitFor();
+  await page.getByRole("button", { name: "New schedule" }).click();
+  await page.locator(".modal").getByRole("button", { name: "Save" }).click();
+  assert.ok((await page.evaluate(() => window.__CALLS__)).some((c) => c[0] === "saveSchedule"));
+  await shot(page, "instructor-schedules");
+});
+
+await test("student joins a class with the code on the first screen", "student", async (page) => {
+  await page.addInitScript(() => { const t = setInterval(() => { if (window.__MOCK_API__) { clearInterval(t);
+    const ms = window.__MOCK_API__.myStatus; window.__MOCK_API__.myStatus = async () => ({ ...(await ms()), cohort_id: null }); } }, 1); });
+  await page.goto(`${BASE}/views/app.html`);
+  await page.getByText("Your class code").waitFor();
+  await page.getByPlaceholder("e.g. K7M2QX").fill("wrong1");
+  await page.getByRole("button", { name: "Join class" }).click();
+  await page.getByText("That class code was not found.").waitFor();
+  await page.getByPlaceholder("e.g. K7M2QX").fill("k7m2qx");
+  await page.getByRole("button", { name: "Join class" }).click();
+  await page.waitForFunction(() => window.__CALLS__.some((c) => c[0] === "joinCohort" && c[1] === "k7m2qx"));
+}, { gate: "consent" });
 
 await test("home page has a Log in button that opens the app", "student", async (page) => {
   await page.goto(`${BASE}/index.html`);

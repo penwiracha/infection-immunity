@@ -47,9 +47,12 @@
 
   /* Avatar button in the header that opens a small account menu.
      links: [{label, href}] */
+  /* Account button (sidebar footer) that opens a small menu with sign-out. links: [{label, href}] */
   function avatarMenu(button, profile, email, links) {
     button.hidden = false;
-    button.textContent = initials(profile.display_name || email);
+    button.replaceChildren(
+      el("span", { class: "avatar" }, initials(profile.display_name || email)),
+      el("span", null, profile.display_name || email, el("small", null, profile.role || "student")));
     button.setAttribute("aria-label", "Account menu");
     button.setAttribute("aria-haspopup", "menu");
     let menu = null;
@@ -58,17 +61,16 @@
       e.stopPropagation();
       if (menu) return close();
       menu = el("div", { class: "menu", role: "menu" },
-        el("div", { class: "who" }, el("b", null, profile.display_name || email), el("span", { class: "dim" }, `${email} · ${profile.role || "student"}`)),
+        el("div", { class: "who" }, el("b", null, profile.display_name || email), el("span", { class: "dim" }, email)),
         (links || []).map((l) => el("a", { href: l.href, role: "menuitem" }, l.label)),
         el("button", { type: "button", role: "menuitem", onclick: async () => { await root.API.signOut(); location.reload(); } }, "Sign out"));
-      button.closest(".top").appendChild(menu);
+      (button.closest(".siteside") || document.body).appendChild(menu);
       button.setAttribute("aria-expanded", "true");
     });
     document.addEventListener("click", (e) => { if (menu && !menu.contains(e.target)) close(); });
     document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
   }
 
-  /* Sign in with email + password typed on the site. Modes: signin · signup · forgot. */
   function signInScreen(container, sub, note, mode) {
     mode = mode || "signin";
     const again = (m) => () => signInScreen(container, sub, note, m);
@@ -77,6 +79,7 @@
       autocomplete: mode === "signup" ? "new-password" : "current-password" });
     const pw2 = el("input", { type: "password", required: true, minlength: 8, autocomplete: "new-password" });
     const name = el("input", { type: "text", required: true, autocomplete: "name", placeholder: "Name shown to your instructors" });
+    const code = el("input", { type: "text", autocomplete: "off", placeholder: "e.g. K7M2QX", maxlength: 12, style: { textTransform: "uppercase" } });
     const msg = el("p", { class: "dim", style: { margin: "14px 0 0" }, role: "status" });
     const say = (t, bad) => { msg.textContent = t; msg.className = bad ? "err" : "dim"; };
     const link = (t, fn) => el("button", { class: "linkbtn", type: "button", onclick: fn }, t);
@@ -86,7 +89,8 @@
     const fields = mode === "signup"
       ? [el("label", { class: "f" }, el("span", null, "Name"), name), el("label", { class: "f" }, el("span", null, "Email"), email),
          el("label", { class: "f" }, el("span", null, "Password"), pw, el("div", { class: "hint" }, "At least 8 characters.")),
-         el("label", { class: "f" }, el("span", null, "Repeat password"), pw2)]
+         el("label", { class: "f" }, el("span", null, "Repeat password"), pw2),
+         el("label", { class: "f" }, el("span", null, "Class code (students)"), code, el("div", { class: "hint" }, "From your instructor. You can also add it later in Settings."))]
       : mode === "forgot"
         ? [el("label", { class: "f" }, el("span", null, "Email"), email)]
         : [el("label", { class: "f" }, el("span", null, "Email"), email), el("label", { class: "f" }, el("span", null, "Password"), pw)];
@@ -114,7 +118,7 @@
           await root.API.signInPassword(em, pw.value);
           location.reload();
         } else if (mode === "signup") {
-          const ready = await root.API.signUp(em, pw.value, name.value.trim());
+          const ready = await root.API.signUp(em, pw.value, name.value.trim(), code.value);
           if (ready) location.reload();
           else { say("Account created. Check your email for a confirmation link, then sign in here."); btn.disabled = false; }
         } else {
@@ -230,6 +234,21 @@
     }
 
     const f = (label, input, hint) => el("label", { class: "f" }, el("span", null, label), input, hint ? el("div", { class: "hint" }, hint) : null);
+    let classBox = null;
+    if (opts.student) {
+      const codeIn = el("input", { type: "text", placeholder: "e.g. K7M2QX", maxlength: 12, style: { textTransform: "uppercase" } });
+      const cMsg = status();
+      const cBtn = el("button", { class: "btn", type: "button" }, opts.cohort ? "Change class" : "Join class");
+      cBtn.addEventListener("click", async () => {
+        if (!codeIn.value.trim()) return say(cMsg, "Enter the class code from your instructor.", true);
+        cBtn.disabled = true;
+        try { const nm = await A.joinCohort(codeIn.value); say(cMsg, `You are in class ${nm}.`); cohortVal.textContent = nm; codeIn.value = ""; if (opts.onCohort) opts.onCohort(nm); }
+        catch (e) { say(cMsg, /not found/i.test(e.message) ? "That class code was not found. Check it with your instructor." : e.message, true); }
+        cBtn.disabled = false;
+      });
+      classBox = section("Class", opts.cohort ? null : "Enter the class code your instructor gave you.", f("Class code", codeIn), cBtn, cMsg);
+    }
+    const cohortVal = el("dd", null, opts.cohort || "—");
     fill(container,
       el("div", { class: "pagehead" }, el("div", null, el("h1", null, "Settings"),
         el("p", { class: "sub" }, "Your name, sign-in email and password."))),
@@ -244,9 +263,9 @@
         el("div", null,
           section("Your account", null, el("dl", { class: "meta", style: { marginTop: 0 } },
             el("dt", null, "Role"), el("dd", null, opts.profile.role || "student"),
-            opts.cohort ? [el("dt", null, "Cohort"), el("dd", null, opts.cohort)] : null),
-            el("p", { class: "hint" }, "Only an admin can change roles and cohorts.")),
-          research, opts.extra || null)));
+            opts.student ? [el("dt", null, "Class"), cohortVal] : null),
+            el("p", { class: "hint" }, opts.student ? "Only an admin can change roles." : "Only an admin can change roles.")),
+          classBox, research, opts.extra || null)));
   }
 
   root.Shell = { toast, modal, confirmBox, signInScreen, newPasswordScreen, settingsPage, avatarMenu, initials };

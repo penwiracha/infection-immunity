@@ -71,11 +71,10 @@ code{background:var(--panel2);padding:1px 5px;border-radius:4px;font-size:11.5px
 </style>
 </head>
 <body>
-<nav class="viewnav" aria-label="Site" style="display:flex;align-items:center;gap:10px;padding:12px 24px;border-bottom:1px solid #262a33;background:#0f1014;position:sticky;top:0;z-index:30;font:14.5px/1.4 'Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,sans-serif">
-  <a href="../index.html" onclick="if(document.referrer&&history.length>1){history.back();return false}" style="color:#eceef2;text-decoration:none;border:1px solid #33384a;border-radius:8px;padding:7px 14px">&larr; Back</a>
-  <a href="../index.html" style="color:#15122a;background:#9d8cf7;text-decoration:none;border-radius:8px;padding:7px 14px;font-weight:600">Home</a>
-  <span style="margin-left:auto;color:#c9cdd6;font-weight:700;white-space:nowrap">Infection &amp; Immunity</span>
-</nav>
+<!-- online-only -->
+<script src="../app/sitenav.js"></script>
+<script>SiteNav.mount({ active: "immune-map" });</script>
+<!-- /online-only -->
 
 <header>
   <div class="eyebrow">Keystone diagram &middot; addressable</div>

@@ -43,7 +43,7 @@ begin
   perform pg_temp.as_user('00000000-0000-0000-0000-0000000000b2');
   perform review_question((r ->> 'version_id')::uuid, 'approved');
   perform pg_temp.as_user('00000000-0000-0000-0000-0000000000a1');
-  perform publish_question((r ->> 'version_id')::uuid);
+  if coalesce(p ->> 'pool', 'practice') <> 'practice' then perform publish_question((r ->> 'version_id')::uuid); end if;
   execute 'reset role';
 end $$;
 grant execute on function pg_temp.live_item(text, jsonb) to public;

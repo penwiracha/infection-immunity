@@ -190,6 +190,12 @@
 
     // instructor
     async cohorts() { return [{ id: "c1", name: "2567" }, { id: "c2", name: "2568" }]; },
+    async cohortList() { return [{ id: "c1", name: "2567", join_code: "K7M2QX", students: 84 }, { id: "c2", name: "2568", join_code: "P3RT9W", students: 0 }]; },
+    async newCohortCode(id) { call("newCohortCode", id); return "NEW123"; },
+    async joinCohort(c) { call("joinCohort", c); if (String(c).toUpperCase() !== "K7M2QX") throw new Error("that class code was not found"); return "2567"; },
+    async scheduleList() { return [{ id: "s1", cohort_id: "c1", cohort: "2567", title: "Monthly check-in", day_of_month: 1, n_items: 20, duration_min: 30, open_days: 7, active: true, last_period: "2026-10" }]; },
+    async saveSchedule(p) { call("saveSchedule", p); return "s1"; },
+    async runDueSchedules() { call("runDueSchedules"); return 0; },
     async saveCohort(...a) { call("saveCohort", ...a); return "c3"; },
     async setStudentCohort(...a) { call("setStudentCohort", ...a); },
     async cohortOverview() {

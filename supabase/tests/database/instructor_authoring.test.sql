@@ -169,7 +169,7 @@ select throws_ok(format($$select review_question(%L, 'returned', '')$$, (select 
 select lives_ok(format($$select review_question(%L, 'approved', 'Clear stem')$$, (select v from ids where k = 'Q1v1')),
                 'a different instructor approves');
 select pg_temp.as_user(:'i1');
-select lives_ok(format($$select publish_question(%L)$$, (select v from ids where k = 'Q1v1')), 'author puts the approved item live');
+select is((select status from question_versions where id = (select v from ids where k = 'Q1v1')), 'live', 'approving a practice item puts it live');
 
 -- admin-only pools: admin may create pretest items; students never see them in practice
 select pg_temp.as_user(:'admin');
@@ -219,7 +219,6 @@ select pg_temp.as_user(:'i1');
 select submit_question((select v from ids where k = 'Q1v2'));
 select pg_temp.as_user(:'i2');
 select review_question((select v from ids where k = 'Q1v2'), 'approved');
-select publish_question((select v from ids where k = 'Q1v2'));
 reset role;
 select is((select status from question_versions where id = (select v from ids where k = 'Q1v1')), 'superseded', 'version 1 is superseded');
 select is((select count(*)::int from answers where version_id = (select v from ids where k = 'Q1v1')), 2,

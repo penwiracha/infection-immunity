@@ -35,10 +35,10 @@
     },
     // Returns true when the account is ready to use now (email confirmation is off in Supabase),
     // false when Supabase has emailed a confirmation link first.
-    async signUp(email, password, displayName) {
+    async signUp(email, password, displayName, classCode) {
       need();
       const data = unwrap(await sb.auth.signUp({ email, password,
-        options: { data: { display_name: displayName || "" }, emailRedirectTo: location.href.split("#")[0] } }));
+        options: { data: { display_name: displayName || "", class_code: (classCode || "").trim() }, emailRedirectTo: location.href.split("#")[0] } }));
       return !!(data && data.session);
     },
     async resetPassword(email) {
@@ -135,7 +135,13 @@
     examResult: (att) => rpc("exam_result", { p_attempt: att }),
 
     // ---- cohorts, exams, cohort reporting (instructors) ----
-    async cohorts() { return unwrap(await from("cohorts").select("*").order("name", { ascending: false })); },
+    async cohorts() { return unwrap(await from("cohorts").select("id,name,starts_on,created_at").order("name", { ascending: false })); },
+    cohortList: () => rpc("cohort_list"),
+    newCohortCode: (id) => rpc("new_cohort_code", { p_cohort: id }),
+    joinCohort: (code) => rpc("join_cohort", { p_code: code }),
+    scheduleList: () => rpc("schedule_list"),
+    saveSchedule: (p) => rpc("save_schedule", { p }),
+    runDueSchedules: () => rpc("run_due_schedules"),
     saveCohort: (name, startsOn, id) => rpc("save_cohort", { p_name: name, p_starts_on: startsOn || null, p_id: id || null }),
     setStudentCohort: (uid, cid) => rpc("set_student_cohort", { p_user: uid, p_cohort: cid || null }),
     cohortOverview: (cid, days) => rpc("cohort_overview", { p_cohort: cid || null, p_days: days || 30 }),
