@@ -513,7 +513,7 @@
         el("div", { class: "eyebrow" }, "Selected organism"),
         el("h2", { style: { margin: "0 0 2px", fontSize: "21px" }, translate: "no" }, o.name),
         el("div", { class: "hint", style: { marginTop: 0 } }, subtitle(o)),
-        p.resp ? [el("span", { class: "k" }, "Immune response"), el("p", { translate: "no" }, decode(p.resp))] : null,
+        p.resp ? [el("span", { class: "k" }, "How the immune system responds"), el("p", { translate: "no" }, decode(p.resp))] : null,
         p.evade ? [el("span", { class: "k" }, "Why it fails"), el("p", { translate: "no" }, decode(p.evade))] : null,
         p.dis ? [el("span", { class: "k" }, "Disease"), el("p", { translate: "no" }, decode(p.dis))] : null,
         el("div", { class: "row", style: { marginTop: "16px", gap: "8px" } },

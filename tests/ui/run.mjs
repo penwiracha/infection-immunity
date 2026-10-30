@@ -629,7 +629,7 @@ await test("colours: break-points and the cascade link never use a niche colour"
   await shot(page, "immune-map-break");
 });
 
-await test("Thai: the globe switches the interface; content stays as written; instructor pages stay English", "student", async (page) => {
+await test("Thai: the globe switches the interface; content stays as written", "student", async (page) => {
   await page.goto(`${BASE}/views/app.html#learn/11111111-1111-1111-1111-111111111111`);
   await page.locator(".bullets li").first().waitFor();
   await page.locator(".siteside .slang").click();
@@ -650,19 +650,25 @@ await test("Thai: the globe switches the interface; content stays as written; in
   await page.goto(`${BASE}/views/niche-map.html`);
   await page.getByText("แตะเพื่อกรอง").waitFor();
   assert.ok((await page.locator(".tree").textContent()).includes("Streptococcus pneumoniae"), "organism names stay");
-  await page.goto(`${BASE}/views/instructor.html#overview`);   // a student is sent back to the app, but the dashboard itself is English-only
   await page.goto(`${BASE}/index.html`);
   await page.getByText("เข้าสู่ระบบ").first().waitFor();
   await page.locator(".langbtn").click();
   await page.waitForLoadState("load");
   await page.getByText("Log in").first().waitFor();
 });
-await test("Thai is off on the instructor dashboard", "instructor", async (page) => {
+await test("Thai on the instructor dashboard; question text and tags stay as written", "instructor", async (page) => {
   await page.addInitScript(() => { try { localStorage.setItem("ii.lang", "th"); } catch (e) {} });
   await page.goto(`${BASE}/views/instructor.html#overview`);
-  await page.getByText("Topic accuracy over time").waitFor();
-  assert.equal(await page.locator(".siteside .slang").count(), 0, "no language switch on the dashboard");
-  assert.equal(await page.locator(".siteside a.sitem", { hasText: "Overview" }).count(), 1);
+  await page.getByText("ความแม่นยำรายหัวข้อตามช่วงเวลา").waitFor();
+  assert.equal(await page.locator(".siteside .slang").count(), 1, "language switch in the side menu");
+  assert.equal(await page.locator(".siteside a.sitem", { hasText: "ภาพรวม" }).count(), 1);
+  await page.goto(`${BASE}/views/instructor.html#questions`);
+  await page.locator("td.stemcell").first().waitFor();
+  assert.ok((await page.locator("td.stemcell").first().textContent()).includes("Which feature lets S. pneumoniae"), "question stems stay as written");
+  assert.ok((await page.locator("main").textContent()).includes("คลังคำถาม"));
+  await page.goto(`${BASE}/views/instructor.html#questions/q1`);
+  await page.getByText("ดูตัวอย่างแบบนักศึกษา").waitFor();
+  await shot(page, "thai-question-editor");
 });
 
 await browser.close();

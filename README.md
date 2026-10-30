@@ -170,7 +170,9 @@ cards and names stay exactly as written. How it works: `app/i18n.js` swaps text 
 `app/i18n-th.js` (English text → Thai; `{n}` marks parts that change), and skips anything marked
 `translate="no"`, which is how content is protected. To fix a wording, edit the Thai side of `app/i18n-th.js`;
 a new English string with no entry simply stays English. The choice is saved on the profile (`profiles.lang`,
-migration 0009) and in the browser. The instructor dashboard is English-only for now (`data-i18n="off"`).
+migration 0009) and in the browser. It covers the student app, the instructor dashboard, the maps, the home
+page and the offline file. AI prompts that instructors copy stay in English on purpose (the AI reply is
+imported as-is). A page can opt out with `<html data-i18n="off">`.
 
 **Instructors** can **hide** a published lecture (students stop seeing it and its practice questions) or a
 question that no student has answered or reviewed and that is in no exam (it leaves practice and exam

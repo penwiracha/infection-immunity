@@ -225,7 +225,7 @@
     const N = ov.students || 0;
     const qRow = (q) => el("tr", { class: "click", onclick: () => (location.hash = "questions/" + q.question_id) },
       el("td", { class: "mono" }, qCode(q.question_id)),
-      el("td", { class: "stemcell" }, (q.stem || "").slice(0, 140)), el("td", null, q.author_name || "—"),
+      el("td", { class: "stemcell", translate: "no" }, (q.stem || "").slice(0, 140)), el("td", null, q.author_name || "—"),
       el("td", { class: "mono" }, fmtDay(q.updated_at)));
 
     const myDrafts = questions.filter((q) => q.status === "draft" && q.version_author === S.me && !q.retired_at);
@@ -267,7 +267,7 @@
         myDrafts.length ? el("div", { class: "tablewrap" }, el("table", null,
           el("thead", null, el("tr", null, ["Item", "Stem", "Lecture", "Updated"].map((h) => el("th", null, h)))),
           el("tbody", null, myDrafts.slice(0, 10).map((q) => el("tr", { class: "click", onclick: () => (location.hash = "questions/" + q.question_id) },
-            el("td", { class: "mono" }, qCode(q.question_id)), el("td", { class: "stemcell" }, (q.stem || "").slice(0, 140)),
+            el("td", { class: "mono" }, qCode(q.question_id)), el("td", { class: "stemcell", translate: "no" }, (q.stem || "").slice(0, 140)),
             el("td", null, q.lecture_number != null ? `L${q.lecture_number}` : "—"), el("td", { class: "mono" }, fmtDay(q.updated_at)))))))
           : el("p", { class: "dim", style: { margin: 0 } }, "Nothing waiting. New and imported questions appear here until you publish them.")),
     );
@@ -361,7 +361,7 @@
       el("div", { class: "panel" }, S.lectures.length ? el("div", { class: "tablewrap" }, el("table", null,
         el("thead", null, el("tr", null, ["No.", "Title", "Niche", "Status", "Author", "Last edited", "Opened by", "Live Qs"].map((h, i) => el("th", { class: i === 0 || i > 5 ? "num" : null }, h)))),
         el("tbody", null, S.lectures.map((l) => el("tr", { class: "click" + (l.hidden_at ? " ishidden" : ""), onclick: () => (location.hash = "lectures/" + l.id) },
-          el("td", { class: "num" }, String(l.number)), el("td", null, l.title), el("td", null, Render.shortNiche(S.vocab, l.niche)),
+          el("td", { class: "num" }, String(l.number)), el("td", { translate: "no" }, l.title), el("td", null, Render.shortNiche(S.vocab, l.niche)),
           el("td", null, statusChip(l.status), l.hidden_at ? [" ", statusChip("hidden")] : null), el("td", null, l.author_name || "—"), el("td", null, fmtDate(l.updated_at)),
           el("td", { class: "num" }, String(l.viewers || 0)), el("td", { class: "num" }, String(l.questions || 0)))))))
         : el("div", { class: "empty" }, "No lectures yet.")));
@@ -574,7 +574,7 @@
         return el("tr", { class: "click" + (r.hidden_at ? " ishidden" : ""), onclick: () => (location.hash = "questions/" + r.question_id) },
           el("td", null, cb),
           el("td", { class: "mono" }, qCode(r.question_id)),
-          el("td", { class: "stemcell" }, (r.stem || "").length > 150 ? r.stem.slice(0, 150) + "…" : r.stem),
+          el("td", { class: "stemcell", translate: "no" }, (r.stem || "").length > 150 ? r.stem.slice(0, 150) + "…" : r.stem),
           el("td", null, statusChip(r.status), r.hidden_at ? [" ", statusChip("hidden")] : null,
             r.live_version_id && r.status !== "live" && !r.retired_at ? el("div", { class: "hint" }, `v${r.live_version} live`) : null),
           el("td", null, r.pool),
@@ -1168,8 +1168,8 @@
       countEl.textContent = `${list.length} of ${rows.length} cards`;
       fill(body, list.length ? list.slice(0, 500).map((r) => el("tr", { class: r.deleted_at ? "ishidden" : null },
         el("td", null, el("div", null, r.name || r.code), el("div", { class: "hint", style: { marginTop: 0 } }, [r.code, r.cohort].filter(Boolean).join(" · "))),
-        el("td", { style: { whiteSpace: "pre-wrap", maxWidth: "280px" } }, r.front),
-        el("td", { style: { whiteSpace: "pre-wrap", maxWidth: "340px" } }, r.back),
+        el("td", { style: { whiteSpace: "pre-wrap", maxWidth: "280px" }, translate: "no" }, r.front),
+        el("td", { style: { whiteSpace: "pre-wrap", maxWidth: "340px" }, translate: "no" }, r.back),
         el("td", null, [r.topic ? vlabel("topic", r.topic) : null, r.organism_id ? vlabel("organism", r.organism_id) : null].filter(Boolean).join(" · ") || "—"),
         el("td", { class: "num" }, String(r.reviews || 0)),
         el("td", { class: "mono" }, fmtDay(r.created_at)),
@@ -1302,7 +1302,7 @@
         el("thead", null, el("tr", null, ["Exam", "Kind", "Cohort", "Opens", "Closes", "Items", "Submitted", "Average", "Status"]
           .map((h, i) => el("th", { class: i >= 5 && i <= 7 ? "num" : null }, h)))),
         el("tbody", null, list.map((e) => el("tr", { class: "click", onclick: () => (location.hash = "exams/" + e.id) },
-          el("td", null, e.title), el("td", null, KIND[e.kind]), el("td", null, e.cohort || "Everyone"),
+          el("td", { translate: "no" }, e.title), el("td", null, KIND[e.kind]), el("td", null, e.cohort || "Everyone"),
           el("td", { class: "mono" }, fmtDay(e.opens_at)), el("td", { class: "mono" }, e.closes_at ? fmtDay(e.closes_at) : "—"),
           el("td", { class: "num" }, String(e.n_items)), el("td", { class: "num" }, `${e.submitted} of ${e.eligible}`),
           el("td", { class: "num" }, pct(e.avg_score)), el("td", null, el("span", { class: "status " + (e.status === "open" ? "live" : e.status === "closed" ? "retired" : "draft") }, e.status)))))))
@@ -1424,7 +1424,7 @@
             el("thead", null, el("tr", null, ["#", "Item", "Topic", "Niche", "Correct", ""].map((h, i) => el("th", { class: i === 4 ? "num" : null }, h)))),
             el("tbody", null, d.items.map((it) => el("tr", null,
               el("td", { class: "mono" }, String(it.position)),
-              el("td", { class: "stemcell" }, el("a", { href: "#questions/" + it.question_id }, qCode(it.question_id)), " ", el("span", { class: "dim" }, (it.stem || "").slice(0, 90))),
+              el("td", { class: "stemcell", translate: "no" }, el("a", { href: "#questions/" + it.question_id }, qCode(it.question_id)), " ", el("span", { class: "dim" }, (it.stem || "").slice(0, 90))),
               el("td", null, vlabel("topic", it.topic)), el("td", null, Render.shortNiche(S.vocab, it.niche)),
               el("td", { class: "num" }, it.n ? pct(it.pct) : "—"),
               el("td", null, draft ? el("button", { class: "btn small", type: "button", onclick: () => removeItem(it.question_id) }, "Remove") : null))))))
