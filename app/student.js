@@ -575,12 +575,16 @@
      Practice → "Bookmarked topics", where a session draws every question tagged with them. */
   function bookmarkBtn(kind, ref, opts) {
     opts = opts || {};
-    const b = el("button", { class: "chip bookmark", type: "button" });
+    // An icon only (a bookmark ribbon: outline = not saved, filled = saved). The words show on hover or focus,
+    // and screen readers get them as the button's name.
+    const b = el("button", { class: "bookmark", type: "button" },
+      svg("svg", { viewBox: "0 0 24 24", width: 18, height: 18, "aria-hidden": "true" },
+        svg("path", { d: "M6 3.5h12a1 1 0 0 1 1 1V21l-7-4.5L5 21V4.5a1 1 0 0 1 1-1z" })));
     const paint = () => {
       const on = isSaved(kind, ref);
       b.setAttribute("aria-pressed", String(on));
-      b.textContent = on ? (opts.onLabel || "Bookmarked") : (opts.offLabel || "Bookmark");
-      b.title = on ? "Remove from your bookmarked topics" : "Add to your bookmarked topics (Practice)";
+      b.setAttribute("aria-label", on ? (opts.onLabel || "Bookmarked") : (opts.offLabel || "Bookmark"));
+      b.dataset.tip = on ? "Bookmarked · click to remove" : (opts.offLabel || "Bookmark") + " · it appears in Practice";
     };
     b.addEventListener("click", async (ev) => {
       ev.stopPropagation();

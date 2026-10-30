@@ -500,7 +500,11 @@ await test("admin: student view stays in preview while moving between sections",
 
 await test("bookmarks: lectures, diseases and organisms appear under Bookmarked topics", "student", async (page) => {
   await page.goto(`${BASE}/views/app.html#learn/11111111-1111-1111-1111-111111111111`);
-  await page.getByRole("button", { name: "Bookmark this lecture" }).click();
+  const bm = page.getByRole("button", { name: "Bookmark this lecture" });
+  assert.equal((await bm.textContent()).trim(), "", "bookmark buttons are an icon; the words show only on hover");
+  await bm.hover();
+  assert.match(await bm.evaluate((e) => getComputedStyle(e, "::after").content), /Bookmark this lecture/);
+  await bm.click();
   await page.getByRole("button", { name: "Bookmarked" }).first().waitFor();
   await page.goto(`${BASE}/views/app.html#explore`);
   await page.getByLabel("Search organisms").fill("pneumoniae");
