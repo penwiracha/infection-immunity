@@ -164,8 +164,7 @@
     aside.appendChild(top);
     if (staff) aside.appendChild(mk("span", "spill", "Instructor"));
     const nav = mk("nav"); nav.setAttribute("aria-label", "Sections");
-    // admins also get People & roles
-    const staffRows = opts.admin ? STAFF.slice(0, 4).concat([["people", "People & roles", "instructor.html#people"]], STAFF.slice(4)) : STAFF;
+    const staffRows = STAFF;
     nav.appendChild(group(null, staff ? staffRows : STUDENT));
     nav.appendChild(group("Maps", MAPS));
     nav.appendChild(group("Account", [["settings", "Settings", staff ? "instructor.html#settings" : "app.html#settings"]]

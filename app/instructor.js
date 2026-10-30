@@ -18,7 +18,7 @@
     qFilters: { mine: "", status: "", pool: "", source: "", niche: "", topic: "", author: "", lecture: "", tier: "", difficulty: "", q: "" }
   };
   const TABS = [["overview", "Overview"], ["lectures", "Lectures"], ["questions", "Questions"],
-                ["students", "Students"], ["people", "People & roles"], ["items", "Items"], ["exams", "Exams"], ["export", "Export"]];
+                ["students", "Students"], ["items", "Items"], ["exams", "Exams"], ["export", "Export"]];
   const STATUSES = ["draft", "live", "superseded", "retired", "hidden"];
   const STATUS_LABEL = { draft: "Draft", live: "Live",
                          superseded: "Superseded", retired: "Retired", published: "Published", hidden: "Hidden" };
@@ -115,10 +115,16 @@
 
   async function route() {
     const [tab, arg] = (location.hash.slice(1) || "overview").split("/");
+    if (tab === "people") { location.replace("#settings/people"); return; }   // old address
+    if (tab === "settings" && arg === "people") {
+      dirtyGuard = null; setTabs("settings");
+      try { await people(); } catch (e) { fill($main, el("div", { class: "banner bad" }, errMsg(e))); }
+      return;
+    }
     if (tab === "settings") {
       dirtyGuard = null; setTabs("settings");
       Shell.settingsPage($main, { profile: S.profile, email: S.email, student: false,
-        extra: [aiUsagePanel(), S.isAdmin ? vocabPanel() : null] });
+        extra: [S.isAdmin ? peopleLinkPanel() : null, aiUsagePanel(), S.isAdmin ? vocabPanel() : null] });
       return;
     }
     const t = TABS.some(([id]) => id === tab) ? tab : "overview";
@@ -132,7 +138,6 @@
       else if (t === "lectures") arg ? await lectureEditor(arg) : await lectureList();
       else if (t === "questions") arg ? await questionEditor(arg) : await questionList();
       else if (t === "students") await students();
-      else if (t === "people") await people();
       else if (t === "items") await items();
       else if (t === "exams") arg ? await examEditor(arg) : await exams();
       else if (t === "export") await exportTab();
@@ -1349,6 +1354,12 @@
   // staff who have not signed up yet.
   // ------------------------------------------------------------------
   const ROLE_LABEL = { student: "Student", instructor: "Instructor", admin: "Admin" };
+  /* Admin Settings: the way in to People & roles (kept out of the main menu on purpose). */
+  function peopleLinkPanel() {
+    return el("div", { class: "panel" }, el("h3", { style: { marginBottom: "4px" } }, "People & roles"),
+      el("p", { class: "dim", style: { margin: "0 0 14px" } }, "Make someone an instructor or admin, or invite staff who have not signed up yet."),
+      el("a", { class: "btn", href: "#settings/people" }, "Manage people & roles"));
+  }
   async function people() {
     if (!S.isAdmin) { fill($main, pagehead("People & roles", null), el("div", { class: "banner info" }, "Only admins can manage roles.")); return; }
     const [rows, invites] = await Promise.all([API.peopleList(), API.staffInviteList().catch(() => [])]);
@@ -1436,6 +1447,7 @@
     });
 
     fill($main,
+      backlink("#settings", "Settings"),
       pagehead("People & roles", "Give staff their roles. Everyone starts as a student; nobody can change their own role, and every change is logged."),
       el("div", { class: "panel" }, el("div", { class: "statrow" },
         [["Admins", n("admin")], ["Instructors", n("instructor")], ["Students", n("student")]].map(([t, v]) =>

@@ -713,7 +713,9 @@ await test("AI drafts: a lecture can generate from the lecture editor; writing b
 
 await test("People & roles: admins change roles from a dropdown and invite staff by code", "admin", async (page) => {
   await page.goto(`${BASE}/views/instructor.html#overview`);
-  await page.locator(".siteside a", { hasText: "People & roles" }).click();
+  assert.equal(await page.locator(".siteside a", { hasText: "People & roles" }).count(), 0, "kept out of the main menu");
+  await page.goto(`${BASE}/views/instructor.html#settings`);
+  await page.getByRole("link", { name: "Manage people & roles" }).click();
   await page.getByRole("heading", { name: "People & roles" }).waitFor();
   assert.equal(await page.getByLabel("Role of Dr Admin").isDisabled(), true, "own role is locked");
   await page.getByLabel("Role of Nok").selectOption("instructor");
@@ -732,10 +734,10 @@ await test("People & roles: admins change roles from a dropdown and invite staff
   await page.waitForFunction(() => window.__CALLS__.some((c) => c[0] === "revokeStaffInvite"));
 });
 await test("People & roles is for admins only", "instructor", async (page) => {
-  await page.goto(`${BASE}/views/instructor.html#overview`);
-  await page.getByText("Topic accuracy over time").waitFor();
-  assert.equal(await page.locator(".siteside a", { hasText: "People & roles" }).count(), 0);
-  await page.goto(`${BASE}/views/instructor.html#people`);
+  await page.goto(`${BASE}/views/instructor.html#settings`);
+  await page.getByRole("heading", { name: "Settings" }).waitFor();
+  assert.equal(await page.getByRole("link", { name: "Manage people & roles" }).count(), 0);
+  await page.goto(`${BASE}/views/instructor.html#settings/people`);
   await page.getByText("Only admins can manage roles.").waitFor();
 });
 

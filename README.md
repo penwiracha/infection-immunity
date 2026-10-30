@@ -214,7 +214,7 @@ Code: `app/` (browser), `supabase/migrations/` (schema, RLS, functions),
 4. Host the folder over https (GitHub Pages works). The app does not work from `file://`.
 5. Sign in once, then make yourself the first admin in the SQL editor:
    `update public.profiles set role = 'admin' where email = 'you@…';`
-   From then on, manage roles in the admin-only **People & roles** tab: a role dropdown for everyone who has
+   From then on, manage roles in **Settings → People & roles** (admins only; deliberately not in the main menu): a role dropdown for everyone who has
    an account, and one-time **invite codes** for staff who have not signed up yet (they sign up with the
    invited email and type the code in the Class code box; codes work once, only with that email, for 14 days).
 6. To run the course: create a cohort (Students tab) and share its class code with students; move published

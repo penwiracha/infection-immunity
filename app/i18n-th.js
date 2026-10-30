@@ -1182,6 +1182,9 @@ window.I18N_TH = {
   /* ---------- people & roles ---------- */
   "Students: the class code from your instructor (you can also add it later in Settings). Staff: the invite code an admin sent you.": "นักศึกษา: รหัสชั้นเรียนจากอาจารย์ (ใส่ภายหลังได้ที่หน้าตั้งค่า) · บุคลากร: รหัสเชิญที่ผู้ดูแลระบบส่งให้",
   "People & roles": "บุคคลและบทบาท",
+  "Manage people & roles": "จัดการบุคคลและบทบาท",
+  "Make someone an instructor or admin, or invite staff who have not signed up yet.": "ตั้งผู้ใช้เป็นอาจารย์หรือผู้ดูแลระบบ หรือเชิญบุคลากรที่ยังไม่ได้สมัคร",
+  "← Settings": "← ตั้งค่า",
   "Only admins can manage roles.": "เฉพาะผู้ดูแลระบบที่จัดการบทบาทได้",
   "Give staff their roles. Everyone starts as a student; nobody can change their own role, and every change is logged.": "กำหนดบทบาทให้บุคลากร ทุกคนเริ่มเป็นนักศึกษา ไม่มีใครเปลี่ยนบทบาทของตัวเองได้ และทุกการเปลี่ยนแปลงถูกบันทึก",
   "Search name or email…": "ค้นหาชื่อหรืออีเมล…",
