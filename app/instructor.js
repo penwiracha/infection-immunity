@@ -18,7 +18,7 @@
     qFilters: { mine: "", status: "", pool: "", source: "", niche: "", topic: "", author: "", lecture: "", tier: "", difficulty: "", q: "" }
   };
   const TABS = [["overview", "Overview"], ["lectures", "Lectures"], ["questions", "Questions"],
-                ["students", "Students"], ["items", "Items"], ["exams", "Exams"], ["export", "Export"]];
+                ["students", "Students"], ["people", "People & roles"], ["items", "Items"], ["exams", "Exams"], ["export", "Export"]];
   const STATUSES = ["draft", "live", "superseded", "retired", "hidden"];
   const STATUS_LABEL = { draft: "Draft", live: "Live",
                          superseded: "Superseded", retired: "Retired", published: "Published", hidden: "Hidden" };
@@ -91,7 +91,7 @@
 
     // Students who land here go to their own app; the database enforces roles regardless.
     if (S.profile.role !== "instructor" && S.profile.role !== "admin") { location.replace("app.html"); return; }
-    SiteNav.mount({ role: "staff", active: "overview" });
+    SiteNav.mount({ role: "staff", active: "overview", admin: S.isAdmin });
     const userBtn = el("button", { class: "userbtn", type: "button" });
     SiteNav.foot.append(userBtn);
     avatarMenu(userBtn, S.profile, sess.user.email, [{ label: "Revision home page", href: "../index.html" }]);
@@ -132,6 +132,7 @@
       else if (t === "lectures") arg ? await lectureEditor(arg) : await lectureList();
       else if (t === "questions") arg ? await questionEditor(arg) : await questionList();
       else if (t === "students") await students();
+      else if (t === "people") await people();
       else if (t === "items") await items();
       else if (t === "exams") arg ? await examEditor(arg) : await exams();
       else if (t === "export") await exportTab();
@@ -1340,6 +1341,121 @@
     API.studentCardList(S.cohort).then((r) => { rows = r || []; draw(); })
       .catch((e) => fill(body, el("tr", null, el("td", { colspan: 7, class: "empty err" }, errMsg(e)))));
     return box;
+  }
+
+
+  // ------------------------------------------------------------------
+  // People & roles (admins): everyone's role in one place, and invites for
+  // staff who have not signed up yet.
+  // ------------------------------------------------------------------
+  const ROLE_LABEL = { student: "Student", instructor: "Instructor", admin: "Admin" };
+  async function people() {
+    if (!S.isAdmin) { fill($main, pagehead("People & roles", null), el("div", { class: "banner info" }, "Only admins can manage roles.")); return; }
+    const [rows, invites] = await Promise.all([API.peopleList(), API.staffInviteList().catch(() => [])]);
+    const F = { q: "", role: "" };
+    const body = el("tbody");
+    const countEl = el("span", { class: "dim" });
+    const search = el("input", { type: "search", placeholder: "Search name or email…", "aria-label": "Search people" });
+    const roleF = el("select", { style: { width: "auto" }, "aria-label": "Show role" }, [["", "Everyone"], ["admin", "Admins"], ["instructor", "Instructors"], ["student", "Students"]]
+      .map(([v, t]) => el("option", { value: v }, t)));
+    search.addEventListener("input", () => { F.q = search.value.trim().toLowerCase(); draw(); });
+    roleF.addEventListener("change", () => { F.role = roleF.value; draw(); });
+    const n = (r) => rows.filter((x) => x.role === r).length;
+
+    function roleSelect(r) {
+      const me = r.user_id === S.me;
+      const s = el("select", { disabled: me, "aria-label": "Role of " + (r.display_name || r.email), title: me ? "You cannot change your own role" : "" },
+        ["student", "instructor", "admin"].map((x) => el("option", { value: x, selected: x === r.role }, ROLE_LABEL[x])));
+      s.addEventListener("change", async () => {
+        const to = s.value;
+        const ok = await confirmBox("Change role?",
+          [el("p", null, el("b", { translate: "no" }, r.display_name || r.email), ": ", ROLE_LABEL[r.role], " → ", ROLE_LABEL[to]),
+           to === "admin" ? el("p", { class: "dim" }, "Admins can change anyone's role, see everything and delete what students have used.")
+           : to === "instructor" ? el("p", { class: "dim" }, "Instructors can write and publish questions and lectures and see student results.")
+           : el("p", { class: "dim" }, "They lose staff access the next time a page loads.")], "Change role");
+        if (!ok) { s.value = r.role; return; }
+        try { await guard(() => API.setUserRole(r.user_id, to), "Role updated."); r.role = to; r.role_changed_at = new Date().toISOString(); r.role_changed_by = S.profile.display_name; draw(); }
+        catch (e) { s.value = r.role; }
+      });
+      return s;
+    }
+    function draw() {
+      const list = rows.filter((r) => (!F.role || r.role === F.role) &&
+        (!F.q || (r.display_name || "").toLowerCase().includes(F.q) || (r.email || "").toLowerCase().includes(F.q)));
+      countEl.textContent = `${list.length} of ${rows.length} people`;
+      fill(body, list.length ? list.slice(0, 500).map((r) => el("tr", null,
+          el("td", null, el("div", { translate: "no" }, r.display_name || "—"), r.user_id === S.me ? el("div", { class: "hint", style: { marginTop: 0 } }, "You") : null),
+          el("td", { translate: "no" }, r.email || "—"),
+          el("td", null, roleSelect(r)),
+          el("td", { translate: "no" }, r.cohort || "—"),
+          el("td", { class: "mono" }, fmtDay(r.joined)),
+          el("td", { class: "mono" }, r.last_active ? fmtDay(r.last_active) : "—"),
+          el("td", null, r.role_changed_at ? [fmtDay(r.role_changed_at), r.role_changed_by ? el("div", { class: "hint", style: { marginTop: 0 } }, "by ", el("span", { translate: "no" }, r.role_changed_by)) : null] : "—")))
+        : el("tr", null, el("td", { colspan: 7, class: "empty" }, "Nobody matches.")));
+    }
+
+    // invites for people who have not signed up yet
+    const invBody = el("tbody");
+    const invEmail = el("input", { type: "email", placeholder: "name@university.ac.th", autocomplete: "off" });
+    const invRole = el("select", { style: { width: "auto" } }, [["instructor", "Instructor"], ["admin", "Admin"]].map(([v, t]) => el("option", { value: v }, t)));
+    const STATE = { open: "Waiting", used: "Used", revoked: "Revoked", expired: "Expired" };
+    function drawInvites(list) {
+      fill(invBody, list.length ? list.map((i) => el("tr", null,
+          el("td", { translate: "no" }, i.email), el("td", null, ROLE_LABEL[i.role]),
+          el("td", { class: "mono", translate: "no", style: { fontSize: "16px", letterSpacing: "1.5px", fontWeight: 700 } }, i.code || "—"),
+          el("td", null, el("span", { class: "status " + (i.state === "open" ? "draft" : i.state === "used" ? "live" : "retired") }, STATE[i.state] || i.state)),
+          el("td", { class: "mono" }, i.state === "open" ? fmtDay(i.expires_at) : i.used_at ? fmtDay(i.used_at) : fmtDay(i.revoked_at || i.expires_at)),
+          el("td", null, i.state === "open" ? el("div", { class: "row", style: { gap: "6px", flexWrap: "nowrap" } },
+            el("button", { class: "btn small", type: "button", onclick: async () => { try { await navigator.clipboard.writeText(i.code); toast("Code copied."); } catch (e) { toast(i.code); } } }, "Copy"),
+            el("button", { class: "btn small danger", type: "button", onclick: async () => {
+              if (!(await confirmBox("Revoke this invite?", "The code stops working. You can create a new one later.", "Revoke", true))) return;
+              await guard(() => API.revokeStaffInvite(i.id), "Invite revoked."); drawInvites(await API.staffInviteList());
+            } }, "Revoke")) : null)))
+        : el("tr", null, el("td", { colspan: 6, class: "empty" }, "No invites yet.")));
+    }
+    const invBtn = el("button", { class: "btn primary", type: "button" }, "Create invite code");
+    invBtn.addEventListener("click", async () => {
+      const email = invEmail.value.trim();
+      if (!/^\S+@\S+\.\S+$/.test(email)) { toast("Enter their email address.", true); return; }
+      invBtn.disabled = true;
+      try {
+        const r = await API.createStaffInvite(email, invRole.value);
+        invEmail.value = "";
+        drawInvites(await API.staffInviteList());
+        modal("Invite code created", [
+          el("p", null, "Send this code to ", el("b", { translate: "no" }, r.email), " (", ROLE_LABEL[r.role], "):"),
+          el("p", { class: "mono", translate: "no", style: { fontSize: "26px", letterSpacing: "3px", fontWeight: 700, margin: "6px 0 14px" } }, r.code),
+          el("ol", { style: { paddingLeft: "20px", margin: 0 } },
+            el("li", null, "They open the website and choose Create an account."),
+            el("li", null, "They sign up with exactly this email address."),
+            el("li", null, "They type the code in the Class code box.")),
+          el("p", { class: "hint" }, `The code works once, only with that email, until ${fmtDay(r.expires_at)}. Send it privately: anyone who has it and that email gets the role.`)
+        ], [{ label: "Close" }, { label: "Copy code", cls: "primary", onClick: async (close) => { try { await navigator.clipboard.writeText(r.code); toast("Code copied."); } catch (e) { toast(r.code); } close(); } }]);
+      } catch (e) { toast(errMsg(e), true); }
+      invBtn.disabled = false;
+    });
+
+    fill($main,
+      pagehead("People & roles", "Give staff their roles. Everyone starts as a student; nobody can change their own role, and every change is logged."),
+      el("div", { class: "panel" }, el("div", { class: "statrow" },
+        [["Admins", n("admin")], ["Instructors", n("instructor")], ["Students", n("student")]].map(([t, v]) =>
+          el("div", null, el("b", null, String(v)), el("span", null, t))))),
+      el("div", { class: "panel" },
+        el("div", { class: "searchrow" }, el("div", { style: { flex: "1" } }, search), roleF, countEl),
+        el("div", { class: "tablewrap" }, el("table", null,
+          el("thead", null, el("tr", null, ["Name", "Email", "Role", "Class", "Joined", "Last active", "Role changed"].map((h) => el("th", null, h)))),
+          body))),
+      el("div", { class: "panel" },
+        el("h3", { style: { marginBottom: "4px" } }, "Invite staff who have not signed up yet"),
+        el("p", { class: "dim", style: { margin: "0 0 14px" } }, "They get the role as soon as they create their account with this email and type the code in the Class code box. Already signed up? Change their role in the list above."),
+        el("div", { class: "row", style: { alignItems: "flex-end", gap: "10px", marginBottom: "14px" } },
+          el("label", { class: "f", style: { flex: "1", minWidth: "220px", margin: 0 } }, el("span", null, "Email"), invEmail),
+          el("label", { class: "f", style: { margin: 0 } }, el("span", null, "Role"), invRole), invBtn),
+        el("div", { class: "tablewrap" }, el("table", null,
+          el("thead", null, el("tr", null, ["Email", "Role", "Code", "Status", "Until / on", ""].map((h) => el("th", null, h)))),
+          invBody))));
+    draw();
+    drawInvites(invites);
   }
 
   // ------------------------------------------------------------------

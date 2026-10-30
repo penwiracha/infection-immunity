@@ -711,6 +711,34 @@ await test("AI drafts: a lecture can generate from the lecture editor; writing b
   await page.getByRole("button", { name: "Import CSV / JSON" }).waitFor();
 });
 
+await test("People & roles: admins change roles from a dropdown and invite staff by code", "admin", async (page) => {
+  await page.goto(`${BASE}/views/instructor.html#overview`);
+  await page.locator(".siteside a", { hasText: "People & roles" }).click();
+  await page.getByRole("heading", { name: "People & roles" }).waitFor();
+  assert.equal(await page.getByLabel("Role of Dr Admin").isDisabled(), true, "own role is locked");
+  await page.getByLabel("Role of Nok").selectOption("instructor");
+  await page.locator(".modal").getByRole("button", { name: "Change role" }).click();
+  await page.waitForFunction(() => window.__CALLS__.some((c) => c[0] === "setUserRole" && c[1] === "u-s1" && c[2] === "instructor"));
+  await page.getByPlaceholder("Search name or email…").fill("malee");
+  assert.equal(await page.locator("main tbody tr").first().locator("td").nth(1).textContent(), "malee@uni.ac.th");
+  await page.locator("main input[type=email]").fill("new.teacher@uni.ac.th");
+  await page.getByRole("button", { name: "Create invite code" }).click();
+  await page.getByText("Invite code created").waitFor();
+  assert.ok((await page.locator(".modal").textContent()).includes("K7M2QXP3RT"));
+  await shot(page, "people-roles");
+  await page.locator(".modal").getByRole("button", { name: "Close" }).click();
+  await page.locator("main tbody tr", { hasText: "new.teacher@uni.ac.th" }).getByRole("button", { name: "Revoke" }).click();
+  await page.locator(".modal").getByRole("button", { name: "Revoke" }).click();
+  await page.waitForFunction(() => window.__CALLS__.some((c) => c[0] === "revokeStaffInvite"));
+});
+await test("People & roles is for admins only", "instructor", async (page) => {
+  await page.goto(`${BASE}/views/instructor.html#overview`);
+  await page.getByText("Topic accuracy over time").waitFor();
+  assert.equal(await page.locator(".siteside a", { hasText: "People & roles" }).count(), 0);
+  await page.goto(`${BASE}/views/instructor.html#people`);
+  await page.getByText("Only admins can manage roles.").waitFor();
+});
+
 await browser.close();
 server.close();
 console.log(`\n${passed} passed, ${failed} failed`);

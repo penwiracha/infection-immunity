@@ -207,14 +207,16 @@ Code: `app/` (browser), `supabase/migrations/` (schema, RLS, functions),
 
 1. Create a Supabase project. Apply the migrations in order and then the seed:
    `supabase link` → `supabase db push` → run `supabase/seed.sql` in the SQL editor
-   (or paste the ten migration files and the seed into the SQL editor, in that order).
+   (or paste the eleven migration files and the seed into the SQL editor, in that order).
 2. Authentication → enable **Email** (password sign-in; email confirmation can be switched on later). Add the address you host the site at
    (e.g. your GitHub Pages URL) to *Site URL* and *Redirect URLs*.
 3. Put the project URL and the **publishable / anon** key in `app/config.js`. Never the secret key.
 4. Host the folder over https (GitHub Pages works). The app does not work from `file://`.
 5. Sign in once, then make yourself the first admin in the SQL editor:
    `update public.profiles set role = 'admin' where email = 'you@…';`
-   From then on, grant instructor roles from the **Students** tab.
+   From then on, manage roles in the admin-only **People & roles** tab: a role dropdown for everyone who has
+   an account, and one-time **invite codes** for staff who have not signed up yet (they sign up with the
+   invited email and type the code in the Class code box; codes work once, only with that email, for 14 days).
 6. To run the course: create a cohort (Students tab) and share its class code with students; move published
    questions into the **pretest** and **monthly** pools (admins, on each question); then in
    **Exams** create the pre-test for the cohort, auto-pick items and open it. Students in that
@@ -267,9 +269,9 @@ plus everything submitted or later (admins see all); lecture summaries are **pla
 ### Tests
 
 ```
-supabase test db            # 252 pgTAP tests: supabase/tests/database/
+supabase test db            # 268 pgTAP tests: supabase/tests/database/
 bash scripts/test-db.sh     # same tests on a plain local Postgres (uses scripts/local-supabase-shim.sql)
-npm i && npx playwright install chromium && node tests/ui/run.mjs   # 41 browser tests with a mock backend
+npm i && npx playwright install chromium && node tests/ui/run.mjs   # 43 browser tests with a mock backend
 ONLY="bookmarks|flashcards" node tests/ui/run.mjs                     # run only the tests whose names match
 ```
 

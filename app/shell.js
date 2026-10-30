@@ -90,7 +90,7 @@
       ? [el("label", { class: "f" }, el("span", null, "Name"), name), el("label", { class: "f" }, el("span", null, "Email"), email),
          el("label", { class: "f" }, el("span", null, "Password"), pw, el("div", { class: "hint" }, "At least 8 characters.")),
          el("label", { class: "f" }, el("span", null, "Repeat password"), pw2),
-         el("label", { class: "f" }, el("span", null, "Class code (students)"), code, el("div", { class: "hint" }, "From your instructor. You can also add it later in Settings."))]
+         el("label", { class: "f" }, el("span", null, "Class code"), code, el("div", { class: "hint" }, "Students: the class code from your instructor (you can also add it later in Settings). Staff: the invite code an admin sent you."))]
       : mode === "forgot"
         ? [el("label", { class: "f" }, el("span", null, "Email"), email)]
         : [el("label", { class: "f" }, el("span", null, "Email"), email), el("label", { class: "f" }, el("span", null, "Password"), pw)];

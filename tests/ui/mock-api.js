@@ -48,6 +48,7 @@
   const items = { q1: { id: "q1", pool: "practice", author_id: "u-i1", source: "manual", retired_at: null },
                   q2: { id: "q2", pool: "practice", author_id: "u-i2", source: "ai", retired_at: null } };
   const reviews = [];
+  const invites = [{ id: "inv-old", code: null, email: "old@uni.ac.th", role: "instructor", created_by_name: "Dr Admin", created_at: now, expires_at: now, used_at: now, revoked_at: null, state: "used" }];
   const log = (window.__CALLS__ = []);
   const call = (name, ...args) => { log.push([name, ...args]); };
   const lecFor = (id) => lectures.find((l) => l.id === id);
@@ -125,6 +126,14 @@
         lectures_viewed: p.role === "student" ? 3 : 0, last_active: now, joined: now }));
     },
     async setUserRole(...a) { call("setUserRole", ...a); },
+    async peopleList() { return profiles.map((p, i) => ({ user_id: p.user_id, email: p.email, display_name: p.display_name, role: p.role,
+      cohort: p.role === "student" ? "2567" : null, joined: now, last_active: now, role_changed_at: p.role === "instructor" ? now : null, role_changed_by: p.role === "instructor" ? "Dr Admin" : null })); },
+    async staffInviteList() { return invites.slice(); },
+    async createStaffInvite(email, role) { call("createStaffInvite", email, role);
+      if (profiles.some((p) => p.email === email)) throw new Error("that email already has an account: change their role in the list instead");
+      const r = { id: "inv" + invites.length, code: "K7M2QXP3RT", email, role, created_by_name: "Dr Admin", created_at: now, expires_at: now, used_at: null, revoked_at: null, state: "open" };
+      invites.unshift(r); return r; },
+    async revokeStaffInvite(id) { call("revokeStaffInvite", id); const r = invites.find((x) => x.id === id); r.state = "revoked"; r.code = null; },
     async itemStats() {
       return [{ question_id: "q1", version_id: "v1", version: 1, stem: XSS_STEM, n: 40, pct_correct: 62.5, discrimination: 0.41,
                 option_counts: { A: 8, B: 25, C: 4, D: 3 }, correct_option_id: "B" },

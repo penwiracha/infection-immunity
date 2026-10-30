@@ -195,6 +195,10 @@
     // ---- reporting ----
     studentSummary: (cid, days) => rpc("student_summary", { p_cohort: cid || null, p_days: days || null }),
     setUserRole: (uid, role) => rpc("set_user_role", { p_user: uid, p_role: role }),
+    peopleList: () => rpc("people_list"),
+    createStaffInvite: (email, role) => rpc("create_staff_invite", { p_email: email, p_role: role }),
+    revokeStaffInvite: (id) => rpc("revoke_staff_invite", { p_id: id }),
+    staffInviteList: () => rpc("staff_invite_list"),
     itemStats: (cid, days) => rpc("item_stats", { p_cohort: cid || null, p_days: days || null }),
     exportQuestions: () => rpc("export_questions"),
     async auditLog(limit) {

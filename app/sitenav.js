@@ -164,7 +164,9 @@
     aside.appendChild(top);
     if (staff) aside.appendChild(mk("span", "spill", "Instructor"));
     const nav = mk("nav"); nav.setAttribute("aria-label", "Sections");
-    nav.appendChild(group(null, staff ? STAFF : STUDENT));
+    // admins also get People & roles
+    const staffRows = opts.admin ? STAFF.slice(0, 4).concat([["people", "People & roles", "instructor.html#people"]], STAFF.slice(4)) : STAFF;
+    nav.appendChild(group(null, staff ? staffRows : STUDENT));
     nav.appendChild(group("Maps", MAPS));
     nav.appendChild(group("Account", [["settings", "Settings", staff ? "instructor.html#settings" : "app.html#settings"]]
       .concat(staff ? [["student-view", "Student view", "app.html?preview=1"]] : [])
@@ -185,7 +187,7 @@
     tabs = {};
     const strip = mk("nav", "stabs"); strip.setAttribute("aria-label", "Sections (top)");
     const tab = (id, label, href) => { const a = mk("a", "stab"); a.href = href; a.appendChild(mk("span", null, label)); tabs[id] = a; return a; };
-    (staff ? STAFF : STUDENT).forEach((r) => strip.appendChild(tab(r[0], r[1], r[2])));
+    (staff ? staffRows : STUDENT).forEach((r) => strip.appendChild(tab(r[0], r[1], r[2])));
     mapsTab = mk("details", "smaps");
     mapsTab.appendChild(mk("summary", null, "Maps ▾"));
     const box = mk("div", "smapsbox");
