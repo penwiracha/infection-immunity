@@ -174,6 +174,20 @@ migration 0009) and in the browser. It covers the student app, the instructor da
 page and the offline file. AI prompts that instructors copy stay in English on purpose (the AI reply is
 imported as-is). A page can opt out with `<html data-i18n="off">`.
 
+**AI question drafts inside the website:** "Generate with AI" (Question bank) or "Generate questions with AI"
+(on a lecture) asks the AI for 1–20 questions from the lecture summary, or from the text of a PDF of the
+instructor's own teaching material (read in the browser with pdf.js; only the text is sent; scanned PDFs are
+refused). The server function `supabase/functions/generate-questions` holds the key and calls the AI as the
+signed-in instructor, so the usual checks apply; replies arrive as **AI-generated drafts** (marked "AI" in the
+bank, with a "Written by" filter), possible duplicates are flagged, and publishing an AI draft asks the
+instructor to confirm they checked the key, the facts and the wrong options. Limit: 100 questions per
+instructor per day; every generation is logged (`ai_generations`, Settings → AI question generation).
+Writing questions by hand, CSV/JSON import and the copy-paste "AI prompt" all stay.
+Set-up: Supabase → Edge Functions → Secrets → `TYPHOON_API_KEY` (free key from opentyphoon.ai). Optional
+`AI_MODEL` (default `typhoon-v2.5-30b-a3b-instruct`) and `AI_BASE_URL` (default `https://api.opentyphoon.ai/v1`)
+switch to any OpenAI-compatible provider. Deploy changes with `supabase functions deploy generate-questions`
+(the function checks the caller itself, so it is deployed with JWT verification off).
+
 **Instructors** can **hide** a published lecture (students stop seeing it and its practice questions) or a
 question that no student has answered or reviewed and that is in no exam (it leaves practice and exam
 picking); both come back with one click, and hiding and showing are logged. **Admins** also see every
@@ -193,7 +207,7 @@ Code: `app/` (browser), `supabase/migrations/` (schema, RLS, functions),
 
 1. Create a Supabase project. Apply the migrations in order and then the seed:
    `supabase link` → `supabase db push` → run `supabase/seed.sql` in the SQL editor
-   (or paste the nine migration files and the seed into the SQL editor, in that order).
+   (or paste the ten migration files and the seed into the SQL editor, in that order).
 2. Authentication → enable **Email** (password sign-in; email confirmation can be switched on later). Add the address you host the site at
    (e.g. your GitHub Pages URL) to *Site URL* and *Redirect URLs*.
 3. Put the project URL and the **publishable / anon** key in `app/config.js`. Never the secret key.
@@ -253,9 +267,9 @@ plus everything submitted or later (admins see all); lecture summaries are **pla
 ### Tests
 
 ```
-supabase test db            # 241 pgTAP tests: supabase/tests/database/
+supabase test db            # 252 pgTAP tests: supabase/tests/database/
 bash scripts/test-db.sh     # same tests on a plain local Postgres (uses scripts/local-supabase-shim.sql)
-npm i && npx playwright install chromium && node tests/ui/run.mjs   # 39 browser tests with a mock backend
+npm i && npx playwright install chromium && node tests/ui/run.mjs   # 41 browser tests with a mock backend
 ONLY="bookmarks|flashcards" node tests/ui/run.mjs                     # run only the tests whose names match
 ```
 

@@ -15,7 +15,7 @@
     me: null, profile: null, isAdmin: false,
     vocab: {}, vocabRows: [], lectures: [], questions: [],
     cohort: "", days: 30, cohorts: [], cohortSize: {},
-    qFilters: { mine: "", status: "", pool: "", niche: "", topic: "", author: "", lecture: "", tier: "", difficulty: "", q: "" }
+    qFilters: { mine: "", status: "", pool: "", source: "", niche: "", topic: "", author: "", lecture: "", tier: "", difficulty: "", q: "" }
   };
   const TABS = [["overview", "Overview"], ["lectures", "Lectures"], ["questions", "Questions"],
                 ["students", "Students"], ["items", "Items"], ["exams", "Exams"], ["export", "Export"]];
@@ -118,7 +118,7 @@
     if (tab === "settings") {
       dirtyGuard = null; setTabs("settings");
       Shell.settingsPage($main, { profile: S.profile, email: S.email, student: false,
-        extra: S.isAdmin ? vocabPanel() : null });
+        extra: [aiUsagePanel(), S.isAdmin ? vocabPanel() : null] });
       return;
     }
     const t = TABS.some(([id]) => id === tab) ? tab : "overview";
@@ -422,6 +422,7 @@
         el("div", { class: "preview-tag" }, "Student Learn tab"), renderLecture(p, S.vocab)));
     } }, "Preview as student");
     const promptBtn = isNew ? null : el("button", { class: "btn", type: "button", onclick: () => promptDialog({ ...lec, ...payload(), id }) }, "AI prompt for questions");
+    const genBtn = isNew ? null : el("button", { class: "btn primary", type: "button", onclick: () => { if (dirty) { toast("Save your changes first.", true); return; } generateDialog(lec); } }, "Generate questions with AI");
 
     let pubBtn = null;
     if (!isNew && canEdit) {
@@ -479,7 +480,7 @@
           errBox),
         el("div", { class: "sidebar" },
           el("div", { class: "panel" },
-            el("div", { class: "row" }, saveBtn, previewBtn, pubBtn, hideBtn, promptBtn),
+            el("div", { class: "row" }, saveBtn, previewBtn, pubBtn, hideBtn, genBtn, promptBtn),
             el("dl", { class: "meta" },
               isNew ? null : [el("dt", null, "Last edited"), el("dd", null, fmtDate(lec.updated_at)),
                               el("dt", null, "Published"), el("dd", null, fmtDate(lec.published_at)),
@@ -531,10 +532,14 @@
       if (!sel.size) return;
       const poolSel = el("select", { style: { width: "auto" } }, POOLS.map((p) => el("option", { value: p }, "Move to " + p)));
       fill(bulk, el("b", null, `${sel.size} selected`),
-        el("button", { class: "btn small good", type: "button", onclick: () => runBulk("Published", (r) => {
-          if (r.status !== "draft") throw new Error("already " + r.status);
-          return API.publishQuestionNow(r.version_id);
-        }) }, "Publish"),
+        el("button", { class: "btn small good", type: "button", onclick: async () => {
+          const ai = qs.filter((q) => sel.has(q.question_id) && q.source === "ai" && q.status === "draft").length;
+          if (ai && !(await confirmAiChecked(ai))) return;
+          runBulk("Published", (r) => {
+            if (r.status !== "draft") throw new Error("already " + r.status);
+            return API.publishQuestionNow(r.version_id);
+          });
+        } }, "Publish"),
         S.isAdmin ? [poolSel, el("button", { class: "btn small", type: "button", onclick: () => runBulk("Moved", (r) => API.setQuestionPool(r.question_id, poolSel.value)) }, "Move")] : null,
         el("button", { class: "btn small danger", type: "button", onclick: async () => {
           const ok = await confirmBox(`Retire ${sel.size} item${sel.size === 1 ? "" : "s"}?`, "They leave every student pool. All versions and answers are kept.", "Retire", true);
@@ -559,7 +564,7 @@
       visible = qs.filter((r) =>
         (F.mine !== "drafts" || (r.status === "draft" && r.version_author === S.me)) &&
         (!F.status || (F.status === "hidden" ? !!r.hidden_at : r.status === F.status || (F.status === "live" && r.live_version_id && !r.retired_at))) &&
-        (!F.pool || r.pool === F.pool) && (!F.niche || r.niche === F.niche) && (!F.topic || r.topic === F.topic) &&
+        (!F.pool || r.pool === F.pool) && (!F.source || (F.source === "ai" ? r.source === "ai" : r.source !== "ai")) && (!F.niche || r.niche === F.niche) && (!F.topic || r.topic === F.topic) &&
         (!F.author || r.version_author === F.author) && (!F.lecture || r.lecture_id === F.lecture) &&
         (!F.tier || r.tier === F.tier) && (!F.difficulty || r.difficulty === F.difficulty) &&
         (!q || (r.stem || "").toLowerCase().includes(q)))
@@ -574,7 +579,8 @@
         return el("tr", { class: "click" + (r.hidden_at ? " ishidden" : ""), onclick: () => (location.hash = "questions/" + r.question_id) },
           el("td", null, cb),
           el("td", { class: "mono" }, qCode(r.question_id)),
-          el("td", { class: "stemcell", translate: "no" }, (r.stem || "").length > 150 ? r.stem.slice(0, 150) + "…" : r.stem),
+          el("td", { class: "stemcell" }, r.source === "ai" ? el("span", { class: "aichip", title: "Written by AI: check before publishing" }, "AI") : null,
+            el("span", { translate: "no" }, (r.stem || "").length > 150 ? r.stem.slice(0, 150) + "…" : r.stem)),
           el("td", null, statusChip(r.status), r.hidden_at ? [" ", statusChip("hidden")] : null,
             r.live_version_id && r.status !== "live" && !r.retired_at ? el("div", { class: "hint" }, `v${r.live_version} live`) : null),
           el("td", null, r.pool),
@@ -592,6 +598,7 @@
 
     fill($main,
       pagehead("Question bank", "Write questions, preview them and publish. Tick several to publish, hide, retire or delete them together.",
+        el("button", { class: "btn primary", type: "button", onclick: () => generateDialog(null) }, "Generate with AI"),
         el("button", { class: "btn", type: "button", onclick: () => promptDialog() }, "AI prompt"),
         el("button", { class: "btn", type: "button", onclick: importDialog }, "Import CSV / JSON"),
         el("button", { class: "btn primary", type: "button", onclick: () => (location.hash = "questions/new") }, "New question")),
@@ -601,6 +608,7 @@
       el("div", { class: "filters" },
         mk("status", "Status", STATUSES.map((s) => [s, STATUS_LABEL[s]])),
         mk("pool", "Pool", POOLS.map((p) => [p, p])),
+        mk("source", "Written by", [["ai", "AI (generated)"], ["people", "People"]]),
         mk("niche", "Niche", vopts("niche").map(([v]) => [v, Render.shortNiche(S.vocab, v)])),
         mk("topic", "Topic", vopts("topic")),
         mk("author", "Author", authors),
@@ -613,6 +621,142 @@
           ["Item", "Stem", "Status", "Pool", "Lecture", "Tags", "Ver", "Correct (n)", "Author", "Updated"].map((h, i) => el("th", { class: i === 6 || i === 7 ? "num" : null }, h)))),
         body))));
     draw();
+  }
+
+  // ------------------------------------------------------------------
+  // Generate questions with AI (inside the website). The server function
+  // supabase/functions/generate-questions holds the AI key; drafts only.
+  // ------------------------------------------------------------------
+  const PDFJS = "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/legacy/build/";
+  let pdfjsReady = null;
+  function loadScript(src) {
+    return new Promise((ok, bad) => { const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = () => bad(new Error("Could not load the PDF reader. Check your internet connection.")); document.head.appendChild(s); });
+  }
+  // pdf.js runs in this page (its worker script is loaded first, so no separate worker is needed under the page's security policy)
+  function loadPdfJs() {
+    if (!pdfjsReady) pdfjsReady = loadScript(PDFJS + "pdf.worker.min.js").then(() => loadScript(PDFJS + "pdf.min.js")).then(() => {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + "pdf.worker.min.js";
+      return window.pdfjsLib;
+    });
+    return pdfjsReady;
+  }
+  /* The text of an instructor's PDF, read in the browser. Only this text is sent to the AI. */
+  async function pdfText(file, onPage) {
+    if (file.size > 25 * 1024 * 1024) throw new Error("That PDF is larger than 25 MB. Split it or use the lecture summary.");
+    const lib = await loadPdfJs();
+    const doc = await lib.getDocument({ data: new Uint8Array(await file.arrayBuffer()), isEvalSupported: false, disableFontFace: true }).promise;
+    const pages = [];
+    for (let i = 1; i <= Math.min(doc.numPages, 80); i++) {
+      const p = await doc.getPage(i);
+      const tc = await p.getTextContent();
+      pages.push(tc.items.map((x) => x.str + (x.hasEOL ? "\n" : " ")).join("").replace(/[ \t]+/g, " ").trim());
+      if (onPage) onPage(i, doc.numPages);
+    }
+    const text = pages.filter(Boolean).join("\n\n");
+    if (text.replace(/\s/g, "").length < 200)
+      throw new Error("This PDF has no readable text (it may be scanned images). Use a PDF with selectable text, or generate from the lecture summary.");
+    return { text: text.slice(0, 60000), pages: doc.numPages, truncated: text.length > 60000 };
+  }
+
+  async function generateDialog(lecture) {
+    const lecs = (S.lectures && S.lectures.length ? S.lectures : await API.lectureList().catch(() => []));
+    const lecSel = el("select", null, el("option", { value: "" }, "Choose a lecture"),
+      lecs.map((l) => el("option", { value: l.id, selected: lecture && lecture.id === l.id }, `L${l.number} · ${l.title}${l.status === "draft" ? " (draft)" : ""}`)));
+    const srcLecture = el("input", { type: "radio", name: "aisrc", value: "lecture", checked: true });
+    const srcPdf = el("input", { type: "radio", name: "aisrc", value: "pdf" });
+    const file = el("input", { type: "file", accept: "application/pdf,.pdf", disabled: true });
+    const n = el("input", { type: "number", min: 1, max: 20, value: 10, style: { width: "100px" } });
+    const nOpt = el("select", { style: { width: "auto" } }, [3, 4, 5].map((k) => el("option", { value: k, selected: k === 4 }, k + " options")));
+    const diff = el("select", null, [["medium", "mostly medium, a few easy and hard"], ["easy", "mostly easy (for practice)"], ["hard", "mostly hard (for exams)"]]
+      .map(([v, t]) => el("option", { value: v }, t)));
+    const focus = el("input", { type: "text", maxlength: 300, placeholder: "Optional, e.g. complement deficiencies and Neisseria" });
+    const usage = el("p", { class: "hint", style: { margin: "0 0 12px" } });
+    const status = el("div", { role: "status", "aria-live": "polite", style: { marginTop: "12px" } });
+    [srcLecture, srcPdf].forEach((r) => r.addEventListener("change", () => { file.disabled = !srcPdf.checked; }));
+    API.aiGenerationList(5).then((rows) => {
+      const r = rows && rows[0];
+      usage.textContent = r ? `Used today: ${r.used_today} of ${r.daily_limit} questions.` : "Up to 100 questions a day per instructor.";
+    }).catch(() => {});
+    let running = false;
+    const dlg = modal("Generate questions with AI", [
+      el("div", { class: "banner info", style: { marginTop: 0 } },
+        "The AI writes drafts only. Nothing reaches students until you check each question and publish it. AI can be wrong: check the key, the facts and the wrong options."),
+      usage,
+      field("File the questions under", lecSel, true, "Their lecture tag. Generating from the lecture uses its summary."),
+      el("div", { class: "f" }, el("span", null, "Source"),
+        el("label", { class: "consentbox", style: { marginBottom: "8px" } }, srcLecture, el("span", null, el("b", null, "The lecture summary"))),
+        el("label", { class: "consentbox", style: { marginBottom: "8px", flexWrap: "wrap" } }, srcPdf,
+          el("span", null, el("b", null, "A PDF of my own teaching material"), el("small", null, "Handouts or slides you wrote, with selectable text. Only the text is sent; please do not upload textbooks.")), file)),
+      el("div", { class: "grid2" }, field("How many (1–20)", n), field("Options per question", nOpt), field("Difficulty", diff), field("Focus", focus)),
+      status
+    ], [
+      { label: "Close" },
+      { label: "Generate drafts", cls: "primary", onClick: async (close) => {
+        if (running) return;
+        if (!lecSel.value) { fill(status, el("p", { class: "err" }, "Choose a lecture to file the questions under.")); return; }
+        if (srcPdf.checked && !file.files.length) { fill(status, el("p", { class: "err" }, "Choose a PDF file.")); return; }
+        running = true;
+        const btns = dlg.box.querySelectorAll(".row.end .btn"); btns.forEach((b) => (b.disabled = true));
+        try {
+          let source_text = null, source_name = null;
+          if (srcPdf.checked) {
+            fill(status, el("p", { class: "dim" }, "Reading the PDF…"));
+            const pdf = await pdfText(file.files[0], (i, total) => fill(status, el("p", { class: "dim" }, `Reading the PDF… page ${i} of ${total}`)));
+            source_text = pdf.text; source_name = file.files[0].name;
+            if (pdf.truncated) fill(status, el("p", { class: "dim" }, "Long PDF: only the first part is used."));
+          }
+          fill(status, el("p", { class: "dim" }, "Writing questions… this can take up to a minute."));
+          const r = await API.generateQuestions({ lecture_id: lecSel.value, n: Math.max(1, Math.min(20, +n.value || 10)), options: +nOpt.value,
+                                                   difficulty: diff.value, focus: focus.value.trim(), source_text, source_name });
+          fill(status,
+            el("div", { class: "banner " + (r.saved ? "ok" : "warn") },
+              `${r.saved} draft${r.saved === 1 ? "" : "s"} saved` + (r.rejected && r.rejected.length ? `, ${r.rejected.length} rejected` : "") + "."),
+            r.rejected && r.rejected.length ? el("details", null, el("summary", null, "Why some were rejected"),
+              el("ul", null, r.rejected.slice(0, 20).map((x) => el("li", null, el("span", { translate: "no" }, (x.stem || "").slice(0, 80) + "… "), "— ", x.errors)))) : null,
+            r.duplicates && r.duplicates.length ? el("p", { class: "hint" }, `${r.duplicates.length} may repeat a question already in the bank; the editor shows which.`) : null,
+            r.remaining != null ? el("p", { class: "hint" }, `${r.remaining} questions left today.`) : null);
+          if (r.saved) {
+            const go = el("button", { class: "btn primary", type: "button", onclick: () => { close(); S.qFilters.mine = ""; S.qFilters.source = "ai"; S.qFilters.status = "draft"; location.hash = "questions"; route(); } }, "Review the drafts");
+            status.appendChild(go);
+          }
+        } catch (e) {
+          fill(status, el("div", { class: "banner bad" }, errMsg(e)));
+        }
+        running = false;
+        btns.forEach((b) => (b.disabled = false));
+      } }
+    ]);
+  }
+
+  /* Settings: recent AI generations (yours; admins see everyone's). */
+  function aiUsagePanel() {
+    const box = el("div", { class: "panel" }, el("h3", null, "AI question generation"), el("p", { class: "dim" }, "Loading…"));
+    API.aiGenerationList(30).then((rows) => {
+      const r0 = rows[0];
+      fill(box, el("h3", { style: { marginBottom: "4px" } }, "AI question generation"),
+        el("p", { class: "dim", style: { margin: "0 0 12px" } },
+          (S.isAdmin ? "Recent generations by everyone. " : "Your recent generations. ") +
+          (r0 ? `You have used ${r0.used_today} of ${r0.daily_limit} questions today.` : "Up to 100 questions a day per instructor.")),
+        rows.length ? el("div", { class: "tablewrap" }, el("table", null,
+          el("thead", null, el("tr", null, ["When", "Who", "Lecture", "Source", "Saved", "Rejected", "Status"].map((h, i) => el("th", { class: i === 4 || i === 5 ? "num" : null }, h)))),
+          el("tbody", null, rows.map((g) => el("tr", null,
+            el("td", { class: "mono" }, fmtDate(g.created_at)), el("td", { translate: "no" }, g.author_name || "—"),
+            el("td", { translate: "no" }, g.lecture_number != null ? `L${g.lecture_number} ${g.lecture_title}` : "—"),
+            el("td", null, g.source === "pdf" ? el("span", null, "PDF: ", el("span", { translate: "no" }, g.source_name || "")) : "Lecture summary"),
+            el("td", { class: "num" }, g.n_saved == null ? "—" : String(g.n_saved)), el("td", { class: "num" }, g.n_rejected == null ? "—" : String(g.n_rejected)),
+            el("td", { title: g.error || "" }, g.status === "failed" ? el("span", { class: "err" }, "Failed") : g.status === "running" ? "Running" : "Done"))))))
+          : el("p", { class: "dim", style: { margin: 0 } }, "No generations yet."));
+    }).catch((e) => fill(box, el("h3", null, "AI question generation"), el("p", { class: "err" }, errMsg(e))));
+    return box;
+  }
+
+  /* Publishing something the AI wrote needs a short, explicit check. */
+  function confirmAiChecked(count) {
+    return confirmBox(count > 1 ? `Publish ${count} AI-written questions?` : "Publish an AI-written question?",
+      [el("p", null, "Students will see " + (count > 1 ? "them" : "it") + " straight away. Please confirm you have checked:"),
+       el("ul", null, el("li", null, "the answer key is right"), el("li", null, "the facts in the stem and the explanation"),
+         el("li", null, "the wrong options are clearly wrong, and there is only one best answer"))],
+      "I checked, publish");
   }
 
   /* The ground prompt: instructors paste it into any AI chat; the reply imports as-is. */
@@ -890,6 +1034,7 @@
       submitBtn = el("button", { class: "btn good", type: "button" }, live ? `Publish v${work.version} (replaces v${live.version})` : "Publish");
       submitBtn.addEventListener("click", async () => {
         if (dirty) { toast("Save your changes first.", true); return; }
+        if (item && item.source === "ai" && !(await confirmAiChecked(1))) return;
         await guard(() => API.publishQuestionNow(work.id), pool === "practice" ? "Published — students can answer it now." : "Published to the " + pool + " pool.");
         route();
       });

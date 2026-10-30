@@ -80,7 +80,7 @@
     async logLectureView(id) { call("logLectureView", id); },
     async myViewedLectures() { return [lectures[0].id]; },
     async questionList() {
-      return versions.filter((v) => v.status !== "draft" || v.author_id === ME).map((v) => {
+      return versions.filter((v) => v.status !== "draft" || v.author_id === ME || role === "admin").map((v) => {
         const l = lecFor(v.lecture_id);
         return { question_id: v.question_id, pool: items[v.question_id].pool, item_author: items[v.question_id].author_id, source: items[v.question_id].source,
           retired_at: null, version_id: v.id, version: v.version, status: v.status, stem: v.stem, niche: v.niche, topic: v.topic, lecture_id: v.lecture_id,
@@ -111,6 +111,12 @@
     async duplicateQuestion(q) { call("duplicateQuestion", q); return { question_id: "q9" }; },
     async setQuestionPool(...a) { call("setQuestionPool", ...a); },
     async importQuestions(items, source) { call("importQuestions", items, source); return items.map((_, i) => ({ index: i + 1, ok: i === 0, errors: i ? "Tag a topic." : null })); },
+    async generateQuestions(p) { call("generateQuestions", p);
+      if (!p.lecture_id) throw new Error("choose a lecture to file the questions under");
+      return { generation_id: "g1", model: "typhoon-v2.5-30b-a3b-instruct", saved: p.n - 1, question_ids: ["q2"],
+               rejected: [{ index: 3, stem: "<b>Bad</b> item", errors: "Unknown topic: made-up" }], duplicates: [], remaining: 100 - p.n }; },
+    async aiGenerationList() { return [{ id: "g0", created_at: now, author_name: "Dr Somchai", lecture_number: 3, lecture_title: "Extracellular bacteria",
+      source: "pdf", source_name: "week3-handout.pdf", n_requested: 10, n_saved: 9, n_rejected: 1, status: "done", model: "typhoon", error: null, used_today: 10, daily_limit: 100 }]; },
     async similarStems(stem) { return stem.toLowerCase().includes("pneumoniae") ? [{ question_id: "q1", stem: XSS_STEM, score: 0.81, status: "live" }] : []; },
     async practiceQuestions(lid) { return versions.filter((v) => v.status === "live" && v.lecture_id === lid); },
     async submitAnswer(vid, o) { call("submitAnswer", vid, o); const k = keys.find((x) => x.version_id === vid); return { correct: k.correct_option_id === o, ...k }; },

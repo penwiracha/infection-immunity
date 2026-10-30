@@ -141,7 +141,8 @@ await test("publish directly (no peer review); delete with a usage warning", "in
 await test("admin: publish a draft, delete an unused item, delete an exam", "admin", async (page) => {
   await page.goto(`${BASE}/views/instructor.html#questions/q2`);
   await page.getByRole("button", { name: "Publish" }).click();
-  assert.ok((await page.evaluate(() => window.__CALLS__)).some((c) => c[0] === "publishQuestionNow" && c[1] === "v2"));
+  await page.getByRole("button", { name: "I checked, publish" }).click();   // q2 was written by AI
+  await page.waitForFunction(() => window.__CALLS__.some((c) => c[0] === "publishQuestionNow" && c[1] === "v2"));
   await page.goto(`${BASE}/views/instructor.html#questions/q2`);
   await page.getByRole("button", { name: "Delete" }).click();
   await page.locator(".modal").getByRole("button", { name: "Delete" }).click();
@@ -669,6 +670,45 @@ await test("Thai on the instructor dashboard; question text and tags stay as wri
   await page.goto(`${BASE}/views/instructor.html#questions/q1`);
   await page.getByText("ดูตัวอย่างแบบนักศึกษา").waitFor();
   await shot(page, "thai-question-editor");
+});
+
+await test("AI drafts: generate from a lecture inside the website; AI drafts need a check before publishing", "admin", async (page) => {
+  await page.goto(`${BASE}/views/instructor.html#questions`);
+  await page.getByRole("button", { name: "Generate with AI" }).click();
+  await page.getByText("The AI writes drafts only.").waitFor();
+  await page.getByRole("button", { name: "Generate drafts" }).click();
+  await page.getByText("Choose a lecture to file the questions under.").waitFor();
+  await page.locator(".modal select").first().selectOption({ index: 1 });
+  await page.locator(".modal input[type=number]").fill("6");
+  await page.getByRole("button", { name: "Generate drafts" }).click();
+  await page.getByText("5 drafts saved, 1 rejected.").waitFor();
+  assert.equal(await page.locator(".modal li b").count(), 0, "a rejected stem was rendered as HTML");
+  await shot(page, "ai-generate");
+  const call = (await page.evaluate(() => window.__CALLS__)).find((c) => c[0] === "generateQuestions");
+  assert.equal(call[1].n, 6); assert.equal(call[1].source_text, null);
+  await page.getByRole("button", { name: "Review the drafts" }).click();
+  await page.locator("td.stemcell .aichip").first().waitFor();
+  assert.equal(await page.locator("tbody tr").count(), 1, "filtered to AI drafts");
+  await page.locator("td.stemcell").first().click();
+  await page.getByRole("button", { name: "Publish", exact: true }).click();
+  await page.getByText("Publish an AI-written question?").waitFor();
+  await page.getByRole("button", { name: "Cancel" }).click();
+  assert.ok(!(await page.evaluate(() => window.__CALLS__)).some((c) => c[0] === "publishQuestionNow"), "published without the check");
+  await page.goto(`${BASE}/views/instructor.html#settings`);
+  await page.getByText("AI question generation").waitFor();
+  await page.getByText("week3-handout.pdf").waitFor();
+});
+await test("AI drafts: a lecture can generate from the lecture editor; writing by hand stays", "instructor", async (page) => {
+  await page.goto(`${BASE}/views/instructor.html#lectures/11111111-1111-1111-1111-111111111111`);
+  await page.getByRole("button", { name: "Generate questions with AI" }).click();
+  assert.equal(await page.locator(".modal select").first().inputValue(), "11111111-1111-1111-1111-111111111111", "the lecture is preselected");
+  await page.locator(".modal input[value=pdf]").check();
+  await page.getByRole("button", { name: "Generate drafts" }).click();
+  await page.getByText("Choose a PDF file.").waitFor();
+  await page.keyboard.press("Escape");
+  await page.goto(`${BASE}/views/instructor.html#questions`);
+  await page.getByRole("button", { name: "New question" }).waitFor();
+  await page.getByRole("button", { name: "Import CSV / JSON" }).waitFor();
 });
 
 await browser.close();

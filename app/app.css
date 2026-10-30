@@ -338,3 +338,8 @@ tr.ishidden td:first-child,tr.ishidden td:nth-child(4){opacity:1}
 .langbtn{display:inline-flex;align-items:center;gap:7px}
 .gatebar .gatelang{margin-left:12px}
 .gatebar .status:empty + .gatelang{margin-left:auto}
+
+/* AI-written question drafts */
+.aichip{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.4px;padding:1px 6px;margin-right:6px;border-radius:5px;
+ color:var(--accent);border:1px solid var(--sel-line);background:var(--sel-bg);vertical-align:1px}
+.banner.ok{border-color:color-mix(in srgb,var(--ok) 45%,var(--line));background:rgba(87,184,107,.08)}

@@ -19,3 +19,7 @@ dist/
 # Provenance and locations are recorded in reference/SOURCES.md instead.
 *.pdf
 reference/*.pdf
+
+# Edge Function secrets for local runs (never commit keys)
+supabase/functions/.env
+*.env.local
