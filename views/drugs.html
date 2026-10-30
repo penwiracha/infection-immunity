@@ -4,9 +4,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Antimicrobial Review</title>
+<script src="../app/theme.js"></script>
 <style>
 :root{--bg:#0f1115;--panel:#171a21;--panel2:#1e222b;--line:#2b303b;--txt:#e6e8ec;--dim:#9aa3b2;
- --extra:#e0603f;--vesic:#e0a83f;--cyto:#4fa3e3;--surf:#57b86b;--host:#7a6cf0;}
+ --extra:#e0603f;--vesic:#e0a83f;--cyto:#4fa3e3;--surf:#57b86b;--host:#7a6cf0;--on-c:#0f1115;}
+html[data-theme="light"]{
+  --bg:#f6f7f9; --panel:#ffffff; --panel2:#f0f2f5; --line:#dde1e7;
+  --txt:#16181d; --ink:#16181d; --dim:#5f6878; --dim2:#6b7280;
+  --extra:#b5401c; --vesic:#8f5b00; --cyto:#1f6fb5; --surf:#26773d; --host:#6a58e0;
+  --on-c:#ffffff; --t1bg:#dcefe1; --t1:#22693a; --t2bg:#f3e6c8; --t2:#7a5200; --failbg:#fbe1ee; --fail:#a3245f;
+}
+html[data-theme="light"] .chip.on small,html[data-theme="light"] .king.on small,html[data-theme="light"] .fam.on small{color:rgba(255,255,255,.9)}
+html[data-theme="light"] .lcpic{border:1px solid var(--line)}
+html[data-theme="light"] #pop-backdrop{background:rgba(20,24,33,.38)}
+html[data-theme="light"] .side{box-shadow:0 28px 80px rgba(20,24,33,.22)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--txt);
  font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
@@ -18,7 +29,7 @@ h1{margin:0 0 6px;font-size:22px}
 .fam{padding:7px 13px;border-radius:20px;border:1px solid var(--line);background:var(--panel2);
  font-weight:600;font-size:13px;cursor:pointer;user-select:none}
 .fam small{color:var(--dim);font-weight:400;margin-left:6px}
-.fam.on{background:var(--c);color:#0f1115;border-color:var(--c)}
+.fam.on{background:var(--c);color:var(--on-c);border-color:var(--c)}
 .fam.on small{color:rgba(0,0,0,.55)}
 .wrap{display:grid;grid-template-columns:minmax(320px,1fr) minmax(360px,440px)}
 @media(max-width:900px){.wrap{grid-template-columns:1fr}}
@@ -30,7 +41,7 @@ h1{margin:0 0 6px;font-size:22px}
 .leaf{display:inline-block;font-size:12.5px;padding:4px 10px;border-radius:7px;margin:3px 0;
  background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--c);cursor:pointer;transition:.12s}
 .leaf:hover{transform:translateY(-1px);border-color:var(--dim)}
-.leaf.active{background:var(--c);color:#0f1115;border-color:var(--c);font-weight:600}
+.leaf.active{background:var(--c);color:var(--on-c);border-color:var(--c);font-weight:600}
 .root>.node{border-left:none;margin-left:0;padding-left:0}
 .empty{color:var(--dim);font-size:13.5px;text-align:center;padding-top:44px;line-height:1.7}
 .card h2{margin:0 0 3px;font-size:19px}

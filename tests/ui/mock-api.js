@@ -61,6 +61,7 @@
     async resetPassword(e) { call("resetPassword", e); },
     async updatePassword(p) { call("updatePassword", p); },
     async updateDisplayName(n) { call("updateDisplayName", n); },
+    async updateTheme(t) { call("updateTheme", t); },
     async reauth(e, p) { call("reauth", e); if (p !== "correct-horse") throw new Error("Your current password is not correct."); },
     async changeEmail(e) { call("changeEmail", e); return false; },
     async vocab() { return vocab; }, async upsertVocab(...a) { call("upsertVocab", ...a); },
@@ -73,7 +74,8 @@
     async publishLecture(id) { call("publishLecture", id); lecFor(id).status = "published"; },
     async unpublishLecture(id) { call("unpublishLecture", id); lecFor(id).status = "draft"; },
     async lectureViewCount(id) { return lecFor(id).status === "published" ? 12 : 0; },
-    async publishedLectures() { return lectures.filter((l) => l.status === "published"); },
+    async publishedLectures() { return lectures.filter((l) => l.status === "published" && !l.hidden_at); },
+    async setLectureHidden(id, h) { call("setLectureHidden", id, h); lecFor(id).hidden_at = h ? now : null; },
     async logLectureView(id) { call("logLectureView", id); },
     async myViewedLectures() { return [lectures[0].id]; },
     async questionList() {
@@ -85,7 +87,8 @@
           organism_ids: v.organism_ids, disease_ids: v.disease_ids, version_author: v.author_id,
           author_name: profiles.find((p) => p.user_id === v.author_id).display_name,
           live_version_id: v.status === "live" ? v.id : null, live_version: v.status === "live" ? 1 : null,
-          answers: v.status === "live" ? 40 : 0, pct_correct: v.status === "live" ? 62.5 : null, updated_at: now, last_return_comment: null };
+          answers: v.status === "live" ? 40 : 0, pct_correct: v.status === "live" ? 62.5 : null, updated_at: now, last_return_comment: null,
+          hidden_at: items[v.question_id].hidden_at || null };
       });
     },
     async getQuestion(qid) {
@@ -100,6 +103,10 @@
     async deleteQuestion(q, force) { call("deleteQuestion", q, force); },
     async deleteExam(id, force) { call("deleteExam", id, force); },
     async retireQuestion(q) { call("retireQuestion", q); },
+    async setQuestionHidden(q, h) { call("setQuestionHidden", q, h);
+      const u = await this.questionUsage(q);
+      if (h && (u.answers > 0 || u.reviews > 0)) throw new Error("students have already used this question");
+      items[q].hidden_at = h ? now : null; },
     async duplicateQuestion(q) { call("duplicateQuestion", q); return { question_id: "q9" }; },
     async setQuestionPool(...a) { call("setQuestionPool", ...a); },
     async importQuestions(items, source) { call("importQuestions", items, source); return items.map((_, i) => ({ index: i + 1, ok: i === 0, errors: i ? "Tag a topic." : null })); },
@@ -129,7 +136,11 @@
   const GATE = window.__GATE__ || "";
   const days = (n) => new Date(Date.now() + n * 864e5).toISOString();
   const L1 = "11111111-1111-1111-1111-111111111111";
-  const st = { consent: GATE === "consent" ? null : { platform: true, research: false }, pre: GATE ? "todo" : "done", bookmarks: ["evasion"] };
+  const st = { consent: GATE === "consent" ? null : { platform: true, research: false }, pre: GATE ? "todo" : "done",
+               saved: [{ kind: "topic", ref: "evasion" }, { kind: "organism", ref: "neisseria-meningitidis" }] };
+  const topicsOf = () => st.saved.filter((b) => b.kind === "topic").map((b) => b.ref);
+  const ownCards = [{ id: "c0000000-0000-0000-0000-000000000001", front: "Which step does a capsule block?", back: 'C3b deposition <script>window.__xss="own"</script>',
+    topic: "evasion", lecture_id: null, organism_id: "streptococcus-pneumoniae", created_at: days(-2), updated_at: days(-2), reps: 0, interval_days: 0, ease: 2.5, due_at: days(-1) }];
   const exam = { attempt_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", exam_id: "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee", kind: "pretest",
     title: "Pre-test 2567", started_at: new Date(Date.now() - 860e3).toISOString(), duration_min: 30, deadline: days(1 / 48),
     items: [
@@ -155,7 +166,8 @@
     async myStatus() {
       return { role: "student", cohort_id: "c1", cohort: "2567", consent: st.consent,
         pretest: st.pre === "none" ? { state: "none" } : { state: st.pre, exam_id: exam.exam_id, title: exam.title, n_items: 3, duration_min: 30, attempt_id: st.pre === "todo" ? null : exam.attempt_id, score: 52 },
-        streak: 12, best_streak: 19, cards_due: 16, new_cards: 8, bookmarks: st.bookmarks.slice() };
+        streak: 12, best_streak: 19, cards_due: 16, new_cards: 8, bookmarks: topicsOf(), saved: st.saved.map((b) => ({ ...b })),
+        own_cards: ownCards.length, own_due: ownCards.filter((c) => new Date(c.due_at) <= new Date()).length };
     },
     async setConsent(p, r) { call("setConsent", p, r); st.consent = { platform: p, research: r }; },
     async myExams() {
@@ -182,10 +194,28 @@
     },
     async myLectureStatus() { return [{ lecture_id: L1, viewed: true, completed: false }]; },
     async markLectureRead(id) { call("markLectureRead", id); },
-    async sessionCards(mode, topics) { call("sessionCards", mode, topics); return JSON.parse(JSON.stringify(cards)); },
+    async sessionCards(mode, topics, limit, saved) { call("sessionCards", mode, topics, saved || null); return JSON.parse(JSON.stringify(cards)); },
     async revealCard(v) { const k = cardKeys[v]; return { correct_option_id: k[0], answer: k[1], explanation: k[2] }; },
     async reviewCard(q, r) { call("reviewCard", q, r); return { interval_days: 3 }; },
-    async toggleBookmark(t) { call("toggleBookmark", t); const on = !st.bookmarks.includes(t); st.bookmarks = on ? [...st.bookmarks, t] : st.bookmarks.filter((x) => x !== t); return on; },
+    async toggleBookmark(t) { return M.toggleSaved("topic", t); },
+    async toggleSaved(kind, ref) { call("toggleSaved", kind, ref);
+      const i = st.saved.findIndex((b) => b.kind === kind && b.ref === ref);
+      if (i >= 0) { st.saved.splice(i, 1); return false; } st.saved.push({ kind, ref }); return true; },
+    async myCards() { return JSON.parse(JSON.stringify(ownCards)); },
+    async saveMyCard(p) { call("saveMyCard", p);
+      if (p.id) { Object.assign(ownCards.find((c) => c.id === p.id), p); return p.id; }
+      const id = "c0000000-0000-0000-0000-00000000000" + (ownCards.length + 1);
+      ownCards.unshift({ ...p, id, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), reps: 0, interval_days: 0, ease: 2.5, due_at: new Date().toISOString() });
+      return id; },
+    async deleteMyCard(id) { call("deleteMyCard", id); ownCards.splice(ownCards.findIndex((c) => c.id === id), 1); },
+    async reviewMyCard(id, r) { call("reviewMyCard", id, r); const c = ownCards.find((x) => x.id === id); c.reps++; c.due_at = days(3); return { interval_days: 3 }; },
+    async myCardSession(mode) { call("myCardSession", mode);
+      return JSON.parse(JSON.stringify(ownCards.filter((c) => mode !== "due" || new Date(c.due_at) <= new Date()))); },
+    async studentCardList() { call("studentCardList");
+      return [{ id: "c1", user_id: "u-s1", code: "S-0412", name: "Nok", cohort: "2567", front: "Which step does a capsule block?", back: '<img src=x onerror="window.__xss=\'adm\'">C3b',
+                topic: "evasion", organism_id: null, created_at: days(-2), updated_at: days(-2), deleted_at: null, reviews: 3, last_reviewed: days(-1) },
+              { id: "c2", user_id: "u-s1", code: "S-0412", name: "Nok", cohort: "2567", front: "Old card", back: "Gone",
+                topic: null, organism_id: null, created_at: days(-9), updated_at: days(-3), deleted_at: days(-3), reviews: 0, last_reviewed: null }]; },
     async submitAnswer(v, o, c) { call("submitAnswer", v, o, c); const k = cardKeys[v] || ["B", "", 'The capsule blocks C3b. <script>window.__xss="expl"</script>'];
       return { correct: o === k[0], correct_option_id: k[0], explanation: k[2] }; },
 

@@ -9,45 +9,50 @@
 ;(function (root) {
   "use strict";
   const CSS = `
+  :root{--sn-bg:#0c0d11;--sn-line:#262a33;--sn-ink:#eceef2;--sn-ink2:#c9cdd6;--sn-dim:#8f97a6;--sn-hover:#1d212a;--sn-line2:#33384a;
+    --sn-acc:#9d8cf7;--sn-acc-ink:#15122a;--sn-bar:#0f1014;--sn-pop:#15171d;--sn-shadow:rgba(0,0,0,.45);--sn-cur:rgba(122,108,240,.16)}
+  html[data-theme="light"]{--sn-bg:#ffffff;--sn-line:#dde1e7;--sn-ink:#16181d;--sn-ink2:#3a4150;--sn-dim:#5f6878;--sn-hover:#eef0f4;--sn-line2:#c9ced8;
+    --sn-acc:#6a58e0;--sn-acc-ink:#ffffff;--sn-bar:#f6f7f9;--sn-pop:#ffffff;--sn-shadow:rgba(20,24,33,.14);--sn-cur:rgba(106,88,224,.10)}
   body.has-siteside{padding-left:236px}
   .siteside{position:fixed;left:0;top:0;bottom:0;width:236px;z-index:40;display:flex;flex-direction:column;
-    background:#0c0d11;border-right:1px solid #262a33;padding:18px 12px 14px;overflow-y:auto;
+    background:var(--sn-bg);border-right:1px solid var(--sn-line);padding:18px 12px 14px;overflow-y:auto;
     font:14.5px/1.4 "Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,"Noto Sans Thai",sans-serif}
-  .siteside .sbrand{display:block;color:#eceef2;font-weight:700;font-size:16px;text-decoration:none;padding:4px 10px 2px}
-  .siteside .spill{align-self:flex-start;display:inline-block;margin:6px 10px 0;border:1px solid #33384a;border-radius:999px;padding:1px 9px;font-size:11.5px;color:#c9cdd6}
+  .siteside .sbrand{display:block;color:var(--sn-ink);font-weight:700;font-size:16px;text-decoration:none;padding:4px 10px 2px}
+  .siteside .spill{align-self:flex-start;display:inline-block;margin:6px 10px 0;border:1px solid var(--sn-line2);border-radius:999px;padding:1px 9px;font-size:11.5px;color:var(--sn-ink2)}
   .siteside .sgroup{margin-top:18px}
-  .siteside .shead{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:#8f97a6;padding:0 10px 6px}
-  .siteside a.sitem{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;color:#c9cdd6;text-decoration:none;margin:1px 0}
-  .siteside a.sitem:hover{background:#1d212a;color:#eceef2}
-  .siteside a.sitem[aria-current="page"]{background:rgba(122,108,240,.16);color:#eceef2;font-weight:600;box-shadow:inset 3px 0 0 #9d8cf7}
+  .siteside .shead{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--sn-dim);padding:0 10px 6px}
+  .siteside a.sitem{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;color:var(--sn-ink2);text-decoration:none;margin:1px 0}
+  .siteside a.sitem:hover{background:var(--sn-hover);color:var(--sn-ink)}
+  .siteside a.sitem[aria-current="page"]{background:var(--sn-cur);color:var(--sn-ink);font-weight:600;box-shadow:inset 3px 0 0 var(--sn-acc)}
   .siteside a.sitem .sdot{width:8px;height:8px;border-radius:50%;flex:none;background:var(--c,#4a5163)}
-  .siteside .sbadge{margin-left:auto;background:#9d8cf7;color:#15122a;font-size:11.5px;font-weight:700;border-radius:999px;padding:0 7px;min-width:20px;text-align:center}
-  .siteside .sfoot{margin-top:auto;padding-top:14px;border-top:1px solid #262a33}
+  .siteside .sbadge{margin-left:auto;background:var(--sn-acc);color:var(--sn-acc-ink);font-size:11.5px;font-weight:700;border-radius:999px;padding:0 7px;min-width:20px;text-align:center}
+  .siteside .sfoot{margin-top:auto;padding-top:14px;border-top:1px solid var(--sn-line)}
   .siteside .sfoot:empty{display:none}
   .siteside .stop{display:flex;align-items:center;justify-content:space-between;gap:6px}
-  .siteside .sclose{background:transparent;border:1px solid transparent;color:#8f97a6;border-radius:8px;width:32px;height:32px;
+  .siteside .sclose{background:transparent;border:1px solid transparent;color:var(--sn-dim);border-radius:8px;width:32px;height:32px;
     font-size:18px;line-height:1;cursor:pointer;flex:none}
-  .siteside .sclose:hover{border-color:#33384a;color:#eceef2;background:#1d212a}
-  .sitebar{display:none;align-items:center;gap:12px;position:sticky;top:0;z-index:35;background:#0f1014;
-    border-bottom:1px solid #262a33;padding:10px 16px;font:15px/1.4 "Segoe UI",-apple-system,Roboto,sans-serif}
-  .sitebar button{background:transparent;color:#eceef2;border:1px solid #33384a;border-radius:8px;padding:6px 12px;font:inherit;cursor:pointer}
-  .sitebar button:hover{background:#1d212a}
-  .sitebar b{color:#eceef2}
+  .siteside .stheme{margin-left:auto;font-size:15px}
+  .siteside .sclose:hover{border-color:var(--sn-line2);color:var(--sn-ink);background:var(--sn-hover)}
+  .sitebar{display:none;align-items:center;gap:12px;position:sticky;top:0;z-index:35;background:var(--sn-bar);
+    border-bottom:1px solid var(--sn-line);padding:10px 16px;font:15px/1.4 "Segoe UI",-apple-system,Roboto,sans-serif}
+  .sitebar button{background:transparent;color:var(--sn-ink);border:1px solid var(--sn-line2);border-radius:8px;padding:6px 12px;font:inherit;cursor:pointer}
+  .sitebar button:hover{background:var(--sn-hover)}
+  .sitebar b{color:var(--sn-ink)}
   .siteshade{display:none}
   /* closed sidebar on a wide screen: the same sections as tabs along the top */
   .sitebar .stabs{display:none;align-self:stretch;gap:2px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none}
   .sitebar .stabs::-webkit-scrollbar{display:none}
-  .sitebar a.stab,.sitebar .smaps>summary{display:flex;align-items:center;gap:7px;padding:0 12px;color:#8f97a6;text-decoration:none;
+  .sitebar a.stab,.sitebar .smaps>summary{display:flex;align-items:center;gap:7px;padding:0 12px;color:var(--sn-dim);text-decoration:none;
     border-bottom:2px solid transparent;white-space:nowrap;cursor:pointer;list-style:none}
   .sitebar .smaps>summary::-webkit-details-marker{display:none}
-  .sitebar a.stab:hover,.sitebar .smaps>summary:hover{color:#eceef2}
-  .sitebar a.stab[aria-current="page"],.sitebar .smaps.cur>summary{color:#eceef2;border-bottom-color:#9d8cf7;font-weight:600}
-  .sitebar .stab .sbadge{background:#9d8cf7;color:#15122a;font-size:11.5px;font-weight:700;border-radius:999px;padding:0 7px}
+  .sitebar a.stab:hover,.sitebar .smaps>summary:hover{color:var(--sn-ink)}
+  .sitebar a.stab[aria-current="page"],.sitebar .smaps.cur>summary{color:var(--sn-ink);border-bottom-color:var(--sn-acc);font-weight:600}
+  .sitebar .stab .sbadge{background:var(--sn-acc);color:var(--sn-acc-ink);font-size:11.5px;font-weight:700;border-radius:999px;padding:0 7px}
   .sitebar .smaps{position:relative;display:flex}
-  .sitebar .smapsbox{position:fixed;top:54px;min-width:190px;background:#15171d;border:1px solid #33384a;border-radius:10px;padding:6px;z-index:45;
-    box-shadow:0 12px 30px rgba(0,0,0,.45)}
-  .sitebar .smapsbox a{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px;color:#c9cdd6;text-decoration:none}
-  .sitebar .smapsbox a:hover,.sitebar .smapsbox a[aria-current="page"]{background:#1d212a;color:#eceef2}
+  .sitebar .smapsbox{position:fixed;top:54px;min-width:190px;background:var(--sn-pop);border:1px solid var(--sn-line2);border-radius:10px;padding:6px;z-index:45;
+    box-shadow:0 12px 30px var(--sn-shadow)}
+  .sitebar .smapsbox a{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px;color:var(--sn-ink2);text-decoration:none}
+  .sitebar .smapsbox a:hover,.sitebar .smapsbox a[aria-current="page"]{background:var(--sn-hover);color:var(--sn-ink)}
   .sitebar .smapsbox .sdot{width:8px;height:8px;border-radius:50%;flex:none;background:var(--c,#4a5163)}
   .sitebar .sacct{margin-left:auto;flex:none;display:flex;align-items:center;gap:12px}
   .sitebar .sacct:empty{display:none}
@@ -78,9 +83,12 @@
   const STAFF = [["overview", "Overview", "instructor.html#overview"], ["lectures", "Lectures", "instructor.html#lectures"],
                  ["questions", "Questions", "instructor.html#questions"], ["students", "Students", "instructor.html#students"],
                  ["items", "Items", "instructor.html#items"], ["exams", "Exams", "instructor.html#exams"], ["export", "Export", "instructor.html#export"]];
-  const MAPS = [["niche-map", "Niche map", "niche-map.html", "#e0603f"], ["immune-map", "Immune map", "immune-map.html", "#7a6cf0"],
-                ["cascade", "Where it breaks", "cascade.html?b=extracellular", "#e0603f"], ["taxonomy", "Taxonomy", "taxonomy.html", "#57b86b"],
-                ["drugs", "Antimicrobials", "drugs.html", "#e0a83f"]];
+  // Each map has its own marker. Only the niche map uses the four niche colours (it is the map OF the niches);
+  // "Where it breaks" uses the break colour (pink), never a niche colour, so the two cannot be confused.
+  const NICHE_DOT = "conic-gradient(#e0603f 0 25%, #e0a83f 0 50%, #4fa3e3 0 75%, #57b86b 0)";
+  const MAPS = [["niche-map", "Niche map", "niche-map.html", NICHE_DOT], ["immune-map", "Immune map", "immune-map.html", "#9d8cf7"],
+                ["cascade", "Where it breaks", "cascade.html?b=extracellular", "#ec5fa5"], ["taxonomy", "Taxonomy", "taxonomy.html", "#2fb7b0"],
+                ["drugs", "Antimicrobials", "drugs.html", "#94a3b8"]];
 
   let aside = null, items = {}, tabs = {}, foot = null, acct = null, mapsTab = null;
   const mk = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
@@ -119,7 +127,37 @@
     close.title = "Hide the menu";
     close.setAttribute("aria-label", "Hide the menu");
     close.addEventListener("click", () => setOpen(false));
-    const top = mk("div", "stop"); top.appendChild(brand); top.appendChild(close);
+    const top = mk("div", "stop"); top.appendChild(brand);
+    // Dark / light switch. The apps listen for "ii-theme" and save the choice to the profile.
+    if (root.Theme) {
+      const tb = mk("button", "sclose stheme");
+      tb.type = "button";
+      // drawn icons (no emoji): a moon in light mode, a sun in dark mode
+      const icon = (light) => {
+        const NS = "http://www.w3.org/2000/svg", svg = document.createElementNS(NS, "svg");
+        svg.setAttribute("viewBox", "0 0 24 24"); svg.setAttribute("width", "16"); svg.setAttribute("height", "16"); svg.setAttribute("aria-hidden", "true");
+        svg.style.cssText = "display:block;margin:auto;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round";
+        const add = (tag, a) => { const n = document.createElementNS(NS, tag); for (const k in a) n.setAttribute(k, a[k]); svg.appendChild(n); };
+        if (light) add("path", { d: "M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" });
+        else { add("circle", { cx: 12, cy: 12, r: 4 });
+               [[12, 2, 12, 4], [12, 20, 12, 22], [2, 12, 4, 12], [20, 12, 22, 12], [4.9, 4.9, 6.3, 6.3], [17.7, 17.7, 19.1, 19.1], [4.9, 19.1, 6.3, 17.7], [17.7, 6.3, 19.1, 4.9]]
+                 .forEach(([x1, y1, x2, y2]) => add("line", { x1, y1, x2, y2 })); }
+        return svg;
+      };
+      const paint = () => { const light = root.Theme.resolve() === "light";
+        tb.textContent = ""; tb.appendChild(icon(light));
+        tb.title = light ? "Switch to dark mode" : "Switch to light mode";
+        tb.setAttribute("aria-label", tb.title); };
+      tb.addEventListener("click", () => {
+        const t = root.Theme.set(root.Theme.resolve() === "light" ? "dark" : "light");
+        paint();
+        root.dispatchEvent(new CustomEvent("ii-theme", { detail: t }));
+      });
+      root.addEventListener("ii-theme-applied", paint);
+      paint();
+      top.appendChild(tb);
+    }
+    top.appendChild(close);
     aside.appendChild(top);
     if (staff) aside.appendChild(mk("span", "spill", "Instructor"));
     const nav = mk("nav"); nav.setAttribute("aria-label", "Sections");

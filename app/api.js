@@ -58,6 +58,13 @@
       const uid = data.session && data.session.user.id;
       unwrap(await sb.from("profiles").update({ display_name: name }).eq("id", uid));
     },
+    // "system" | "light" | "dark" — saved on the profile so it follows the account to other devices.
+    async updateTheme(theme) {
+      need();
+      const { data } = await sb.auth.getSession();
+      const uid = data.session && data.session.user.id;
+      unwrap(await sb.from("profiles").update({ theme }).eq("id", uid));
+    },
     // Re-checks the current password first, so a borrowed signed-in laptop cannot change it.
     async reauth(email, password) {
       need();
@@ -84,8 +91,10 @@
     publishLecture: (id) => rpc("publish_lecture", { p_id: id }),
     unpublishLecture: (id) => rpc("unpublish_lecture", { p_id: id }),
     lectureViewCount: (id) => rpc("lecture_view_count", { p_id: id }),
+    setLectureHidden: (id, hidden) => rpc("set_lecture_hidden", { p_id: id, p_hidden: !!hidden }),
     async publishedLectures() {
-      return unwrap(await from("lectures").select("*").eq("status", "published").order("number"));
+      // hidden lectures are filtered out by RLS for students; staff previewing the student view see the same list
+      return unwrap(await from("lectures").select("*").eq("status", "published").is("hidden_at", null).order("number"));
     },
     logLectureView: (id) => rpc("log_lecture_view", { p_id: id }),
 
@@ -105,6 +114,7 @@
     deleteQuestion: (q, force) => rpc("delete_question", { p_question: q, p_force: !!force }),
     deleteExam: (id, force) => rpc("delete_exam", { p_exam: id, p_force: !!force }),
     retireQuestion: (q) => rpc("retire_question", { p_question: q }),
+    setQuestionHidden: (q, hidden) => rpc("set_question_hidden", { p_question: q, p_hidden: !!hidden }),
     duplicateQuestion: (q) => rpc("duplicate_question", { p_question: q }),
     setQuestionPool: (q, pool) => rpc("set_question_pool", { p_question: q, p_pool: pool }),
     importQuestions: (items, source) => rpc("import_questions", { p_items: items, p_source: source }),
@@ -123,10 +133,19 @@
     myProgress: (days) => rpc("my_progress", { p_days: days || 30 }),
     myLectureStatus: () => rpc("my_lecture_status"),
     markLectureRead: (id) => rpc("mark_lecture_read", { p_id: id }),
-    sessionCards: (mode, topics, limit) => rpc("session_cards", { p_mode: mode, p_topics: topics || null, p_limit: limit || 24 }),
+    sessionCards: (mode, topics, limit, saved) => rpc("session_cards", { p_mode: mode, p_topics: topics || null, p_limit: limit || 24, p_saved: saved || null }),
     revealCard: (v) => rpc("reveal_card", { p_version: v }),
     reviewCard: (q, rating) => rpc("review_card", { p_question: q, p_rating: rating }),
     toggleBookmark: (topic) => rpc("toggle_bookmark", { p_topic: topic }),
+    // kind: "topic" | "lecture" | "organism" | "disease"
+    toggleSaved: (kind, ref) => rpc("toggle_saved", { p_kind: kind, p_ref: ref }),
+    // students' own flashcards
+    myCards: () => rpc("my_cards"),
+    saveMyCard: (p) => rpc("save_my_card", { p }),
+    deleteMyCard: (id) => rpc("delete_my_card", { p_id: id }),
+    reviewMyCard: (id, rating) => rpc("review_my_card", { p_id: id, p_rating: rating }),
+    myCardSession: (mode, limit, saved) => rpc("my_card_session", { p_mode: mode, p_limit: limit || 24, p_saved: saved || null }),
+    studentCardList: (cid) => rpc("student_card_list", { p_cohort: cid || null }),
     myExams: () => rpc("my_exams"),
     startExam: (id) => rpc("start_exam", { p_exam: id }),
     saveExamResponse: (att, pos, opt, conf, flagged) =>

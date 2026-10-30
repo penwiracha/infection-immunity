@@ -19,9 +19,9 @@
   };
   const TABS = [["overview", "Overview"], ["lectures", "Lectures"], ["questions", "Questions"],
                 ["students", "Students"], ["items", "Items"], ["exams", "Exams"], ["export", "Export"]];
-  const STATUSES = ["draft", "live", "superseded", "retired"];
+  const STATUSES = ["draft", "live", "superseded", "retired", "hidden"];
   const STATUS_LABEL = { draft: "Draft", live: "Live",
-                         superseded: "Superseded", retired: "Retired", published: "Published" };
+                         superseded: "Superseded", retired: "Retired", published: "Published", hidden: "Hidden" };
   const POOLS = ["practice", "pretest", "monthly"];
   const statusChip = (s) => el("span", { class: "status " + s }, STATUS_LABEL[s] || s);
   const vlabel = (kind, id) => label(S.vocab, kind, id);
@@ -85,6 +85,7 @@
     }
     if (S.me === sess.user.id) return;          // already booted (auth event + initial load)
     S.me = sess.user.id; S.profile = sess.profile || {}; S.email = sess.user.email;
+    Shell.syncTheme(S.profile);
     S.isAdmin = S.profile.role === "admin";
 
     // Students who land here go to their own app; the database enforces roles regardless.
@@ -229,7 +230,7 @@
     const myDrafts = questions.filter((q) => q.status === "draft" && q.version_author === S.me && !q.retired_at);
     const [examsNow, schedules] = await Promise.all([API.examList(S.cohort).catch(() => []), API.scheduleList().catch(() => [])]);
     const soon = examsNow.filter((e) => e.status === "open" && e.closes_at && daysSince(e.closes_at) > -3 && daysSince(e.closes_at) < 0);
-    const monthlyLive = questions.filter((q) => q.pool === "monthly" && q.live_version_id && !q.retired_at).length;
+    const monthlyLive = questions.filter((q) => q.pool === "monthly" && q.live_version_id && !q.retired_at && !q.hidden_at).length;
     const short = schedules.filter((x) => x.active && x.n_items > monthlyLive);
     const todo = [
       flagged.length ? [`${flagged.length} student${flagged.length === 1 ? "" : "s"} to check in with`, "#students", "See list"] : null,
@@ -354,13 +355,13 @@
   async function lectureList() {
     S.lectures = await API.lectureList();
     fill($main,
-      pagehead("Lectures", "Published lectures appear in the student Learn tab. You see your own drafts and every published lecture.",
+      pagehead("Lectures", "Published lectures appear in the student Learn tab unless you hide them. You see your own drafts and every published lecture.",
         el("button", { class: "btn primary", type: "button", onclick: () => (location.hash = "lectures/new") }, "New lecture")),
       el("div", { class: "panel" }, S.lectures.length ? el("div", { class: "tablewrap" }, el("table", null,
         el("thead", null, el("tr", null, ["No.", "Title", "Niche", "Status", "Author", "Last edited", "Opened by", "Live Qs"].map((h, i) => el("th", { class: i === 0 || i > 5 ? "num" : null }, h)))),
-        el("tbody", null, S.lectures.map((l) => el("tr", { class: "click", onclick: () => (location.hash = "lectures/" + l.id) },
+        el("tbody", null, S.lectures.map((l) => el("tr", { class: "click" + (l.hidden_at ? " ishidden" : ""), onclick: () => (location.hash = "lectures/" + l.id) },
           el("td", { class: "num" }, String(l.number)), el("td", null, l.title), el("td", null, Render.shortNiche(S.vocab, l.niche)),
-          el("td", null, statusChip(l.status)), el("td", null, l.author_name || "—"), el("td", null, fmtDate(l.updated_at)),
+          el("td", null, statusChip(l.status), l.hidden_at ? [" ", statusChip("hidden")] : null), el("td", null, l.author_name || "—"), el("td", null, fmtDate(l.updated_at)),
           el("td", { class: "num" }, String(l.viewers || 0)), el("td", { class: "num" }, String(l.questions || 0)))))))
         : el("div", { class: "empty" }, "No lectures yet.")));
   }
@@ -446,12 +447,28 @@
       }
     }
 
+    let hideBtn = null;
+    if (!isNew && canEdit && lec.status === "published") {
+      hideBtn = el("button", { class: "btn", type: "button" }, lec.hidden_at ? "Show to students" : "Hide from students");
+      hideBtn.addEventListener("click", async () => {
+        if (!lec.hidden_at) {
+          const ok = await confirmBox("Hide this lecture?",
+            [el("p", null, "Students stop seeing it in Learn, and its practice questions leave their reviews. Nothing is deleted: views, answers and the questions are kept."),
+             el("p", { class: "dim" }, "You can show it again at any time.")], "Hide", true);
+          if (!ok) return;
+        }
+        await guard(() => API.setLectureHidden(id, !lec.hidden_at), lec.hidden_at ? "Students can see it again." : "Hidden from students.");
+        route();
+      });
+    }
+
     fill($main,
       backlink("#lectures", "All lectures"),
       pagehead(isNew ? "New lecture" : `Lecture ${lec.number}: ${lec.title}`,
-        isNew ? "Write the summary, tag it, preview it, then publish." : null, statusChip(lec.status)),
+        isNew ? "Write the summary, tag it, preview it, then publish." : null, statusChip(lec.status), lec.hidden_at ? statusChip("hidden") : null),
+      lec.hidden_at ? el("div", { class: "banner info" }, `Hidden from students since ${fmtDay(lec.hidden_at)}. They cannot open it, and its questions are out of their practice. Click “Show to students” to bring it back.`) : null,
       !canEdit ? el("div", { class: "banner info" }, "Read only — only the author or an admin can edit this lecture.") : null,
-      lec.status === "published" && canEdit ? el("div", { class: "banner warn" }, "This lecture is published. Saved changes appear to students immediately.") : null,
+      lec.status === "published" && !lec.hidden_at && canEdit ? el("div", { class: "banner warn" }, "This lecture is published. Saved changes appear to students immediately.") : null,
       el("div", { class: "split" },
         el("div", { class: "panel" },
           el("div", { class: "grid2" }, field("Lecture number", f.number, true), field("Niche", f.niche, true), field("Cascade step", f.cascade)),
@@ -461,7 +478,7 @@
           errBox),
         el("div", { class: "sidebar" },
           el("div", { class: "panel" },
-            el("div", { class: "row" }, saveBtn, previewBtn, pubBtn, promptBtn),
+            el("div", { class: "row" }, saveBtn, previewBtn, pubBtn, hideBtn, promptBtn),
             el("dl", { class: "meta" },
               isNew ? null : [el("dt", null, "Last edited"), el("dd", null, fmtDate(lec.updated_at)),
                               el("dt", null, "Published"), el("dd", null, fmtDate(lec.published_at)),
@@ -522,6 +539,12 @@
           const ok = await confirmBox(`Retire ${sel.size} item${sel.size === 1 ? "" : "s"}?`, "They leave every student pool. All versions and answers are kept.", "Retire", true);
           if (ok) runBulk("Retired", (r) => API.retireQuestion(r.question_id));
         } }, "Retire"),
+        el("button", { class: "btn small", type: "button", onclick: async () => {
+          const ok = await confirmBox(`Hide ${sel.size} item${sel.size === 1 ? "" : "s"}?`,
+            "Hidden items leave student practice and exam picking until you show them again. Only items no student has answered or reviewed, and that are in no exam, can be hidden; the rest are skipped (retire those instead).", "Hide", true);
+          if (ok) runBulk("Hidden", (r) => API.setQuestionHidden(r.question_id, true));
+        } }, "Hide"),
+        el("button", { class: "btn small", type: "button", onclick: () => runBulk("Shown", (r) => API.setQuestionHidden(r.question_id, false)) }, "Show"),
         el("button", { class: "btn small danger", type: "button", onclick: async () => {
           const ok = await confirmBox(`Delete ${sel.size} item${sel.size === 1 ? "" : "s"}?`,
             "Items students have not used are deleted for good. Items with student answers are skipped (retire those instead)" + (S.isAdmin ? "." : ", unless an admin deletes them."), "Delete", true);
@@ -534,7 +557,7 @@
       const q = F.q.trim().toLowerCase();
       visible = qs.filter((r) =>
         (F.mine !== "drafts" || (r.status === "draft" && r.version_author === S.me)) &&
-        (!F.status || r.status === F.status || (F.status === "live" && r.live_version_id && !r.retired_at)) &&
+        (!F.status || (F.status === "hidden" ? !!r.hidden_at : r.status === F.status || (F.status === "live" && r.live_version_id && !r.retired_at))) &&
         (!F.pool || r.pool === F.pool) && (!F.niche || r.niche === F.niche) && (!F.topic || r.topic === F.topic) &&
         (!F.author || r.version_author === F.author) && (!F.lecture || r.lecture_id === F.lecture) &&
         (!F.tier || r.tier === F.tier) && (!F.difficulty || r.difficulty === F.difficulty) &&
@@ -547,11 +570,12 @@
         cb.addEventListener("click", (e) => e.stopPropagation());
         cb.addEventListener("change", () => { cb.checked ? sel.add(r.question_id) : sel.delete(r.question_id); drawBulk();
           selectAll.checked = visible.every((x) => sel.has(x.question_id)); });
-        return el("tr", { class: "click", onclick: () => (location.hash = "questions/" + r.question_id) },
+        return el("tr", { class: "click" + (r.hidden_at ? " ishidden" : ""), onclick: () => (location.hash = "questions/" + r.question_id) },
           el("td", null, cb),
           el("td", { class: "mono" }, qCode(r.question_id)),
           el("td", { class: "stemcell" }, (r.stem || "").length > 150 ? r.stem.slice(0, 150) + "…" : r.stem),
-          el("td", null, statusChip(r.status), r.live_version_id && r.status !== "live" && !r.retired_at ? el("div", { class: "hint" }, `v${r.live_version} live`) : null),
+          el("td", null, statusChip(r.status), r.hidden_at ? [" ", statusChip("hidden")] : null,
+            r.live_version_id && r.status !== "live" && !r.retired_at ? el("div", { class: "hint" }, `v${r.live_version} live`) : null),
           el("td", null, r.pool),
           el("td", null, r.lecture_number != null ? `L${r.lecture_number}` : "—"),
           el("td", null, el("span", { class: "chip" }, vlabel("topic", r.topic)), r.tier ? el("span", { class: "chip" }, "Tier " + r.tier) : null,
@@ -566,7 +590,7 @@
     }
 
     fill($main,
-      pagehead("Question bank", "Write questions, preview them and publish. Tick several to publish, retire or delete them together.",
+      pagehead("Question bank", "Write questions, preview them and publish. Tick several to publish, hide, retire or delete them together.",
         el("button", { class: "btn", type: "button", onclick: () => promptDialog() }, "AI prompt"),
         el("button", { class: "btn", type: "button", onclick: importDialog }, "Import CSV / JSON"),
         el("button", { class: "btn primary", type: "button", onclick: () => (location.hash = "questions/new") }, "New question")),
@@ -892,6 +916,20 @@
         await guard(() => API.retireQuestion(qid), "Retired."); route();
       } }, "Retire"));
     }
+    if (!isNew && !retired && (item.author_id === S.me || S.isAdmin)) {
+      actions.push(el("button", { class: "btn", type: "button", onclick: async () => {
+        if (item.hidden_at) { await guard(() => API.setQuestionHidden(qid, false), "Shown again."); route(); return; }
+        const u = await API.questionUsage(qid).catch(() => ({ answers: 0, reviews: 0, exams: 0 }));
+        if (+u.answers > 0 || +u.reviews > 0) {
+          modal("Students have used this question", el("p", null, `It has ${+u.answers} answer${+u.answers === 1 ? "" : "s"} and ${+u.reviews} review${+u.reviews === 1 ? "" : "s"}. Only questions no student has done can be hidden. Retire it instead to take it out of every pool.`));
+          return;
+        }
+        if (+u.exams > 0) { modal("In an exam", el("p", null, "Remove it from the exam first, then hide it.")); return; }
+        const ok = await confirmBox("Hide this question?", "It leaves student practice and exam picking. Nothing is deleted, and you can show it again at any time.", "Hide", true);
+        if (!ok) return;
+        await guard(() => API.setQuestionHidden(qid, true), "Hidden."); route();
+      } }, item.hidden_at ? "Show again" : "Hide"));
+    }
     if (!isNew && (item.author_id === S.me || S.isAdmin)) {
       actions.push(el("button", { class: "btn danger", type: "button", onclick: async () => {
         if (await deleteQuestionFlow(qid)) location.hash = "questions";
@@ -910,6 +948,7 @@
     // ---- banners ----
     const banners = [
       retired ? el("div", { class: "banner bad" }, `Retired ${fmtDay(item.retired_at)}. Out of all student pools; its data is kept.`) : null,
+      !retired && item && item.hidden_at ? el("div", { class: "banner info" }, `Hidden since ${fmtDay(item.hidden_at)}: out of student practice and exam picking. Click “Show again” to bring it back.`) : null,
       willCreateVersion && live ? el("div", { class: "banner warn" },
         `Version ${live.version} is live. Saving creates version ${versions[0].version + 1} as a draft; students keep seeing version ${live.version} until you publish the new one. Past answers stay linked to the version each student saw.`) : null,
       !canEdit && !retired && !isNew ? el("div", { class: "banner info" },
@@ -1107,8 +1146,54 @@
         el("div", { class: "tablewrap" }, el("table", null,
           el("thead", null, el("tr", null, ["Student", "Email", "Cohort", "Role", "Answers", "Correct", "Active days", "Lectures", "Last active", "Research"]
             .map((h, i) => el("th", { class: i >= 4 && i <= 7 ? "num" : null }, h)))),
-          body))));
+          body))),
+      S.isAdmin ? studentCardsPanel() : null);
     draw();
+  }
+
+  /* Admins only: every flashcard students wrote for themselves (deleted ones included).
+     Students are told in the app that admins can read their cards and that changes are logged. */
+  function studentCardsPanel() {
+    const box = el("div", { class: "panel" });
+    const body = el("tbody");
+    const q = el("input", { type: "search", placeholder: "Search card text or student…", "aria-label": "Search student flashcards" });
+    const showDeleted = el("input", { type: "checkbox" });
+    const countEl = el("span", { class: "dim" });
+    let rows = [];
+    const draw = () => {
+      const t = q.value.trim().toLowerCase();
+      const list = rows.filter((r) => (showDeleted.checked || !r.deleted_at) &&
+        (!t || [r.front, r.back, r.name, r.code].some((x) => (x || "").toLowerCase().includes(t))));
+      countEl.textContent = `${list.length} of ${rows.length} cards`;
+      fill(body, list.length ? list.slice(0, 500).map((r) => el("tr", { class: r.deleted_at ? "ishidden" : null },
+        el("td", null, el("div", null, r.name || r.code), el("div", { class: "hint", style: { marginTop: 0 } }, [r.code, r.cohort].filter(Boolean).join(" · "))),
+        el("td", { style: { whiteSpace: "pre-wrap", maxWidth: "280px" } }, r.front),
+        el("td", { style: { whiteSpace: "pre-wrap", maxWidth: "340px" } }, r.back),
+        el("td", null, [r.topic ? vlabel("topic", r.topic) : null, r.organism_id ? vlabel("organism", r.organism_id) : null].filter(Boolean).join(" · ") || "—"),
+        el("td", { class: "num" }, String(r.reviews || 0)),
+        el("td", { class: "mono" }, fmtDay(r.created_at)),
+        el("td", null, r.deleted_at ? el("span", { class: "status retired" }, "Deleted " + fmtDay(r.deleted_at))
+          : r.updated_at && r.updated_at !== r.created_at ? "Edited " + fmtDay(r.updated_at) : "—")))
+        : el("tr", null, el("td", { colspan: 7, class: "empty" }, rows.length ? "No cards match." : "No student has written a flashcard yet.")));
+    };
+    q.addEventListener("input", draw);
+    showDeleted.addEventListener("change", draw);
+    const csvBtn = el("button", { class: "btn small", type: "button", onclick: () => download(`student-flashcards-${new Date().toISOString().slice(0, 10)}.csv`,
+      toCSV(rows.map((r) => ({ code: r.code, name: r.name, cohort: r.cohort, front: r.front, back: r.back, topic: r.topic, organism_id: r.organism_id,
+        reviews: r.reviews, created_at: r.created_at, updated_at: r.updated_at, deleted_at: r.deleted_at }))), "text/csv") }, "Download CSV");
+    fill(box,
+      el("div", { class: "row", style: { justifyContent: "space-between", marginBottom: "4px" } },
+        el("h3", { style: { margin: 0 } }, "Students' own flashcards"), el("span", { class: "pill" }, "Admins only")),
+      el("p", { class: "dim", style: { margin: "0 0 12px" } }, "Cards students wrote for their own study, in the cohort chosen above. Every create, edit and delete is also in the audit log (Export)."),
+      el("div", { class: "searchrow" }, el("div", { style: { flex: "1" } }, q),
+        el("label", { class: "row", style: { gap: "6px", flexWrap: "nowrap" } }, showDeleted, "Show deleted"), countEl, csvBtn),
+      el("div", { class: "tablewrap" }, el("table", null,
+        el("thead", null, el("tr", null, ["Student", "Front", "Back", "Tags", "Reviews", "Written", "Changes"].map((h, i) => el("th", { class: i === 4 ? "num" : null }, h)))),
+        body)));
+    fill(body, el("tr", null, el("td", { colspan: 7, class: "empty" }, "Loading…")));
+    API.studentCardList(S.cohort).then((r) => { rows = r || []; draw(); })
+      .catch((e) => fill(body, el("tr", null, el("td", { colspan: 7, class: "empty err" }, errMsg(e)))));
+    return box;
   }
 
   // ------------------------------------------------------------------
@@ -1352,7 +1437,7 @@
   }
 
   async function addItems(e, d) {
-    const qs = (await API.questionList()).filter((q) => q.pool === e.kind && q.live_version_id && !q.retired_at);
+    const qs = (await API.questionList()).filter((q) => q.pool === e.kind && q.live_version_id && !q.retired_at && !q.hidden_at);
     const chosen = new Set(d.items.map((x) => x.question_id));
     const list = el("div", { style: { maxHeight: "50vh", overflow: "auto" } }, qs.length ? qs.map((q) => {
       const cb = el("input", { type: "checkbox", checked: chosen.has(q.question_id) });

@@ -28,6 +28,7 @@ const BASE = `http://localhost:${server.address().port}`;
 const browser = await chromium.launch();
 let passed = 0, failed = 0;
 async function test(name, role, fn, opts) {
+  if (process.env.ONLY && !new RegExp(process.env.ONLY, "i").test(name)) return;   // ONLY=regex runs a subset
   const page = await browser.newPage({ viewport: { width: 1360, height: 900 } });
   const errors = [], dialogs = [];
   page.on("pageerror", (e) => errors.push(e.message));
@@ -279,7 +280,7 @@ await test("student home: study next, weak spots, stats, check-in", "student", a
 
 await test("student practice: flashcards with spaced-review ratings, then a confidence-rated question", "student", async (page) => {
   await page.goto(`${BASE}/views/app.html#practice`);
-  await page.getByText("24 cards due today").waitFor();
+  await page.getByText("25 cards due today").waitFor();   // 16 due + 8 new + 1 of the student's own
   await shot(page, "student-practice");
   await page.getByRole("button", { name: "Start session" }).click();
   await page.getByRole("button", { name: "Show answer" }).waitFor();
@@ -289,6 +290,11 @@ await test("student practice: flashcards with spaced-review ratings, then a conf
   await page.getByRole("button", { name: "Bookmark this topic" }).click().catch(() => page.getByRole("button", { name: "Bookmarked" }).click());
   await shot(page, "student-flashcard-back");
   await page.locator(".rate button", { hasText: "Good" }).click();
+  // the student's own card is mixed into spaced review; its back is shown as typed
+  await page.getByText("Your card").first().waitFor();
+  await page.getByRole("button", { name: "Show answer" }).click();
+  assert.equal(await page.locator(".answer").textContent(), 'C3b deposition <script>window.__xss="own"</script>');
+  await page.locator(".rate button", { hasText: "Easy" }).click();
   await page.getByRole("button", { name: "Show answer" }).click();
   await page.locator(".rate button", { hasText: "Easy" }).click();
   await page.getByText("How sure are you?").waitFor();
@@ -301,6 +307,7 @@ await test("student practice: flashcards with spaced-review ratings, then a conf
   await page.locator(".explain").waitFor();
   const calls = await page.evaluate(() => window.__CALLS__);
   assert.ok(calls.some((c) => c[0] === "reviewCard" && c[2] === "good"));
+  assert.ok(calls.some((c) => c[0] === "reviewMyCard" && c[2] === "easy"), "own card not rated");
   assert.ok(calls.some((c) => c[0] === "submitAnswer" && c[3] === "unsure"), "confidence not sent");
   await page.getByRole("button", { name: "Finish" }).click();
   await page.getByText("Session complete").waitFor();
@@ -489,6 +496,133 @@ await test("admin: student view stays in preview while moving between sections",
   await page.waitForURL(/instructor\.html/);
   await page.goto(`${BASE}/views/app.html#home`);
   await page.waitForURL(/instructor\.html/);   // preview ended: an admin opening the app goes to the dashboard
+});
+
+await test("bookmarks: lectures, diseases and organisms appear under Bookmarked topics", "student", async (page) => {
+  await page.goto(`${BASE}/views/app.html#learn/11111111-1111-1111-1111-111111111111`);
+  await page.getByRole("button", { name: "Bookmark this lecture" }).click();
+  await page.getByRole("button", { name: "Bookmarked" }).first().waitFor();
+  await page.goto(`${BASE}/views/app.html#explore`);
+  await page.getByLabel("Search organisms").fill("pneumoniae");
+  await page.locator(".orglist button", { hasText: "Streptococcus pneumoniae" }).click();
+  await page.getByRole("button", { name: "Bookmark this organism" }).click();
+  await page.goto(`${BASE}/views/app.html#practice`);
+  await page.getByRole("heading", { name: "Bookmarked topics" }).waitFor();
+  const text = await page.locator(".savedrow").allTextContents();
+  assert.ok(text.some((t) => t.includes("Lecture 3: Extracellular bacteria")), "lecture bookmark missing: " + text);
+  assert.ok(text.some((t) => t.includes("Streptococcus pneumoniae")), "organism bookmark missing");
+  assert.ok(text.some((t) => t.includes("Neisseria meningitidis")), "earlier bookmark missing");
+  await shot(page, "student-bookmarks");
+  await page.getByRole("button", { name: "Review these" }).click();
+  await page.getByRole("button", { name: "Show answer" }).waitFor();
+  const calls = await page.evaluate(() => window.__CALLS__);
+  const sc = calls.find((c) => c[0] === "sessionCards" && c[1] === "saved");
+  assert.ok(sc && sc[3].length === 4, "saved session did not pass the bookmarks");
+  assert.ok(calls.some((c) => c[0] === "toggleSaved" && c[1] === "lecture"));
+});
+
+await test("student flashcards: write, edit, review and delete my own cards", "student", async (page) => {
+  await page.goto(`${BASE}/views/app.html#practice`);
+  await page.getByRole("heading", { name: "My flashcards" }).waitFor();
+  assert.ok((await page.locator("main").textContent()).includes("admins can, and every change is logged"), "students are told admins can see cards");
+  await page.getByRole("button", { name: "New card" }).click();
+  await page.getByRole("button", { name: "Add card" }).click();
+  await page.getByText("Write both sides of the card.").waitFor();
+  await page.getByLabel("Front").fill("What does IL-5 recruit? <b>x</b>");
+  await page.getByLabel("Back").fill("Eosinophils");
+  await page.getByRole("button", { name: "Add card" }).click();
+  await page.locator(".owncard", { hasText: "What does IL-5 recruit? <b>x</b>" }).waitFor();
+  await page.locator(".owncard", { hasText: "IL-5" }).getByRole("button", { name: "Edit" }).click();
+  await page.getByLabel("Back").fill("Eosinophils (IL-5 from TH2)");
+  await page.getByRole("button", { name: "Save card" }).click();
+  await page.locator(".owncard", { hasText: "from TH2" }).waitFor();
+  await shot(page, "student-own-cards");
+  await page.locator(".pickcard", { hasText: "My flashcards" }).click();
+  await page.getByRole("button", { name: "Start session" }).click();
+  await page.getByRole("button", { name: "Show answer" }).click();
+  await page.locator(".rate button", { hasText: "Good" }).click();
+  await page.goto(`${BASE}/views/app.html#practice`);
+  await page.locator(".owncard", { hasText: "IL-5" }).getByRole("button", { name: "Delete" }).click();
+  await page.locator(".modal").getByRole("button", { name: "Delete" }).click();
+  await page.getByText("Card deleted.").waitFor();
+  const calls = await page.evaluate(() => window.__CALLS__);
+  for (const c of ["saveMyCard", "reviewMyCard", "deleteMyCard"]) assert.ok(calls.some((x) => x[0] === c), c + " not called");
+  assert.equal(await page.locator(".owncard b script, .owncard b b").count(), 0);
+});
+
+await test("admin sees students' own flashcards; instructors do not", "admin", async (page) => {
+  await page.goto(`${BASE}/views/instructor.html#students`);
+  await page.getByRole("heading", { name: "Students' own flashcards" }).waitFor();
+  await page.locator("td", { hasText: "Which step does a capsule block?" }).waitFor();
+  assert.equal(await page.locator("td", { hasText: "Old card" }).count(), 0, "deleted cards hidden by default");
+  await page.getByLabel("Show deleted").check();
+  await page.locator("td", { hasText: "Old card" }).waitFor();
+  await shot(page, "admin-student-cards");
+});
+await test("instructor: no student flashcards panel", "instructor", async (page) => {
+  await page.goto(`${BASE}/views/instructor.html#students`);
+  await page.getByRole("heading", { name: "Class codes" }).waitFor();
+  assert.equal(await page.getByText("Students' own flashcards").count(), 0);
+});
+
+await test("hide a lecture and an unused question; answered questions cannot be hidden", "instructor", async (page) => {
+  await page.goto(`${BASE}/views/instructor.html#lectures/11111111-1111-1111-1111-111111111111`);
+  await page.getByRole("button", { name: "Hide from students" }).click();
+  await page.locator(".modal").getByRole("button", { name: "Hide" }).click();
+  await page.getByRole("button", { name: "Show to students" }).waitFor();
+  await page.getByText("Hidden from students since").waitFor();
+  await shot(page, "lecture-hidden");
+  await page.goto(`${BASE}/views/instructor.html#questions/q1`);
+  await page.getByRole("button", { name: "Hide", exact: true }).click();
+  await page.getByText("Only questions no student has done can be hidden").waitFor();
+  await page.keyboard.press("Escape");
+  await page.goto(`${BASE}/views/instructor.html#questions`);
+  await page.locator("td.stemcell").first().waitFor();
+  const calls = await page.evaluate(() => window.__CALLS__);
+  assert.ok(calls.some((c) => c[0] === "setLectureHidden" && c[2] === true));
+  assert.ok(!calls.some((c) => c[0] === "setQuestionHidden" && c[1] === "q1"), "an answered question was sent to hide");
+});
+
+await test("dark / light mode: Settings switch, sidebar switch, maps follow", "student", async (page) => {
+  await page.goto(`${BASE}/views/app.html#settings`);
+  await page.getByText("Appearance").waitFor();
+  assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), "dark");
+  await page.getByLabel("Light", { exact: true }).check();
+  assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), "light");
+  await page.getByText("Saved. Your other devices").waitFor();
+  assert.ok((await page.evaluate(() => window.__CALLS__)).some((c) => c[0] === "updateTheme" && c[1] === "light"), "theme not saved to the profile");
+  const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  assert.equal(bg, "rgb(246, 247, 249)");
+  await shot(page, "settings-light");
+  for (const v of ["niche-map", "immune-map", "cascade", "taxonomy", "drugs"]) {
+    await page.goto(`${BASE}/views/${v}.html`);
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), "light", v + " did not follow");
+    assert.equal(await page.evaluate(() => getComputedStyle(document.body).backgroundColor), "rgb(246, 247, 249)", v + " background");
+  }
+  await page.goto(`${BASE}/views/cascade.html`);
+  await shot(page, "cascade-light");
+  await page.locator(".siteside .stheme").click();
+  assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), "dark");
+  await page.goto(`${BASE}/index.html`);
+  assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), "dark");
+});
+
+await test("colours: break-points and the cascade link never use a niche colour", "student", async (page) => {
+  await page.goto(`${BASE}/views/cascade.html?b=extracellular`);
+  await page.locator(".lz").first().waitFor();
+  const niche = await page.evaluate(() => ["--extra", "--vesic", "--cyto", "--surf"].map((v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim()));
+  const pathogen = await page.locator(".lz:not(.host)").first();
+  await pathogen.click();
+  const on = await page.locator(".lz.on").first().evaluate((e) => getComputedStyle(e).backgroundColor);
+  const toRgb = (hex) => `rgb(${parseInt(hex.slice(1, 3), 16)}, ${parseInt(hex.slice(3, 5), 16)}, ${parseInt(hex.slice(5, 7), 16)})`;
+  assert.ok(!niche.map(toRgb).includes(on), "selected break-point uses a niche colour: " + on);
+  const dot = (name) => page.locator(".siteside a.sitem", { hasText: name }).locator(".sdot").evaluate((e) => getComputedStyle(e).backgroundImage + "|" + getComputedStyle(e).backgroundColor);
+  assert.notEqual(await dot("Niche map"), await dot("Where it breaks"), "niche map and where-it-breaks share a colour");
+  await page.goto(`${BASE}/views/immune-map.html`);
+  await page.locator(".chip[data-o]").first().click();
+  const broken = await page.locator(".cmp.brk").first().evaluate((e) => getComputedStyle(e.querySelector(".box")).fill);
+  assert.ok(!niche.map(toRgb).includes(broken), "broken component uses a niche colour: " + broken);
+  await shot(page, "immune-map-break");
 });
 
 await browser.close();

@@ -4,12 +4,22 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Immune System Map — Addressable</title>
+<script src="../app/theme.js"></script>
 <style>
 :root{
   --bg:#0e1014; --ink:#e8eaee; --dim:#8d96a6; --line:#272c36;
   --panel:#161a21; --panel2:#1c212a;
   --extra:#e0603f; --vesic:#e0a83f; --cyto:#4fa3e3; --surf:#57b86b;
   --innate:#6f7a8d; --host:#7a6cf0;
+  --brk:#ec5fa5;            /* broken by the pathogen: pink, never a niche colour */
+  --eng:#39414f; --eng2:#5b6472; --eng3:#7f8b9c; --on-c:#0e1014; --arrow:#3a4150;
+}
+html[data-theme="light"]{
+  --bg:#f6f7f9; --ink:#16181d; --dim:#5f6878; --line:#d5dae2;
+  --panel:#ffffff; --panel2:#f0f2f5;
+  --extra:#b5401c; --vesic:#8f5b00; --cyto:#1f6fb5; --surf:#26773d;
+  --innate:#7b8494; --host:#6a58e0; --brk:#c02a76;
+  --eng:#cfd4dc; --eng2:#9aa2af; --eng3:#7b8494; --on-c:#ffffff; --arrow:#9aa2af;
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);
@@ -24,7 +34,7 @@ h1{margin:0 0 7px;font-size:22px}
 .chip{font-size:12px;padding:5px 12px;border-radius:20px;border:1px solid var(--line);
  background:var(--panel2);cursor:pointer;user-select:none;white-space:nowrap}
 .chip:hover{border-color:var(--dim)}
-.chip.on{background:var(--c,#4fa3e3);color:#0e1014;border-color:var(--c,#4fa3e3);font-weight:600}
+.chip.on{background:var(--c,#4fa3e3);color:var(--on-c);border-color:var(--c,#4fa3e3);font-weight:600}
 .clear{margin-left:auto;font-size:11.5px;color:var(--dim);cursor:pointer;text-decoration:underline}
 .wrap{display:grid;grid-template-columns:1fr minmax(320px,390px)}
 @media(max-width:980px){.wrap{grid-template-columns:1fr}}
@@ -42,14 +52,16 @@ svg{width:100%;height:auto;display:block}
 .cmp.dim .box{opacity:.22}
 .cmp.dim .lbl,.cmp.dim .sm{opacity:.25}
 .cmp.hit .box{fill:var(--hc);stroke:var(--hc);stroke-width:2.5}
-.cmp.hit .lbl{fill:#0e1014}
+.cmp.hit .lbl{fill:var(--on-c)}
+.cmp.brk .box{stroke:var(--ink);stroke-dasharray:5 3;stroke-width:2.5}
+html[data-theme="light"] .cmp.hit:not(.brk) .sm{fill:var(--dim)}
 .cmp.hit .sm{fill:rgba(0,0,0,.62)}
 .flow{stroke:var(--line);stroke-width:1.5;fill:none;transition:all .18s}
 .flow.dim{opacity:.15}
 .flow.hit{stroke:var(--hc);stroke-width:2.5}
 .zone{fill:none;stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;rx:8}
 .zlab{fill:var(--dim);font-size:9px;letter-spacing:1.3px;text-transform:uppercase}
-.arm{font-size:9.5px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;paint-order:stroke;stroke:#0e1014;stroke-width:4px;stroke-linejoin:round}
+.arm{font-size:9.5px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;paint-order:stroke;stroke:var(--bg);stroke-width:4px;stroke-linejoin:round}
 
 /* --- side panel --- */
 .empty{color:var(--dim);font-size:13.5px;text-align:center;padding-top:44px;line-height:1.75}
@@ -59,13 +71,17 @@ svg{width:100%;height:auto;display:block}
 .blk .lab{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--dim);margin-bottom:4px}
 .blk p{margin:0;font-size:13px}
 .hits{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
-.hits span{font-size:10.5px;padding:3px 8px;border-radius:5px;background:#3a2530;color:#f0a8bd}
+.hits span{font-size:10.5px;padding:3px 8px;border-radius:5px;background:#3a2131;color:#f7a9cf}
 .hits span.h{background:#2a2545;color:#b9aefc}
+html[data-theme="light"] .hits span{background:#fbe1ee;color:#a3245f}
+html[data-theme="light"] .hits span.h{background:#ebe7fd;color:#4f3fc0}
 .recs .rec{background:var(--panel2);color:var(--ink);border-left:3px solid var(--rc,var(--line));cursor:pointer}
-.recs .rec:hover{background:#242a34}
+.recs .rec:hover{background:var(--line)}
 .recs .rec.h{border-left-color:var(--host)}
 .blk a{color:#9fc3e8;text-decoration:none;border-bottom:1px dotted #5b6472;cursor:pointer}
 .blk a:hover{color:#cfe3f6}
+html[data-theme="light"] .blk a{color:#1f5f9e}
+html[data-theme="light"] .blk a:hover{color:#123f6b}
 .note{font-size:11.5px;color:var(--dim);margin-top:18px;border-top:1px solid var(--line);padding-top:11px}
 code{background:var(--panel2);padding:1px 5px;border-radius:4px;font-size:11.5px}
 </style>
@@ -93,7 +109,7 @@ code{background:var(--panel2);padding:1px 5px;border-radius:4px;font-size:11.5px
 <svg id="map" viewBox="0 0 1000 720" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <marker id="ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M0,0 L8,4 L0,8 z" fill="#3a4150"/>
+      <path d="M0,0 L8,4 L0,8 z" style="fill:var(--arrow)"/>
     </marker>
   </defs>
 
@@ -221,7 +237,7 @@ code{background:var(--panel2);padding:1px 5px;border-radius:4px;font-size:11.5px
   </div>
 
   <div class="side" id="side">
-    <div class="empty">Select an organism above.<br>Highlighted components are the ones it engages or breaks.</div>
+    <div class="empty">Select an organism above.<br>Grey = what it engages. Pink = what a pathogen breaks; purple = what a host defect breaks.</div>
   </div>
 </div>
 
@@ -270,7 +286,7 @@ RECORDS.forEach(r=>{
 });
 
 function reset(){
-  ALL.forEach(e=>{e.classList.remove('dim','hit');e.style.removeProperty('--hc')});
+  ALL.forEach(e=>{e.classList.remove('dim','hit','brk');e.style.removeProperty('--hc')});
   FL.forEach(e=>e.classList.remove('dim','hit'));
 }
 function apply(key){
@@ -280,7 +296,10 @@ function apply(key){
   ALL.forEach(e=>{
     if(!on.has(e.id)){e.classList.add('dim');return}
     e.classList.add('hit');
-    e.style.setProperty('--hc', d.breaks.includes(e.id)?col:'#39414f');
+    // broken: pink for a pathogen, purple for a host defect (never the niche colour); engaged: grey
+    const broken=d.breaks.includes(e.id);
+    e.classList.toggle('brk',broken);
+    e.style.setProperty('--hc', broken?(d.host?'var(--host)':'var(--brk)'):'var(--eng)');
     // c_inflam has no .sm sub-label — guard against missing nodes
     const lbl=e.querySelector('.lbl'),sm=e.querySelector('.sm');
     if(!d.breaks.includes(e.id)){if(lbl)lbl.style.fill='var(--ink)';if(sm)sm.style.fill='var(--dim)';}
@@ -295,7 +314,7 @@ function apply(key){
       <div class="hits">${d.breaks.map(b=>`<span class="${d.host?'h':''}">${label(b)}</span>`).join('')}</div></div>
     <div class="blk"><div class="lab">Why the response is not enough</div><p>${d.why}</p></div>
     <div class="blk"><div class="lab">Resulting disease</div><p>${d.dis}</p></div>
-    <div class="note">Solid colour = broken. Grey = engaged and working. Dimmed = not involved.</div>
+    <div class="note">${d.host?'Purple':'Pink'} with a dashed outline = broken${d.host?' by the host defect':' by the pathogen'}. Grey = engaged and working. Arrows lit in the ${d.host?'host-defect':'niche'} colour = the pathway involved. Dimmed = not involved.</div>
   </div>`;
   side.scrollTop=0;
 }
@@ -305,13 +324,13 @@ document.querySelectorAll('.chip[data-o]').forEach(c=>{
   c.onclick=()=>{
     const k=c.dataset.o;
     document.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));
-    if(cur===k){cur=null;reset();side.innerHTML='<div class="empty">Select an organism above.<br>Highlighted components are the ones it engages or breaks.</div>';return}
+    if(cur===k){cur=null;reset();side.innerHTML='<div class="empty">Select an organism above.<br>Grey = what it engages. Pink = what a pathogen breaks; purple = what a host defect breaks.</div>';return}
     cur=k;c.classList.add('on');apply(k);
   };
 });
 document.getElementById('clr').onclick=()=>{cur=null;reset();
   document.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));
-  side.innerHTML='<div class="empty">Select an organism above.<br>Highlighted components are the ones it engages or breaks.</div>';};
+  side.innerHTML='<div class="empty">Select an organism above.<br>Grey = what it engages. Pink = what a pathogen breaks; purple = what a host defect breaks.</div>';};
 
 /* ============================================================
    Knowledge layer: click any box for its role, click any arrow for
@@ -334,9 +353,9 @@ function showComponent(id){
   reset();
   // spotlight this component + the arrows touching it
   ALL.forEach(e=>e.classList.toggle('dim', e.id!==id));
-  const cel=document.getElementById(id); if(cel){cel.classList.remove('dim');cel.classList.add('hit');cel.style.setProperty('--hc','#39414f');}
+  const cel=document.getElementById(id); if(cel){cel.classList.remove('dim');cel.classList.add('hit');cel.style.setProperty('--hc','var(--eng)');}
   const touch=Object.entries(FLOW).filter(([,f])=>f.from===id||f.to===id).map(([fid])=>fid);
-  FL.forEach(e=>{if(touch.includes(e.id)){e.classList.remove('dim');e.classList.add('hit');e.style.setProperty('--hc','#5b6472')}else e.classList.add('dim')});
+  FL.forEach(e=>{if(touch.includes(e.id)){e.classList.remove('dim');e.classList.add('hit');e.style.setProperty('--hc','var(--eng2)')}else e.classList.add('dim')});
   const eb=engagedBy[id]||[], bb=brokenBy[id]||[];
   side.innerHTML=`<div class="card" style="--k:var(--innate)">
     <h2>${c.name}</h2>
@@ -355,8 +374,8 @@ function showFlow(fid){
   const f=FLOW[fid]; if(!f) return;
   reset();
   const on=new Set([f.from,f.to]);
-  ALL.forEach(e=>{if(on.has(e.id)){e.classList.add('hit');e.style.setProperty('--hc','#39414f')}else e.classList.add('dim')});
-  FL.forEach(e=>{if(e.id===fid){e.classList.add('hit');e.style.setProperty('--hc','#7f8b9c')}else e.classList.add('dim')});
+  ALL.forEach(e=>{if(on.has(e.id)){e.classList.add('hit');e.style.setProperty('--hc','var(--eng)')}else e.classList.add('dim')});
+  FL.forEach(e=>{if(e.id===fid){e.classList.add('hit');e.style.setProperty('--hc','var(--eng3)')}else e.classList.add('dim')});
   side.innerHTML=`<div class="card" style="--k:var(--innate)">
     <h2>${COMP[f.from].name} &rarr; ${COMP[f.to].name}</h2>
     <div class="kick">connection &middot; <code>${fid}</code></div>
@@ -390,7 +409,7 @@ FL.forEach(e=>{
   hit.setAttribute('stroke','transparent');hit.setAttribute('stroke-width','14');
   hit.setAttribute('fill','none');hit.style.cursor='pointer';hit.style.pointerEvents='stroke';
   hit.addEventListener('click',()=>{selectClear();showFlow(e.id);});
-  hit.addEventListener('mouseenter',()=>{if(!cur){e.classList.add('hit');e.style.setProperty('--hc','#5b6472')}});
+  hit.addEventListener('mouseenter',()=>{if(!cur){e.classList.add('hit');e.style.setProperty('--hc','var(--eng2)')}});
   hit.addEventListener('mouseleave',()=>{if(!cur&&!side.querySelector('.card'))e.classList.remove('hit')});
   flowsG.appendChild(hit);
 });
@@ -414,6 +433,8 @@ body.pop-open .side{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)
   font:600 18px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;cursor:pointer;display:none}
 body.pop-open #pop-close{display:block}
 @media (prefers-reduced-motion:reduce){#pop-backdrop,.side{transition:none}}
+html[data-theme="light"] #pop-backdrop{background:rgba(20,24,33,.38)}
+html[data-theme="light"] .side{box-shadow:0 28px 80px rgba(20,24,33,.22)}
 </style>
 <script>
 (function(){

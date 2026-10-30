@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Infection &amp; Immunity — Revision Tool</title>
+<script src="app/theme.js"></script>
 <style>
 /* Same visual language as app/app.css (Learn, Instructor), kept inline so this
    page still works offline and inside the single-file bundle. */
@@ -11,6 +12,18 @@
   --bg:#0f1014; --panel:#171a21; --panel2:#1d212a; --line:#262a33; --line2:#33384a;
   --ink:#eceef2; --ink2:#c9cdd6; --dim:#8f97a6; --accent:#9d8cf7; --accent-ink:#15122a; --accent-line:#7a6cf0;
   --extra:#e0603f; --vesic:#e0a83f; --cyto:#4fa3e3; --surf:#57b86b; --host:#7a6cf0;
+  --hover-line:#4a5163; --primary-hover:#ad9ef9;
+  /* map markers: only the niche map uses the niche colours; "Where it breaks" is pink */
+  --m-niche:linear-gradient(180deg,#e0603f 0 25%,#e0a83f 25% 50%,#4fa3e3 50% 75%,#57b86b 75%);
+  --m-immune:#9d8cf7; --m-break:#ec5fa5; --m-tax:#2fb7b0; --m-drugs:#94a3b8;
+}
+html[data-theme="light"]{
+  --bg:#f6f7f9; --panel:#ffffff; --panel2:#f0f2f5; --line:#dde1e7; --line2:#c9ced8;
+  --ink:#16181d; --ink2:#3a4150; --dim:#5f6878; --accent:#6a58e0; --accent-ink:#ffffff; --accent-line:#6a58e0;
+  --extra:#b5401c; --vesic:#8f5b00; --cyto:#1f6fb5; --surf:#26773d; --host:#6a58e0;
+  --hover-line:#aab1bd; --primary-hover:#5a48d0;
+  --m-niche:linear-gradient(180deg,#b5401c 0 25%,#8f5b00 25% 50%,#1f6fb5 50% 75%,#26773d 75%);
+  --m-immune:#6a58e0; --m-break:#c02a76; --m-tax:#178a84; --m-drugs:#64748b;
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);
@@ -35,9 +48,9 @@ h1{margin:0 0 6px;font-size:27px}
 .muted{color:var(--ink2);opacity:.85;margin:0}
 .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
 .btn{display:inline-flex;align-items:center;border:1px solid var(--line2);border-radius:8px;padding:10px 18px;color:var(--ink);text-decoration:none;font-size:15px}
-.btn:hover{background:var(--panel2);border-color:#4a5163}
+.btn:hover{background:var(--panel2);border-color:var(--hover-line)}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
-.btn.primary:hover{background:#ad9ef9}
+.btn.primary:hover{background:var(--primary-hover)}
 .rule{border:none;border-top:1px solid var(--line);margin:20px 0 14px}
 .views{display:flex;flex-direction:column;gap:6px;margin-top:12px}
 .view{display:grid;grid-template-columns:4px 1fr;gap:14px;padding:12px 12px 12px 0;border-radius:8px;text-decoration:none;color:inherit}
@@ -95,11 +108,11 @@ h1{margin:0 0 6px;font-size:27px}
       <section class="panel">
         <h3>Five ways to see the same organisms</h3>
         <div class="views">
-          <a class="view" style="--c:var(--extra)" href="views/niche-map.html"><i class="bar"></i><div><b>Niche map</b><span>Organisms branched by where they live: extracellular, vesicular, cytosolic, surface. Response, why it fails, disease. Tier, failure-mode and system filters.</span></div></a>
-          <a class="view" style="--c:var(--host)" href="views/immune-map.html"><i class="bar"></i><div><b>Immune map</b><span>The whole immune system as one diagram. Pick an organism to light up what it engages (grey) and breaks (colour).</span></div></a>
-          <a class="view" style="--c:var(--extra)" href="views/cascade.html?b=extracellular"><i class="bar"></i><div><b>Where it breaks</b><span>The 8-step extracellular chain with 45 break-points: pathogen evasion and host defect on the same steps.</span></div></a>
-          <a class="view" style="--c:var(--surf)" href="views/taxonomy.html"><i class="bar"></i><div><b>Taxonomy</b><span>Kingdom, identification key, organism, then microscopy, treatment and resistance. Bacteria, viruses, fungi and parasites.</span></div></a>
-          <a class="view" style="--c:var(--vesic)" href="views/drugs.html"><i class="bar"></i><div><b>Antimicrobial review</b><span>Every antimicrobial by family, class, generation and drug, with mechanism and use.</span></div></a>
+          <a class="view" style="--c:var(--m-niche)" href="views/niche-map.html"><i class="bar"></i><div><b>Niche map</b><span>Organisms branched by where they live: extracellular, vesicular, cytosolic, surface. Response, why it fails, disease. Tier, failure-mode and system filters.</span></div></a>
+          <a class="view" style="--c:var(--m-immune)" href="views/immune-map.html"><i class="bar"></i><div><b>Immune map</b><span>The whole immune system as one diagram. Pick an organism to light up what it engages (grey) and breaks (pink; purple for host defects).</span></div></a>
+          <a class="view" style="--c:var(--m-break)" href="views/cascade.html?b=extracellular"><i class="bar"></i><div><b>Where it breaks</b><span>The 8-step extracellular chain with 45 break-points: pathogen evasion and host defect on the same steps.</span></div></a>
+          <a class="view" style="--c:var(--m-tax)" href="views/taxonomy.html"><i class="bar"></i><div><b>Taxonomy</b><span>Kingdom, identification key, organism, then microscopy, treatment and resistance. Bacteria, viruses, fungi and parasites.</span></div></a>
+          <a class="view" style="--c:var(--m-drugs)" href="views/drugs.html"><i class="bar"></i><div><b>Antimicrobial review</b><span>Every antimicrobial by family, class, generation and drug, with mechanism and use.</span></div></a>
         </div>
       </section>
     </div>

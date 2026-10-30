@@ -34,7 +34,8 @@
   const nicheName = (id) => shortNiche(S.vocab, id);
   const pct = (x) => (x == null ? "—" : `${Math.round(x)}%`);
   const errMsg = (e) => (e && e.message) || String(e);
-  const cascadeHref = (step) => (step && /^extracellular:/.test(step) ? "cascade.html?b=extracellular" : "niche-map.html");
+  // "vesicular:S3" -> that branch's cascade (unauthored branches show a placeholder there); no step -> the niche map
+  const cascadeHref = (step) => { const m = /^([a-z]+):S\d+$/.exec(step || ""); return m ? "cascade.html?b=" + m[1] : "niche-map.html"; };
   const head = (title, sub, ...right) => el("div", { class: "pagehead" },
     el("div", null, el("h1", null, title), sub ? el("p", { class: "sub" }, sub) : null),
     right.flat().filter(Boolean).length ? el("div", { class: "controls" }, right) : null);
@@ -70,6 +71,7 @@
     if (S.me === sess.user.id) return;
     S.me = sess.user.id;
     S.profile = sess.profile || {};
+    Shell.syncTheme(S.profile);
     S.email = sess.user.email;
     const staff = S.profile.role === "instructor" || S.profile.role === "admin";
     if (staff && !PREVIEW) { location.replace("instructor.html"); return; }
@@ -321,7 +323,7 @@
   async function home() {
     const [p, exams] = await Promise.all([API.myProgress(30), API.myExams().catch(() => [])]);
     const st = S.status;
-    const due = (st.cards_due || 0) + Math.min(st.new_cards || 0, 20);
+    const due = (st.cards_due || 0) + Math.min(st.new_cards || 0, 20) + (st.own_due || 0);
     const topics = (p.by_topic || []).filter((t) => t.n >= 3);
     const weakest = topics[0];
     const first = (S.profile.display_name || "").split(/\s+/)[0];
@@ -407,7 +409,8 @@
       for (const l of lecs) for (const d of l.disease_ids || []) (map[d] ||= []).push(l);
       const ids = Object.keys(map).sort((a, b) => V("disease", a).localeCompare(V("disease", b)));
       fill($main, headEl, seg, el("div", { class: "panel" }, el("h3", null, "Diseases in published lectures"),
-        ids.length ? el("div", { class: "diseasecards" }, ids.map((d) => el("div", null, el("b", null, V("disease", d)),
+        ids.length ? el("div", { class: "diseasecards" }, ids.map((d) => el("div", null,
+          el("div", { class: "row", style: { justifyContent: "space-between", gap: "8px", flexWrap: "nowrap" } }, el("b", null, V("disease", d)), bookmarkBtn("disease", d)),
           map[d].map((l) => el("a", { href: "#learn/" + l.id, style: { display: "block" } }, `Lecture ${l.number}: ${l.title}`)))))
           : el("p", { class: "dim", style: { margin: 0 } }, "No lecture has linked diseases yet.")));
       return;
@@ -432,9 +435,10 @@
           renderLecture(current, S.vocab, { actions: [
             qs.length ? el("a", { class: "btn primary", href: `#learn/${current.id}/practice` }, "Practice this lecture")
                       : el("button", { class: "btn primary", type: "button", disabled: true }, "No practice questions yet"),
-            readBtn] })),
+            readBtn, bookmarkBtn("lecture", current.id, { offLabel: "Bookmark this lecture" })] })),
         (current.disease_ids || []).length ? el("div", { class: "panel" }, el("h3", null, "Diseases in this lecture"),
-          el("div", { class: "diseasecards" }, current.disease_ids.map((d) => el("div", null, el("b", null, V("disease", d)),
+          el("div", { class: "diseasecards" }, current.disease_ids.map((d) => el("div", null,
+            el("div", { class: "row", style: { justifyContent: "space-between", gap: "8px", flexWrap: "nowrap" } }, el("b", null, V("disease", d)), bookmarkBtn("disease", d)),
             el("span", { class: "dim" }, (current.organism_ids || []).map((o) => V("organism", o)).join(", ") || "—"))))) : null);
     }
     fill($main, headEl, seg, el("div", { class: "learn-grid" }, list, detail));
@@ -512,6 +516,7 @@
         p.evade ? [el("span", { class: "k" }, "Why it fails"), el("p", null, decode(p.evade))] : null,
         p.dis ? [el("span", { class: "k" }, "Disease"), el("p", null, decode(p.dis))] : null,
         el("div", { class: "row", style: { marginTop: "16px", gap: "8px" } },
+          S.vocab.organism && S.vocab.organism[o.id] ? bookmarkBtn("organism", o.id, { offLabel: "Bookmark this organism" }) : null,
           el("a", { class: "chip", href: "immune-map.html" }, "See it on the immune map"),
           el("a", { class: "chip", href: (o.niche || []).includes("extra") ? "cascade.html?b=extracellular" : "niche-map.html" },
             (o.niche || []).includes("extra") ? "See where it breaks" : "See it on the niche map")));
@@ -555,62 +560,200 @@
   // ------------------------------------------------------------------
   // Practice: spaced review, bookmarks, mixed · flashcards and questions
   // ------------------------------------------------------------------
-  const MODE_TITLE = { due: "Spaced review", topics: "Bookmarked topics", mixed: "Mixed review" };
+  const MODE_TITLE = { due: "Spaced review", topics: "Bookmarked topics", saved: "Bookmarked topics", mixed: "Mixed review", mine: "My flashcards" };
+  const KIND_LABEL = { topic: "Topic", lecture: "Lecture", organism: "Organism", disease: "Disease" };
+  const sameSaved = (a, b) => a.kind === b.kind && String(a.ref).toLowerCase() === String(b.ref).toLowerCase();
+  const isSaved = (kind, ref) => (S.status && S.status.saved || []).some((b) => sameSaved(b, { kind, ref }));
+  function savedName(b) {
+    if (b.kind === "lecture") {
+      const l = (S.lectures || []).find((x) => x.id === b.ref);
+      return l ? `Lecture ${l.number}: ${l.title}` : "A lecture";
+    }
+    return V(b.kind, b.ref);
+  }
+  /* A bookmark toggle for a topic, lecture, organism or disease. Bookmarks appear under
+     Practice → "Bookmarked topics", where a session draws every question tagged with them. */
+  function bookmarkBtn(kind, ref, opts) {
+    opts = opts || {};
+    const b = el("button", { class: "chip bookmark", type: "button" });
+    const paint = () => {
+      const on = isSaved(kind, ref);
+      b.setAttribute("aria-pressed", String(on));
+      b.textContent = on ? (opts.onLabel || "Bookmarked") : (opts.offLabel || "Bookmark");
+      b.title = on ? "Remove from your bookmarked topics" : "Add to your bookmarked topics (Practice)";
+    };
+    b.addEventListener("click", async (ev) => {
+      ev.stopPropagation();
+      b.disabled = true;
+      try {
+        const on = await API.toggleSaved(kind, ref);
+        const list = (S.status.saved || []).filter((x) => !sameSaved(x, { kind, ref }));
+        S.status.saved = on ? [...list, { kind, ref }] : list;
+        if (kind === "topic") S.status.bookmarks = on ? [...new Set([...(S.status.bookmarks || []), ref])] : (S.status.bookmarks || []).filter((t) => t !== ref);
+        toast(on ? "Bookmarked. Find it under Practice → Bookmarked topics." : "Bookmark removed.");
+      } catch (e) { toast(errMsg(e), true); }
+      b.disabled = false;
+      paint();
+    });
+    paint();
+    return b;
+  }
+
   async function practice() {
     await refreshStatus();
+    if (!S.lectures.length) S.lectures = await API.publishedLectures().catch(() => []);
     const P = S.practice, st = S.status;
-    const bookmarks = st.bookmarks || [];
-    const due = (st.cards_due || 0) + Math.min(st.new_cards || 0, 20);
+    const saved = st.saved || (st.bookmarks || []).map((t) => ({ kind: "topic", ref: t }));
+    if (P.mode === "topics") P.mode = "saved";
+    if (P.saved) P.saved = P.saved.filter((x) => saved.some((b) => sameSaved(b, x)));
+    const ownCards = st.own_cards || 0, ownDue = st.own_due || 0;
+    const due = (st.cards_due || 0) + Math.min(st.new_cards || 0, 20) + ownDue;
     const pickCard = (mode, title, sub) => el("button", { class: "pickcard", type: "button", "aria-pressed": String(P.mode === mode),
-      onclick: () => { P.mode = mode; if (mode === "topics" && !P.topics) P.topics = bookmarks.slice(); practice(); } }, el("b", null, title), el("span", null, sub));
-    const fmt = (k, t) => el("button", { class: "btn chipbtn", type: "button", "aria-pressed": String(P.format === k), onclick: () => { P.format = k; practice(); } }, t);
-    const count = P.mode === "due" ? Math.min(24, due) : 24;
-    const nQ = P.format === "flash" ? 0 : P.format === "mcq" ? count : Math.floor(count / 3);
+      onclick: () => { P.mode = mode; practice(); } }, el("b", null, title), el("span", null, sub));
+    const fmt = (k, t) => el("button", { class: "btn chipbtn", type: "button", "aria-pressed": String(P.format === k), disabled: P.mode === "mine",
+      onclick: () => { P.format = k; practice(); } }, t);
+    const chosen = () => P.saved || saved;
+    const count = P.mode === "due" ? Math.min(24, due) : P.mode === "mine" ? Math.min(50, ownCards) : 24;
+    const nQ = P.mode === "mine" || P.format === "flash" ? 0 : P.format === "mcq" ? count : Math.floor(count / 3);
     const nF = count - nQ;
     const mins = Math.max(1, Math.round((nF * 40 + nQ * 75) / 60));
-    const checks = bookmarks.map((t) => {
-      const cb = el("input", { type: "checkbox", checked: !P.topics || P.topics.includes(t) });
-      cb.addEventListener("change", () => { P.topics = checks.filter((c) => c.cb.checked).map((c) => c.t); });
-      return { t, cb };
+    const checks = saved.map((b) => {
+      const cb = el("input", { type: "checkbox", checked: !P.saved || P.saved.some((x) => sameSaved(x, b)) });
+      cb.addEventListener("change", () => { P.saved = checks.filter((c) => c.cb.checked).map((c) => c.b); });
+      return { b, cb };
     });
+    const remove = (b) => el("button", { class: "linkbtn", type: "button", title: "Remove this bookmark", "aria-label": "Remove " + savedName(b),
+      onclick: async () => { try { await API.toggleSaved(b.kind, b.ref); } catch (e) { toast(errMsg(e), true); return; }
+        if (P.saved) P.saved = P.saved.filter((x) => !sameSaved(x, b)); practice(); } }, "Remove");
+    const empty = (P.mode === "due" && !due) || (P.mode === "saved" && !chosen().length) || (P.mode === "mine" && !ownCards);
     fill($main,
       head("Practice", "Choose what to review and how."),
       el("p", { class: "label" }, "What to review"),
       el("div", { class: "pick" },
         pickCard("due", "Spaced review", due ? `${due} card${due === 1 ? "" : "s"} due today` : "Nothing due right now"),
-        pickCard("topics", "My bookmarked topics", `${bookmarks.length} topic${bookmarks.length === 1 ? "" : "s"} saved`),
+        pickCard("saved", "My bookmarked topics", `${saved.length} bookmark${saved.length === 1 ? "" : "s"} saved`),
+        pickCard("mine", "My flashcards", ownCards ? `${ownCards} card${ownCards === 1 ? "" : "s"} you wrote · ${ownDue} due` : "Write your own cards"),
         pickCard("mixed", "Mixed", "Random across every topic")),
       el("p", { class: "label" }, "Format"),
       el("div", { class: "row", style: { gap: "8px" } }, fmt("flash", "Flashcards"), fmt("mcq", "Multiple choice"), fmt("both", "Both")),
-      el("p", { style: { color: "var(--ink2)", margin: "10px 0 22px" } }, "Flashcards train recall. Questions check it and give you a score you can trust."),
+      el("p", { style: { color: "var(--ink2)", margin: "10px 0 22px" } }, P.mode === "mine"
+        ? "Your own cards are always flashcards." : "Flashcards train recall. Questions check it and give you a score you can trust. Your own flashcards join spaced review when they are due."),
       el("div", { class: "cols" },
-        el("div", { class: "panel accent" },
-          el("div", { class: "eyebrow" }, "Today's session"),
-          P.mode === "due" && !due
-            ? [el("h2", { style: { margin: "0 0 8px", fontSize: "21px" } }, "You're all caught up"),
-               el("p", { style: { color: "var(--ink2)" } }, "No cards are due. Try a mixed session or your bookmarked topics.")]
-            : [el("h2", { style: { margin: "0 0 8px", fontSize: "21px" } }, P.mode === "due" ? `${count} cards, about ${mins} minutes` : `Up to ${count} cards, about ${mins} minutes`),
-               el("p", { style: { color: "var(--ink2)", margin: "0 0 18px" } }, [nF ? `${nF} flashcards` : null, nQ ? `${nQ} questions` : null].filter(Boolean).join("   ·   "))],
-          el("button", { class: "btn primary", type: "button", disabled: (P.mode === "due" && !due) || (P.mode === "topics" && !(P.topics || bookmarks).length),
-            onclick: () => startSession({ mode: P.mode, topics: P.mode === "topics" ? (P.topics || bookmarks) : null, format: P.format }) }, "Start session")),
+        el("div", null,
+          el("div", { class: "panel accent" },
+            el("div", { class: "eyebrow" }, "Today's session"),
+            empty
+              ? [el("h2", { style: { margin: "0 0 8px", fontSize: "21px" } }, P.mode === "mine" ? "No flashcards of your own yet" : P.mode === "saved" ? "Nothing bookmarked yet" : "You're all caught up"),
+                 el("p", { style: { color: "var(--ink2)" } }, P.mode === "mine" ? "Write a card below and it will join your reviews."
+                   : P.mode === "saved" ? "Bookmark a lecture, organism, disease or topic and it will appear here." : "No cards are due. Try a mixed session or your bookmarked topics.")]
+              : [el("h2", { style: { margin: "0 0 8px", fontSize: "21px" } }, P.mode === "due" ? `${count} cards, about ${mins} minutes` : `Up to ${count} cards, about ${mins} minutes`),
+                 el("p", { style: { color: "var(--ink2)", margin: "0 0 18px" } }, [nF ? `${nF} flashcards` : null, nQ ? `${nQ} questions` : null].filter(Boolean).join("   ·   "))],
+            el("button", { class: "btn primary", type: "button", disabled: empty,
+              onclick: () => startSession({ mode: P.mode, saved: P.mode === "saved" ? chosen() : null, format: P.mode === "mine" ? "flash" : P.format }) }, "Start session")),
+          myCardsPanel()),
         el("div", { class: "panel" }, el("h3", null, "Bookmarked topics"),
-          bookmarks.length ? [checks.map(({ t, cb }) => el("label", { style: { display: "flex", gap: "10px", alignItems: "center", marginBottom: "8px", cursor: "pointer" } }, cb, V("topic", t))),
+          saved.length ? [checks.map(({ b, cb }) => el("div", { class: "savedrow" },
+              el("label", null, cb, el("span", null, el("span", { class: "k" }, KIND_LABEL[b.kind] || b.kind), " ", savedName(b))), remove(b))),
             el("button", { class: "btn", type: "button", style: { marginTop: "8px" },
-              onclick: () => { P.mode = "topics"; startSession({ mode: "topics", topics: P.topics || bookmarks, format: P.format }); } }, "Review these instead")]
-            : el("p", { class: "dim", style: { margin: 0 } }, "Bookmark a topic from the back of a flashcard and it will appear here."))));
+              onclick: () => { P.mode = "saved"; startSession({ mode: "saved", saved: chosen(), format: P.format }); } }, "Review these")]
+            : el("p", { class: "dim", style: { margin: 0 } }, "Use the Bookmark buttons on lectures, diseases and organisms (Learn and Explore) and on the back of a flashcard. Everything you bookmark appears here."))));
+  }
+
+  // ------------------------------------------------------------------
+  // The student's own flashcards (private to them; admins can read them, and edits are logged)
+  // ------------------------------------------------------------------
+  function myCardsPanel() {
+    const box = el("div", { class: "panel" });
+    const list = el("div", { class: "owncards" });
+    const q = el("input", { type: "search", placeholder: "Search your cards", "aria-label": "Search your cards" });
+    let cards = [];
+    const draw = () => {
+      const t = q.value.trim().toLowerCase();
+      const hits = cards.filter((c) => !t || c.front.toLowerCase().includes(t) || c.back.toLowerCase().includes(t));
+      fill(list, hits.length ? hits.map((c) => el("div", { class: "owncard" },
+          el("div", null, el("b", null, c.front), el("div", { class: "dim" }, c.back.length > 140 ? c.back.slice(0, 140) + "…" : c.back),
+            el("div", { class: "hint", style: { marginTop: "4px" } }, [c.topic ? V("topic", c.topic) : null, c.organism_id ? V("organism", c.organism_id) : null,
+              new Date(c.due_at) <= new Date() ? "due now" : "next " + fmtDay(c.due_at)].filter(Boolean).join(" · "))),
+          el("div", { class: "row", style: { gap: "6px", flexWrap: "nowrap" } },
+            el("button", { class: "btn small", type: "button", onclick: () => cardForm(c) }, "Edit"),
+            el("button", { class: "btn small danger", type: "button", onclick: async () => {
+              if (!(await confirmBox("Delete this card?", "It leaves your deck. (Admins keep a record of deleted cards.)", "Delete", true))) return;
+              try { await API.deleteMyCard(c.id); toast("Card deleted."); practice(); } catch (e) { toast(errMsg(e), true); }
+            } }, "Delete"))))
+        : el("p", { class: "dim", style: { margin: 0 } }, cards.length ? "No cards match." : "No cards yet. Write the question on the front and the answer on the back."));
+    };
+    q.addEventListener("input", draw);
+    fill(box, el("div", { class: "row", style: { justifyContent: "space-between", marginBottom: "10px" } },
+        el("h3", { style: { margin: 0 } }, "My flashcards"),
+        el("button", { class: "btn primary small", type: "button", onclick: () => cardForm(null) }, "New card")),
+      el("p", { class: "hint", style: { margin: "0 0 12px" } }, "For your own study. Other students and your instructors cannot see them; admins can, and every change is logged."),
+      q, list);
+    API.myCards().then((r) => { cards = r || []; draw(); }).catch((e) => fill(list, el("p", { class: "err" }, errMsg(e))));
+    return box;
+  }
+
+  function cardForm(card, onSaved) {
+    card = card || {};
+    const front = el("textarea", { rows: 3, maxlength: 1000, placeholder: "e.g. Which complement step does a polysaccharide capsule block?" });
+    const back = el("textarea", { rows: 5, maxlength: 4000, placeholder: "e.g. C3b deposition and opsonisation" });
+    front.value = card.front || ""; back.value = card.back || "";
+    const sel = (kind, value, none) => {
+      const s = el("select", null, el("option", { value: "" }, none),
+        Object.entries(S.vocab[kind] || {}).sort((a, b) => a[1].localeCompare(b[1])).map(([id, t]) => el("option", { value: id, selected: id === value }, t)));
+      return s;
+    };
+    const topic = sel("topic", card.topic, "No topic");
+    const org = sel("organism", card.organism_id, "No organism");
+    const lec = el("select", null, el("option", { value: "" }, "No lecture"),
+      (S.lectures || []).map((l) => el("option", { value: l.id, selected: l.id === card.lecture_id }, `Lecture ${l.number}: ${l.title}`)));
+    const err = el("p", { class: "err", role: "alert", style: { margin: "8px 0 0" } });
+    const f = (t, n, hint) => el("label", { class: "f" }, el("span", null, t), n, hint ? el("div", { class: "hint" }, hint) : null);
+    const dlg = modal(card.id ? "Edit flashcard" : "New flashcard", [
+      f("Front", front, "The question or prompt."), f("Back", back, "The answer. Plain text, shown exactly as typed."),
+      el("div", { class: "grid2" }, f("Topic (optional)", topic), f("Organism (optional)", org)), f("Lecture (optional)", lec,
+        "Tagged cards also come up when you review a bookmarked topic, lecture or organism."),
+      el("p", { class: "hint" }, "Admins can read your cards; creating, editing and deleting them is recorded."), err
+    ], [
+      { label: "Cancel" },
+      { label: card.id ? "Save card" : "Add card", cls: "primary", onClick: async (close) => {
+        if (!front.value.trim() || !back.value.trim()) { err.textContent = "Write both sides of the card."; return; }
+        try {
+          const p = { id: card.id || null, front: front.value.trim(), back: back.value.trim(), topic: topic.value || null,
+                      organism_id: org.value || null, lecture_id: lec.value || null };
+          await API.saveMyCard(p);
+          if (onSaved) onSaved(p);
+        } catch (e) { err.textContent = errMsg(e); return; }
+        close();
+        toast(card.id ? "Card saved." : "Card added. It is due for review now.");
+        if (!onSaved) practice();
+      } }
+    ]);
+    setTimeout(() => front.focus(), 0);
+    return dlg;
   }
 
   async function startSession(opts) {
-    let cards;
+    let cards = [], own = [];
+    const saved = opts.saved || null;
     try {
       if (opts.ids) {
         const all = await API.sessionCards("mixed", null, 200);
         cards = all.filter((c) => opts.ids.includes(c.question_id));
-      } else cards = await API.sessionCards(opts.mode, opts.topics, 24);
+      } else if (opts.mode === "mine") {
+        own = await API.myCardSession("mine", 50);
+      } else {
+        const ownMode = opts.mode === "topics" ? null : opts.mode;   // a topic session from Home: course questions only
+        [cards, own] = await Promise.all([
+          API.sessionCards(opts.mode, opts.topics, 24, saved),
+          ownMode ? API.myCardSession(ownMode, opts.mode === "mixed" ? 6 : 24, saved).catch(() => []) : Promise.resolve([])]);
+      }
     } catch (e) { toast(errMsg(e), true); return; }
-    if (!cards.length) { toast("No cards to review here right now.", true); return; }
-    const kinds = cards.map((_, i) => (opts.format === "flash" ? "flash" : opts.format === "mcq" ? "mcq" : i % 3 === 2 ? "mcq" : "flash"));
-    S.session = { ...opts, cards, kinds, i: 0, done: { flash: 0, mcq: 0, right: 0 }, title: opts.title || MODE_TITLE[opts.mode] || "Review" };
+    if (!cards.length && !own.length) { toast("No cards to review here right now.", true); return; }
+    // course cards keep the format choice; own cards are always flashcards and are spread through the session
+    const list = cards.map((c, i) => ({ c, kind: opts.format === "flash" ? "flash" : opts.format === "mcq" ? "mcq" : i % 3 === 2 ? "mcq" : "flash" }));
+    own.forEach((c, j) => list.splice(Math.min(list.length, j * 3 + 1), 0, { c: { ...c, own: true }, kind: "own" }));
+    S.session = { ...opts, cards: list.map((x) => x.c), kinds: list.map((x) => x.kind), i: 0, done: { flash: 0, mcq: 0, right: 0 },
+                  title: opts.title || MODE_TITLE[opts.mode] || "Review" };
     if (location.hash === "#practice/session") route(); else location.hash = "practice/session";
   }
 
@@ -639,9 +782,10 @@
       return;
     }
     const c = ss.cards[ss.i], kind = ss.kinds[ss.i];
-    const meta = `${nicheName(c.niche)}${c.cascade_step ? " · " + cascadeLabel(c.cascade_step).replace("Cascade, step", "cascade step") : ""}`;
+    const meta = kind === "own" ? ["Your card", c.topic ? V("topic", c.topic) : null, c.organism_id ? V("organism", c.organism_id) : null].filter(Boolean).join(" · ")
+      : `${nicheName(c.niche)}${c.cascade_step ? " · " + cascadeLabel(c.cascade_step).replace("Cascade, step", "cascade step") : ""}`;
     const nextCard = () => { ss.i++; sessionView(); };
-    const top = [head(`${kind === "flash" ? "Flashcards" : "Questions"} · ${ss.title}`, `Card ${ss.i + 1} of ${N}`),
+    const top = [head(`${kind === "mcq" ? "Questions" : "Flashcards"} · ${ss.title}`, `Card ${ss.i + 1} of ${N}`),
       el("div", { class: "progress" }, el("span", { style: { width: Math.round(100 * (ss.i + 1) / N) + "%" } }))];
 
     if (kind === "mcq") {
@@ -654,38 +798,37 @@
       return;
     }
 
-    // flashcard
-    const card = el("div", { class: "panel" });
-    let bookmarked = (S.status.bookmarks || []).includes(c.topic);
+    // flashcard (a course question, or one of the student's own cards)
+    const own = kind === "own";
+    const card = el("div", { class: "panel" + (own ? " owncardpanel" : "") });
     function front() {
       fill(card, el("div", { class: "flash-front" },
-        el("div", { class: "cardmeta" }, el("span", null, meta), el("span", null, c.is_new ? "New card" : "")),
-        el("p", { class: "stem" }, c.stem),
+        el("div", { class: "cardmeta" }, el("span", null, meta), el("span", null, own ? (c.reps ? "" : "New card") : c.is_new ? "New card" : "")),
+        el("p", { class: "stem" }, own ? c.front : c.stem),
         el("div", { class: "row", style: { justifyContent: "space-between", marginTop: "18px" } },
           el("span", { class: "dim" }, "Think of your answer first."),
           el("button", { class: "btn primary", type: "button", onclick: back }, "Show answer"))));
     }
     async function back() {
       let a;
-      try { a = await API.revealCard(c.version_id); } catch (e) { toast(errMsg(e), true); return; }
+      if (own) a = { answer: c.back, explanation: "" };
+      else { try { a = await API.revealCard(c.version_id); } catch (e) { toast(errMsg(e), true); return; } }
       const labels = nextIntervals(c);
-      const bm = el("button", { class: "chip", type: "button", style: { background: "transparent", cursor: "pointer" } }, bookmarked ? "Bookmarked" : "Bookmark this topic");
-      bm.addEventListener("click", async () => {
-        bookmarked = await guard(() => API.toggleBookmark(c.topic));
-        bm.textContent = bookmarked ? "Bookmarked" : "Bookmark this topic";
-        S.status.bookmarks = bookmarked ? [...new Set([...(S.status.bookmarks || []), c.topic])] : (S.status.bookmarks || []).filter((t) => t !== c.topic);
-      });
       fill(card,
-        el("div", { class: "cardmeta" }, el("span", null, meta), el("span", null, V("topic", c.topic))),
-        el("p", { class: "dim", style: { margin: "0 0 8px" } }, c.stem),
+        el("div", { class: "cardmeta" }, el("span", null, meta), el("span", null, own ? "" : V("topic", c.topic))),
+        el("p", { class: "dim", style: { margin: "0 0 8px" } }, own ? c.front : c.stem),
         el("div", { class: "answer" }, a.answer || ""),
-        el("p", { class: "explain", style: { margin: "0 0 16px" } }, a.explanation || ""),
-        el("div", { class: "row", style: { gap: "8px" } }, el("a", { class: "chip", href: cascadeHref(c.cascade_step) }, c.cascade_step ? "Open in the cascade" : "Open the niche map"), bm),
+        a.explanation ? el("p", { class: "explain", style: { margin: "0 0 16px" } }, a.explanation) : null,
+        own ? el("div", { class: "row", style: { gap: "8px", marginTop: "12px" } },
+                c.topic ? bookmarkBtn("topic", c.topic, { offLabel: "Bookmark this topic" }) : null,
+                el("button", { class: "chip", type: "button", style: { background: "transparent", cursor: "pointer" }, onclick: () => cardForm(c, (p) => { Object.assign(c, p); back(); }) }, "Edit this card"))
+            : el("div", { class: "row", style: { gap: "8px" } }, el("a", { class: "chip", href: cascadeHref(c.cascade_step) }, c.cascade_step ? "Open in the cascade" : "Open the niche map"),
+                bookmarkBtn("topic", c.topic, { offLabel: "Bookmark this topic" })),
         el("p", { class: "k", style: { margin: "20px 0 4px" } }, "How well did you know it?"),
         el("div", { class: "rate" }, [["again", "Again"], ["hard", "Hard"], ["good", "Good"], ["easy", "Easy"]].map(([r, t], i) =>
           el("button", { type: "button", onclick: async (ev) => {
             ev.currentTarget.disabled = true;
-            try { await API.reviewCard(c.question_id, r); ss.done.flash++; nextCard(); }
+            try { if (own) await API.reviewMyCard(c.id, r); else await API.reviewCard(c.question_id, r); ss.done.flash++; nextCard(); }
             catch (e) { toast(errMsg(e), true); ev.currentTarget.disabled = false; }
           } }, t, el("small", null, labels[i])))));
     }
@@ -706,10 +849,10 @@
     const ticks = [lo, (lo + hi) / 2, hi];
     const short = (s) => s.replace(/^Wk of /, "");
     return svg("svg", { class: "chart", viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Score over time: " + points.map((p) => `${p.label} ${Math.round(p.pct)}%`).join(", ") },
-      ticks.map((t) => [svg("line", { x1: L, x2: W - R, y1: y(t), y2: y(t), stroke: "#2a2f3a" }), svg("text", { x: 4, y: y(t) + 4 }, String(Math.round(t)))]),
-      svg("polyline", { points: points.map((p, i) => `${x(i)},${y(+p.pct)}`).join(" "), fill: "none", stroke: "#9d8cf7", "stroke-width": 2.5 }),
+      ticks.map((t) => [svg("line", { x1: L, x2: W - R, y1: y(t), y2: y(t), style: "stroke:var(--line)" }), svg("text", { x: 4, y: y(t) + 4 }, String(Math.round(t)))]),
+      svg("polyline", { points: points.map((p, i) => `${x(i)},${y(+p.pct)}`).join(" "), style: "fill:none;stroke:var(--accent)", "stroke-width": 2.5 }),
       points.map((p, i) => [
-        svg("circle", { cx: x(i), cy: y(+p.pct), r: p.kind === "exam" ? 6 : 4.5, fill: p.kind === "exam" ? "#9d8cf7" : "#171a21", stroke: "#9d8cf7", "stroke-width": 2 },
+        svg("circle", { cx: x(i), cy: y(+p.pct), r: p.kind === "exam" ? 6 : 4.5, style: `fill:${p.kind === "exam" ? "var(--accent)" : "var(--panel)"};stroke:var(--accent)`, "stroke-width": 2 },
           svg("title", null, `${p.label}: ${Math.round(p.pct)}%`)),
         svg("text", { x: x(i), y: H - 10, "text-anchor": "middle" }, short(p.label))]));
   }

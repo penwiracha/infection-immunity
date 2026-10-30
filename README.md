@@ -27,6 +27,16 @@ instead, push the repo to GitHub and enable GitHub Pages.)
 | Cascade | `views/cascade.html?b=extracellular` | cascade + organisms + host defects |
 | Taxonomy browse *(seam)* | `views/taxonomy.html` | organisms + taxonomy |
 
+### Colours
+
+- The four **niche colours** (extracellular orange-red, vesicular amber, cytosolic blue, surface green) mean
+  *where the organism lives* and nothing else.
+- A **break** is never a niche colour: pink (dashed marker or dashed outline) = broken by the pathogen,
+  purple = broken by a host defect, grey = engaged and working.
+- Each map has its own marker in the menus: the niche map shows all four niche colours, "Where it breaks"
+  is pink, the immune map lavender, taxonomy teal, antimicrobials slate.
+- Light mode deepens every colour so text keeps at least 4.5 : 1 contrast.
+
 ## Data layer — the single source of truth
 
 Everything lives in `data/`, each file assigning a global (browser) that Node can also load:
@@ -144,7 +154,20 @@ that unlocks the app; a home page with "study this next", weak spots, cards due,
 next monthly check-in; lectures with read status and linked diseases; Explore (organism search
 and niche cards from `data/organisms.js`); Practice with spaced review, bookmarked topics or a
 mixed set, as flashcards (Again / Hard / Good / Easy scheduling) and/or questions with a
-"How sure are you?" rating; and a Progress page (score over time, this week, niches, confidence check).
+"How sure are you?" rating; their **own flashcards** (written in Practice, reviewed on the same schedule,
+mixed into spaced review when due); **bookmarks** on lectures, diseases (Learn), organisms (Explore) and
+topics (back of a flashcard), all listed under Practice → Bookmarked topics, where a session draws every
+question tagged with them; and a Progress page (score over time, this week, niches, confidence check).
+
+**Everyone** can switch between dark and light mode in Settings → Appearance (Dark, Light, or Match my
+device), or with the sun/moon button at the top of the side menu. The choice is saved to the account and
+kept in the browser, so the maps and the home page follow it; the offline bundle has its own switch.
+
+**Instructors** can **hide** a published lecture (students stop seeing it and its practice questions) or a
+question that no student has answered or reviewed and that is in no exam (it leaves practice and exam
+picking); both come back with one click, and hiding and showing are logged. **Admins** also see every
+student's own flashcards (Students tab, deleted ones included, CSV download); students are told this
+in the app, and every create, edit and delete of a card is in `audit_log` (those rows are admin-only).
 
 **Instructors** get cohort and period pickers on Overview, Students, Items and Export; topic
 accuracy by week (with the pre-test as the first column); students to check in with, using short
@@ -159,7 +182,7 @@ Code: `app/` (browser), `supabase/migrations/` (schema, RLS, functions),
 
 1. Create a Supabase project. Apply the migrations in order and then the seed:
    `supabase link` → `supabase db push` → run `supabase/seed.sql` in the SQL editor
-   (or paste the seven migration files and the seed into the SQL editor, in that order).
+   (or paste the eight migration files and the seed into the SQL editor, in that order).
 2. Authentication → enable **Email** (password sign-in; email confirmation can be switched on later). Add the address you host the site at
    (e.g. your GitHub Pages URL) to *Site URL* and *Redirect URLs*.
 3. Put the project URL and the **publishable / anon** key in `app/config.js`. Never the secret key.
@@ -219,9 +242,10 @@ plus everything submitted or later (admins see all); lecture summaries are **pla
 ### Tests
 
 ```
-supabase test db            # 184 pgTAP tests: supabase/tests/database/
+supabase test db            # 237 pgTAP tests: supabase/tests/database/
 bash scripts/test-db.sh     # same tests on a plain local Postgres (uses scripts/local-supabase-shim.sql)
-npm i && npx playwright install chromium && node tests/ui/run.mjs   # 30 browser tests with a mock backend
+npm i && npx playwright install chromium && node tests/ui/run.mjs   # 37 browser tests with a mock backend
+ONLY="bookmarks|flashcards" node tests/ui/run.mjs                     # run only the tests whose names match
 ```
 
 They cover: students cannot create, edit or read drafts or answer keys; an instructor cannot
@@ -232,10 +256,14 @@ approval, publish and retirement writes `audit_log`; exam items and keys never r
 consent is required before an exam, a submitted exam is final, the spaced-review schedule,
 confidence ratings, bookmarks and cohort filters behave as intended; and in the browser the
 consent → pre-test → unlock flow, publish and delete, the sidebar toggle, flashcards, Progress, Explore, the instructor pickers and the Exams tab.
+Migration 0008 adds tests for dark/light mode, bookmarks of every kind, students' own flashcards (private to the
+student and admins, logged) and hiding lectures and questions; the browser tests also check that break-points
+and the "Where it breaks" link never reuse a niche colour.
 
 ## Roadmap (seams already in place)
 
-- Three more cascades — vesicular (~15), cytosolic (~32), surface (~19) — following
-  `cascades/extracellular.js` exactly.
+- Three more cascades — vesicular (15 organisms), cytosolic (34), surface (19) — following
+  `cascades/extracellular.js` exactly. The authoring plan (spines, components, host defects to add,
+  order and checks) is in the project doc `claude/cascade-authoring-plan.md`.
 - Taxonomy browse: populate the trees in `data/taxonomy.js`.
 - Only ~6 of 89 organisms (+2 host defects) have `engages`/`breaks` authored so far.

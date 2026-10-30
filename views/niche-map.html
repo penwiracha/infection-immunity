@@ -4,12 +4,24 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Infection &amp; Defence — Niche Map</title>
+<script src="../app/theme.js"></script>
 <style>
 :root{
   --bg:#0f1115; --panel:#171a21; --panel2:#1e222b; --line:#2b303b;
   --txt:#e6e8ec; --dim:#9aa3b2;
   --extra:#e0603f; --vesic:#e0a83f; --cyto:#4fa3e3; --surf:#57b86b;
+  --on-c:#0f1115; --t1bg:#2d4a35; --t1:#7fd39b; --t2bg:#463a24; --t2:#e3bc72; --failbg:#3a2530; --fail:#f0a8bd;
 }
+html[data-theme="light"]{
+  --bg:#f6f7f9; --panel:#ffffff; --panel2:#f0f2f5; --line:#dde1e7;
+  --txt:#16181d; --ink:#16181d; --dim:#5f6878; --dim2:#6b7280;
+  --extra:#b5401c; --vesic:#8f5b00; --cyto:#1f6fb5; --surf:#26773d; --host:#6a58e0;
+  --on-c:#ffffff; --t1bg:#dcefe1; --t1:#22693a; --t2bg:#f3e6c8; --t2:#7a5200; --failbg:#fbe1ee; --fail:#a3245f;
+}
+html[data-theme="light"] .chip.on small,html[data-theme="light"] .king.on small,html[data-theme="light"] .fam.on small{color:rgba(255,255,255,.9)}
+html[data-theme="light"] .lcpic{border:1px solid var(--line)}
+html[data-theme="light"] #pop-backdrop{background:rgba(20,24,33,.38)}
+html[data-theme="light"] .side{box-shadow:0 28px 80px rgba(20,24,33,.22)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--txt);
  font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
@@ -40,10 +52,10 @@ h1{margin:0 0 6px;font-size:22px}
 .org{font-size:12.5px;padding:5px 10px;border-radius:7px;background:var(--panel2);
  border:1px solid var(--line);cursor:pointer;transition:.12s;display:flex;align-items:center;gap:6px}
 .org:hover{border-color:var(--c);transform:translateY(-1px)}
-.org.active{background:var(--c);color:#0f1115;border-color:var(--c);font-weight:600}
+.org.active{background:var(--c);color:var(--on-c);border-color:var(--c);font-weight:600}
 .t{font-size:9.5px;padding:1px 5px;border-radius:4px;font-weight:700;letter-spacing:.4px}
-.t1{background:#2d4a35;color:#7fd39b}
-.t2{background:#463a24;color:#e3bc72}
+.t1{background:var(--t1bg);color:var(--t1)}
+.t2{background:var(--t2bg);color:var(--t2)}
 .org.active .t{background:rgba(0,0,0,.22);color:inherit}
 .card h3{margin:0 0 3px;font-size:19px}
 .card .tag{font-size:11.5px;color:var(--dim);margin-bottom:12px}
@@ -56,14 +68,14 @@ h1{margin:0 0 6px;font-size:22px}
  color:var(--dim);margin-bottom:5px}
 .blk p{margin:0;font-size:13.5px}
 .fail{display:inline-block;font-size:11px;padding:3px 9px;border-radius:5px;
- background:#3a2530;color:#f0a8bd;margin-bottom:10px}
+ background:var(--failbg);color:var(--fail);margin-bottom:10px}
 .empty{color:var(--dim);font-size:13.5px;padding-top:40px;text-align:center}
 .note{font-size:11.5px;color:var(--dim);margin-top:22px;border-top:1px solid var(--line);padding-top:12px}
 .bar2{padding-top:0;padding-bottom:12px}
 .rhint{font-size:11px;color:var(--dim2,#6a7280);margin-left:2px}
 .rchip{display:inline-flex;align-items:center;gap:5px}
 .rchip .e{font-size:14px;line-height:1}
-.rchip.sel{background:var(--txt);color:#0f1115;border-color:var(--txt);font-weight:600}
+.rchip.sel{background:var(--txt);color:var(--bg);border-color:var(--txt);font-weight:600}
 .org .oe{font-size:12.5px;margin-right:1px;line-height:1}
 .routes{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 9px}
 .rtag{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--txt);

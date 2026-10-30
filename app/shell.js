@@ -248,6 +248,25 @@
       });
       classBox = section("Class", opts.cohort ? null : "Enter the class code your instructor gave you.", f("Class code", codeIn), cBtn, cMsg);
     }
+    // appearance: dark / light / match the device. Applies at once; saved to the profile.
+    let appearance = null;
+    if (root.Theme) {
+      const aMsg = status();
+      const choice = (v, t, hint) => {
+        const r = el("input", { type: "radio", name: "theme", value: v, checked: root.Theme.get() === v });
+        r.addEventListener("change", async () => {
+          if (!r.checked) return;
+          root.Theme.set(v);
+          opts.profile.theme = v;
+          try { await A.updateTheme(v); say(aMsg, "Saved. Your other devices will use it next time you sign in."); }
+          catch (e) { say(aMsg, "Changed on this device, but it could not be saved to your account: " + e.message, true); }
+        });
+        return el("label", { class: "consentbox", style: { marginBottom: "8px" } }, r, el("span", null, el("b", null, t), hint ? el("span", { class: "dim" }, " · " + hint) : null));
+      };
+      appearance = section("Appearance", "Applies to the whole site, the maps included.",
+        el("div", { role: "radiogroup", "aria-label": "Appearance" },
+          choice("dark", "Dark"), choice("light", "Light"), choice("system", "Match my device", "follows your phone or computer setting")), aMsg);
+    }
     const cohortVal = el("dd", null, opts.cohort || "—");
     fill(container,
       el("div", { class: "pagehead" }, el("div", null, el("h1", null, "Settings"),
@@ -265,8 +284,22 @@
             el("dt", null, "Role"), el("dd", null, opts.profile.role || "student"),
             opts.student ? [el("dt", null, "Class"), cohortVal] : null),
             el("p", { class: "hint" }, opts.student ? "Only an admin can change roles." : "Only an admin can change roles.")),
-          classBox, research, opts.extra || null)));
+          appearance, classBox, research, opts.extra || null)));
   }
 
-  root.Shell = { toast, modal, confirmBox, signInScreen, newPasswordScreen, settingsPage, avatarMenu, initials };
+  /* Sign-in: use the theme saved on the profile, and save changes made with the sidebar switch. */
+  let themeHooked = false;
+  function syncTheme(profile) {
+    const T = root.Theme;
+    if (!T || !profile) return;
+    if (profile.theme && profile.theme !== T.get()) T.set(profile.theme);
+    if (themeHooked) return;
+    themeHooked = true;
+    root.addEventListener("ii-theme", (e) => {
+      profile.theme = e.detail;
+      if (root.API && root.API.updateTheme) root.API.updateTheme(e.detail).catch(() => {});
+    });
+  }
+
+  root.Shell = { toast, modal, confirmBox, signInScreen, newPasswordScreen, settingsPage, avatarMenu, initials, syncTheme };
 })(typeof globalThis !== "undefined" ? globalThis : this);
