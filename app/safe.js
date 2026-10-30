@@ -46,8 +46,10 @@
       .filter(Boolean);
   }
 
-  const fmtDate = (d) => d ? new Date(d).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "—";
-  const fmtDay  = (d) => d ? new Date(d).toLocaleDateString(undefined, { dateStyle: "medium" }) : "—";
+  // dates follow the interface language (Thai shows Thai month names and the Buddhist-era year)
+  const loc = () => (root.I18N && root.I18N.locale ? root.I18N.locale() : undefined);
+  const fmtDate = (d) => d ? new Date(d).toLocaleString(loc(), { dateStyle: "medium", timeStyle: "short" }) : "—";
+  const fmtDay  = (d) => d ? new Date(d).toLocaleDateString(loc(), { dateStyle: "medium" }) : "—";
 
   /* CSV with formula-injection guard (cells starting = + - @ are prefixed with '). */
   function toCSV(rows, cols) {

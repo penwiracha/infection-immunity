@@ -62,6 +62,7 @@
     async updatePassword(p) { call("updatePassword", p); },
     async updateDisplayName(n) { call("updateDisplayName", n); },
     async updateTheme(t) { call("updateTheme", t); },
+    async updateLang(l) { call("updateLang", l); try { sessionStorage.setItem("mock.updateLang", l); } catch (e) {} },   // survives the reload
     async reauth(e, p) { call("reauth", e); if (p !== "correct-horse") throw new Error("Your current password is not correct."); },
     async changeEmail(e) { call("changeEmail", e); return false; },
     async vocab() { return vocab; }, async upsertVocab(...a) { call("upsertVocab", ...a); },

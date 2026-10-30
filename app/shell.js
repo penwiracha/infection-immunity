@@ -267,6 +267,18 @@
         el("div", { role: "radiogroup", "aria-label": "Appearance" },
           choice("dark", "Dark"), choice("light", "Light"), choice("system", "Match my device", "follows your phone or computer setting")), aMsg);
     }
+    // language of the website's own words (lectures, questions and other content stay as written)
+    let language = null;
+    if (root.I18N && root.I18N.available) {
+      const lMsg = status();
+      const pick = (v, t) => {
+        const r = el("input", { type: "radio", name: "lang", value: v, checked: root.I18N.lang === v });
+        r.addEventListener("change", () => { if (r.checked) { say(lMsg, "…"); opts.profile.lang = v; root.I18N.set(v); } });
+        return el("label", { class: "consentbox", style: { marginBottom: "8px" }, lang: v, translate: "no" }, r, el("span", null, el("b", null, t)));
+      };
+      language = section("Language", "Menus, buttons and messages. Lectures, questions and organism notes stay in the language they were written in.",
+        el("div", { role: "radiogroup", "aria-label": "Language" }, pick("en", "English"), pick("th", "ภาษาไทย")), lMsg);
+    }
     const cohortVal = el("dd", null, opts.cohort || "—");
     fill(container,
       el("div", { class: "pagehead" }, el("div", null, el("h1", null, "Settings"),
@@ -284,8 +296,24 @@
             el("dt", null, "Role"), el("dd", null, opts.profile.role || "student"),
             opts.student ? [el("dt", null, "Class"), cohortVal] : null),
             el("p", { class: "hint" }, opts.student ? "Only an admin can change roles." : "Only an admin can change roles.")),
-          appearance, classBox, research, opts.extra || null)));
+          appearance, language, classBox, research, opts.extra || null)));
   }
+
+  /* Sign-in: use the language saved on the profile; save changes made anywhere (globe, Settings) to it. */
+  function syncLang(profile) {
+    const L = root.I18N;
+    if (!L || !profile) return;
+    L.beforeChange = (l) => { profile.lang = l; return root.API && root.API.updateLang ? root.API.updateLang(l) : null; };
+    if (profile.lang && profile.lang !== L.lang) { L.beforeChange = null; L.set(profile.lang); }
+  }
+
+  /* Before sign-in the side menu is hidden: put the language switch in the top bar instead. */
+  function mountGateLang() {
+    const bar = document.querySelector(".top.gatebar");
+    if (!bar || !root.I18N || !root.I18N.available || bar.querySelector(".langbtn")) return;
+    bar.appendChild(root.I18N.globeButton({ className: "btn small gatelang", text: true }));
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mountGateLang); else mountGateLang();
 
   /* Sign-in: use the theme saved on the profile, and save changes made with the sidebar switch. */
   let themeHooked = false;
@@ -301,5 +329,5 @@
     });
   }
 
-  root.Shell = { toast, modal, confirmBox, signInScreen, newPasswordScreen, settingsPage, avatarMenu, initials, syncTheme };
+  root.Shell = { toast, modal, confirmBox, signInScreen, newPasswordScreen, settingsPage, avatarMenu, initials, syncTheme, syncLang };
 })(typeof globalThis !== "undefined" ? globalThis : this);

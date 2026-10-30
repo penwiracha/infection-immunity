@@ -86,6 +86,7 @@
     if (S.me === sess.user.id) return;          // already booted (auth event + initial load)
     S.me = sess.user.id; S.profile = sess.profile || {}; S.email = sess.user.email;
     Shell.syncTheme(S.profile);
+    Shell.syncLang(S.profile);
     S.isAdmin = S.profile.role === "admin";
 
     // Students who land here go to their own app; the database enforces roles regardless.

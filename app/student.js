@@ -72,6 +72,7 @@
     S.me = sess.user.id;
     S.profile = sess.profile || {};
     Shell.syncTheme(S.profile);
+    Shell.syncLang(S.profile);
     S.email = sess.user.email;
     const staff = S.profile.role === "instructor" || S.profile.role === "admin";
     if (staff && !PREVIEW) { location.replace("instructor.html"); return; }
@@ -410,7 +411,7 @@
       const ids = Object.keys(map).sort((a, b) => V("disease", a).localeCompare(V("disease", b)));
       fill($main, headEl, seg, el("div", { class: "panel" }, el("h3", null, "Diseases in published lectures"),
         ids.length ? el("div", { class: "diseasecards" }, ids.map((d) => el("div", null,
-          el("div", { class: "row", style: { justifyContent: "space-between", gap: "8px", flexWrap: "nowrap" } }, el("b", null, V("disease", d)), bookmarkBtn("disease", d)),
+          el("div", { class: "row", style: { justifyContent: "space-between", gap: "8px", flexWrap: "nowrap" } }, el("b", { translate: "no" }, V("disease", d)), bookmarkBtn("disease", d)),
           map[d].map((l) => el("a", { href: "#learn/" + l.id, style: { display: "block" } }, `Lecture ${l.number}: ${l.title}`)))))
           : el("p", { class: "dim", style: { margin: 0 } }, "No lecture has linked diseases yet.")));
       return;
@@ -420,7 +421,7 @@
     const list = el("div", { class: "panel" }, el("h3", null, "Lectures"),
       lecs.length ? el("nav", { class: "lecturelist", "aria-label": "Lectures" }, lecs.map((l) =>
         el("a", { class: "lecitem", href: "#learn/" + l.id, "aria-current": String(!!current && l.id === current.id) },
-          el("span", null, `${l.number} ${l.title}`), el("span", { class: "st" }, statusOf(l)))))
+          el("span", { translate: "no" }, `${l.number} ${l.title}`), el("span", { class: "st" }, statusOf(l)))))
         : el("p", { class: "dim", style: { margin: 0 } }, "No lectures have been published yet."));
     let detail = el("div", { class: "panel" }, el("p", { class: "dim", style: { margin: 0 } }, "Lectures appear here when your instructors publish them."));
     if (UUID.test(id || "") && !lec) detail = el("div", { class: "panel" }, el("p", { style: { margin: 0 } }, "This lecture is not available."));
@@ -438,7 +439,7 @@
             readBtn, bookmarkBtn("lecture", current.id, { offLabel: "Bookmark this lecture" })] })),
         (current.disease_ids || []).length ? el("div", { class: "panel" }, el("h3", null, "Diseases in this lecture"),
           el("div", { class: "diseasecards" }, current.disease_ids.map((d) => el("div", null,
-            el("div", { class: "row", style: { justifyContent: "space-between", gap: "8px", flexWrap: "nowrap" } }, el("b", null, V("disease", d)), bookmarkBtn("disease", d)),
+            el("div", { class: "row", style: { justifyContent: "space-between", gap: "8px", flexWrap: "nowrap" } }, el("b", { translate: "no" }, V("disease", d)), bookmarkBtn("disease", d)),
             el("span", { class: "dim" }, (current.organism_ids || []).map((o) => V("organism", o)).join(", ") || "—"))))) : null);
     }
     fill($main, headEl, seg, el("div", { class: "learn-grid" }, list, detail));
@@ -510,11 +511,11 @@
       const n0 = (o.niche || [])[0];
       return el("div", { class: "panel accent orgpanel", style: { "--c": NICHE_COL[n0] || "var(--accent)" } },
         el("div", { class: "eyebrow" }, "Selected organism"),
-        el("h2", { style: { margin: "0 0 2px", fontSize: "21px" } }, o.name),
+        el("h2", { style: { margin: "0 0 2px", fontSize: "21px" }, translate: "no" }, o.name),
         el("div", { class: "hint", style: { marginTop: 0 } }, subtitle(o)),
-        p.resp ? [el("span", { class: "k" }, "Immune response"), el("p", null, decode(p.resp))] : null,
-        p.evade ? [el("span", { class: "k" }, "Why it fails"), el("p", null, decode(p.evade))] : null,
-        p.dis ? [el("span", { class: "k" }, "Disease"), el("p", null, decode(p.dis))] : null,
+        p.resp ? [el("span", { class: "k" }, "Immune response"), el("p", { translate: "no" }, decode(p.resp))] : null,
+        p.evade ? [el("span", { class: "k" }, "Why it fails"), el("p", { translate: "no" }, decode(p.evade))] : null,
+        p.dis ? [el("span", { class: "k" }, "Disease"), el("p", { translate: "no" }, decode(p.dis))] : null,
         el("div", { class: "row", style: { marginTop: "16px", gap: "8px" } },
           S.vocab.organism && S.vocab.organism[o.id] ? bookmarkBtn("organism", o.id, { offLabel: "Bookmark this organism" }) : null,
           el("a", { class: "chip", href: "immune-map.html" }, "See it on the immune map"),
@@ -536,14 +537,14 @@
             el("h3", { style: { margin: 0 } }, E.niche ? `${nicheName(E.niche)} · ${hits.length} organisms` : `${hits.length} match${hits.length === 1 ? "" : "es"}`),
             el("button", { class: "linkbtn", type: "button", onclick: () => { Object.assign(E, { q: "", niche: null, tier: "", fail: "", sys: "" }); search.value = ""; explore(); } }, "Clear")),
           hits.length ? el("div", { class: "orglist" }, hits.map((o) => el("button", { type: "button", "aria-current": String(o.id === E.sel),
-            onclick: () => { E.sel = o.id; draw(); } }, o.name, el("span", { class: "dim" }, " · " + subtitle(o)))))
+            onclick: () => { E.sel = o.id; draw(); } }, el("span", { translate: "no" }, o.name), el("span", { class: "dim" }, " · " + subtitle(o)))))
             : el("p", { class: "dim" }, "No organisms match."));
       } else {
         leftSide = el("div", { class: "nichecards" }, ENUMS.niches.map((n) => {
           const list = ORGS.filter((o) => (o.niche || []).includes(n.id));
           return el("div", { class: "nichecard", style: { "--c": NICHE_COL[n.id] } },
             el("h3", null, nicheName(n.id)), el("div", { class: "hint", style: { marginTop: 0 } }, `${list.length} organisms`),
-            el("p", null, list.slice(0, 3).map((o) => o.name).join(", ")),
+            el("p", { translate: "no" }, list.slice(0, 3).map((o) => o.name).join(", ")),
             el("button", { class: "linkbtn", type: "button", onclick: () => { E.niche = n.id; draw(); } }, "Browse " + nicheName(n.id).toLowerCase()));
         }));
       }
@@ -657,7 +658,7 @@
           myCardsPanel()),
         el("div", { class: "panel" }, el("h3", null, "Bookmarked topics"),
           saved.length ? [checks.map(({ b, cb }) => el("div", { class: "savedrow" },
-              el("label", null, cb, el("span", null, el("span", { class: "k" }, KIND_LABEL[b.kind] || b.kind), " ", savedName(b))), remove(b))),
+              el("label", null, cb, el("span", null, el("span", { class: "k" }, KIND_LABEL[b.kind] || b.kind), " ", el("span", { translate: "no" }, savedName(b)))), remove(b))),
             el("button", { class: "btn", type: "button", style: { marginTop: "8px" },
               onclick: () => { P.mode = "saved"; startSession({ mode: "saved", saved: chosen(), format: P.format }); } }, "Review these")]
             : el("p", { class: "dim", style: { margin: 0 } }, "Use the Bookmark buttons on lectures, diseases and organisms (Learn and Explore) and on the back of a flashcard. Everything you bookmark appears here."))));
@@ -675,7 +676,7 @@
       const t = q.value.trim().toLowerCase();
       const hits = cards.filter((c) => !t || c.front.toLowerCase().includes(t) || c.back.toLowerCase().includes(t));
       fill(list, hits.length ? hits.map((c) => el("div", { class: "owncard" },
-          el("div", null, el("b", null, c.front), el("div", { class: "dim" }, c.back.length > 140 ? c.back.slice(0, 140) + "…" : c.back),
+          el("div", null, el("b", { translate: "no" }, c.front), el("div", { class: "dim", translate: "no" }, c.back.length > 140 ? c.back.slice(0, 140) + "…" : c.back),
             el("div", { class: "hint", style: { marginTop: "4px" } }, [c.topic ? V("topic", c.topic) : null, c.organism_id ? V("organism", c.organism_id) : null,
               new Date(c.due_at) <= new Date() ? "due now" : "next " + fmtDay(c.due_at)].filter(Boolean).join(" · "))),
           el("div", { class: "row", style: { gap: "6px", flexWrap: "nowrap" } },
@@ -808,7 +809,7 @@
     function front() {
       fill(card, el("div", { class: "flash-front" },
         el("div", { class: "cardmeta" }, el("span", null, meta), el("span", null, own ? (c.reps ? "" : "New card") : c.is_new ? "New card" : "")),
-        el("p", { class: "stem" }, own ? c.front : c.stem),
+        el("p", { class: "stem", translate: "no" }, own ? c.front : c.stem),
         el("div", { class: "row", style: { justifyContent: "space-between", marginTop: "18px" } },
           el("span", { class: "dim" }, "Think of your answer first."),
           el("button", { class: "btn primary", type: "button", onclick: back }, "Show answer"))));
@@ -820,9 +821,9 @@
       const labels = nextIntervals(c);
       fill(card,
         el("div", { class: "cardmeta" }, el("span", null, meta), el("span", null, own ? "" : V("topic", c.topic))),
-        el("p", { class: "dim", style: { margin: "0 0 8px" } }, own ? c.front : c.stem),
-        el("div", { class: "answer" }, a.answer || ""),
-        a.explanation ? el("p", { class: "explain", style: { margin: "0 0 16px" } }, a.explanation) : null,
+        el("p", { class: "dim", style: { margin: "0 0 8px" }, translate: "no" }, own ? c.front : c.stem),
+        el("div", { class: "answer", translate: "no" }, a.answer || ""),
+        a.explanation ? el("p", { class: "explain", style: { margin: "0 0 16px" }, translate: "no" }, a.explanation) : null,
         own ? el("div", { class: "row", style: { gap: "8px", marginTop: "12px" } },
                 c.topic ? bookmarkBtn("topic", c.topic, { offLabel: "Bookmark this topic" }) : null,
                 el("button", { class: "chip", type: "button", style: { background: "transparent", cursor: "pointer" }, onclick: () => cardForm(c, (p) => { Object.assign(c, p); back(); }) }, "Edit this card"))

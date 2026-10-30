@@ -45,6 +45,8 @@ const escClose = (s) => s.replace(/<\/script/gi, "<\\/script");
 const DATA_JS = "<script>\n" + DATA_FILES.map((f) => escClose(readFileSync(P(f), "utf8"))).join("\n") + "\n</script>";
 /* dark / light mode: app/theme.js inlined into every view and the shell */
 const THEME_JS = "<script>\n" + escClose(readFileSync(P("app/theme.js"), "utf8")) + "\n</script>";
+/* English / ไทย: the Thai dictionary and app/i18n.js, inlined the same way */
+const I18N_JS = "<script>\n" + escClose(readFileSync(P("app/i18n-th.js"), "utf8")) + "\n</script>\n<script>\n" + escClose(readFileSync(P("app/i18n.js"), "utf8")) + "\n</script>";
 
 /* ---- process one view into a fully self-contained document string ---- */
 function processView(file) {
@@ -56,6 +58,7 @@ function processView(file) {
   html = html.replace(/[ \t]*<script src="\.\.\/data\/[^"]+"><\/script>\n?/g, "");
   if (hadData) html = html.replace("<script>", DATA_JS + "\n<script>"); // before the view's main script
   html = html.replace('<script src="../app/theme.js"></script>', () => THEME_JS);
+  html = html.replace('<script src="../app/i18n-th.js"></script>\n<script src="../app/i18n.js"></script>', () => I18N_JS);
   // 2. home links → ask the shell to navigate
   html = html.replaceAll('href="../index.html"', `href="#" onclick="parent.postMessage({go:'home'},'*');return false"`);
   // 3. cascade branch links → shell reloads the cascade frame with that branch
@@ -70,6 +73,9 @@ function processHome() {
   // signed-in pages (Learn, Instructor) need the network and Supabase: not part of the offline file
   html = html.replace(/<!-- online-only -->[\s\S]*?<!-- \/online-only -->/g, "");
   html = html.replace('<script src="app/theme.js"></script>', () => THEME_JS);
+  html = html.replace('<script src="app/i18n-th.js"></script>\n<script src="app/i18n.js"></script>', () => I18N_JS);
+  // the home page's own language button would only reload its frame; the shell has one for the whole file
+  html = html.replace(/<script>\/\* English \/ ไทย switch \*\/[^\n]*<\/script>\n?/, "");
   const map = {
     'views/niche-map.html': 'niche', 'views/immune-map.html': 'immune',
     'views/cascade.html?b=extracellular': 'cascade', 'views/taxonomy.html': 'taxonomy',
@@ -102,6 +108,7 @@ const SHELL = `<!doctype html>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Infection &amp; Immunity — revision tool</title>
 ${THEME_JS}
+${I18N_JS}
 <style>
  :root{--bg:#0e1014;--bar:#141821;--line:#272c36;--ink:#e8eaee;--dim:#8d96a6;--acc:#7a6cf0;--hov:#1c212b;--on:#0e1014}
  html[data-theme="light"]{--bg:#f6f7f9;--bar:#ffffff;--line:#dde1e7;--ink:#16181d;--dim:#5f6878;--acc:#6a58e0;--hov:#eef0f4;--on:#ffffff}
@@ -118,6 +125,7 @@ ${THEME_JS}
  nav button:hover{color:var(--ink);background:var(--hov)}
  nav button.on{color:var(--on);background:var(--acc);font-weight:600}
  nav button.theme{font-size:14px;padding:4px 10px;border-color:var(--line)}
+ nav button.langbtn{display:inline-flex;align-items:center;gap:6px;margin-left:6px}
  nav .tail{margin-left:auto;color:var(--dim);font-size:11.5px}
  #view{flex:1;width:100%;border:0;background:var(--bg)}
 </style></head>
@@ -128,6 +136,7 @@ ${THEME_JS}
     ${NAV.map(([k, l]) => `<button data-v="${k}">${l}</button>`).join("")}
     <div class="tail">single-file · works offline</div>
     <button class="theme" id="theme" type="button"></button>
+    <span id="langslot"></span>
   </nav>
   <iframe id="view" title="view"></iframe>
 </div>
@@ -152,6 +161,8 @@ ${THEME_JS}
  const paint=()=>{const l=Theme.resolve()==='light';tbtn.textContent=l?'Dark mode':'Light mode';tbtn.title=l?'Switch to dark mode':'Switch to light mode';};
  tbtn.onclick=()=>{Theme.set(Theme.resolve()==='light'?'dark':'light');paint();};
  frame.addEventListener('load',()=>Theme.apply(Theme.get()));
+ // English / ไทย: saved for the whole file; the shell and the open view reload in the new language
+ if (window.I18N) document.getElementById('langslot').appendChild(I18N.globeButton({ className: 'theme', text: true }));
  paint();
  show('home');
 </script>

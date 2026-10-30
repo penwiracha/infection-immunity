@@ -629,6 +629,42 @@ await test("colours: break-points and the cascade link never use a niche colour"
   await shot(page, "immune-map-break");
 });
 
+await test("Thai: the globe switches the interface; content stays as written; instructor pages stay English", "student", async (page) => {
+  await page.goto(`${BASE}/views/app.html#learn/11111111-1111-1111-1111-111111111111`);
+  await page.locator(".bullets li").first().waitFor();
+  await page.locator(".siteside .slang").click();
+  await page.waitForLoadState("load");
+  await page.locator(".siteside a.sitem", { hasText: "ฝึกทำ" }).waitFor();
+  assert.equal(await page.evaluate(() => document.documentElement.lang), "th");
+  assert.ok((await page.locator("main").textContent()).includes("ทำเครื่องหมายว่าอ่านแล้ว"), "lecture buttons not in Thai");
+  const bullets = await page.locator(".bullets li").allTextContents();
+  assert.equal(bullets[0], "Capsule blocks C3b deposition", "lecture content must not be translated");
+  assert.equal(await page.locator(".lecture-title").textContent(), "Extracellular bacteria");
+  assert.equal(await page.evaluate(() => sessionStorage.getItem("mock.updateLang")), "th", "language not saved to the profile");
+  await shot(page, "thai-learn");
+  await page.goto(`${BASE}/views/app.html#practice`);
+  await page.getByText("ทบทวนแบบเว้นระยะ").first().waitFor();
+  assert.ok((await page.locator("main").textContent()).includes("ถึงกำหนดวันนี้ 25 ใบ"), "patterns with numbers not translated");
+  await page.goto(`${BASE}/views/app.html#settings`);
+  await page.getByText("ภาษา", { exact: true }).waitFor();
+  await page.goto(`${BASE}/views/niche-map.html`);
+  await page.getByText("แตะเพื่อกรอง").waitFor();
+  assert.ok((await page.locator(".tree").textContent()).includes("Streptococcus pneumoniae"), "organism names stay");
+  await page.goto(`${BASE}/views/instructor.html#overview`);   // a student is sent back to the app, but the dashboard itself is English-only
+  await page.goto(`${BASE}/index.html`);
+  await page.getByText("เข้าสู่ระบบ").first().waitFor();
+  await page.locator(".langbtn").click();
+  await page.waitForLoadState("load");
+  await page.getByText("Log in").first().waitFor();
+});
+await test("Thai is off on the instructor dashboard", "instructor", async (page) => {
+  await page.addInitScript(() => { try { localStorage.setItem("ii.lang", "th"); } catch (e) {} });
+  await page.goto(`${BASE}/views/instructor.html#overview`);
+  await page.getByText("Topic accuracy over time").waitFor();
+  assert.equal(await page.locator(".siteside .slang").count(), 0, "no language switch on the dashboard");
+  assert.equal(await page.locator(".siteside a.sitem", { hasText: "Overview" }).count(), 1);
+});
+
 await browser.close();
 server.close();
 console.log(`\n${passed} passed, ${failed} failed`);

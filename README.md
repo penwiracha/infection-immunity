@@ -163,6 +163,15 @@ question tagged with them; and a Progress page (score over time, this week, nich
 device), or with the sun/moon button at the top of the side menu. The choice is saved to the account and
 kept in the browser, so the maps and the home page follow it; the offline bundle has its own switch.
 
+**English / ไทย:** the globe button (side menu, home page, sign-in screen, Settings → Language) switches the
+website's own words — menus, buttons, headings, messages, dates — to Thai. Course content is never translated:
+lecture summaries, questions, organism notes, tag lists (topics, organisms, failure modes, routes), students' own
+cards and names stay exactly as written. How it works: `app/i18n.js` swaps text using the dictionary in
+`app/i18n-th.js` (English text → Thai; `{n}` marks parts that change), and skips anything marked
+`translate="no"`, which is how content is protected. To fix a wording, edit the Thai side of `app/i18n-th.js`;
+a new English string with no entry simply stays English. The choice is saved on the profile (`profiles.lang`,
+migration 0009) and in the browser. The instructor dashboard is English-only for now (`data-i18n="off"`).
+
 **Instructors** can **hide** a published lecture (students stop seeing it and its practice questions) or a
 question that no student has answered or reviewed and that is in no exam (it leaves practice and exam
 picking); both come back with one click, and hiding and showing are logged. **Admins** also see every
@@ -182,7 +191,7 @@ Code: `app/` (browser), `supabase/migrations/` (schema, RLS, functions),
 
 1. Create a Supabase project. Apply the migrations in order and then the seed:
    `supabase link` → `supabase db push` → run `supabase/seed.sql` in the SQL editor
-   (or paste the eight migration files and the seed into the SQL editor, in that order).
+   (or paste the nine migration files and the seed into the SQL editor, in that order).
 2. Authentication → enable **Email** (password sign-in; email confirmation can be switched on later). Add the address you host the site at
    (e.g. your GitHub Pages URL) to *Site URL* and *Redirect URLs*.
 3. Put the project URL and the **publishable / anon** key in `app/config.js`. Never the secret key.
@@ -242,9 +251,9 @@ plus everything submitted or later (admins see all); lecture summaries are **pla
 ### Tests
 
 ```
-supabase test db            # 237 pgTAP tests: supabase/tests/database/
+supabase test db            # 241 pgTAP tests: supabase/tests/database/
 bash scripts/test-db.sh     # same tests on a plain local Postgres (uses scripts/local-supabase-shim.sql)
-npm i && npx playwright install chromium && node tests/ui/run.mjs   # 37 browser tests with a mock backend
+npm i && npx playwright install chromium && node tests/ui/run.mjs   # 39 browser tests with a mock backend
 ONLY="bookmarks|flashcards" node tests/ui/run.mjs                     # run only the tests whose names match
 ```
 

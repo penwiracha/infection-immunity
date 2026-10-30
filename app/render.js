@@ -32,11 +32,11 @@
     ].flat().filter(Boolean);
     return el("article", { class: "lecture" },
       el("div", { class: "eyebrow" }, `Lecture ${lec.number ?? "?"} summary`),
-      el("h2", { class: "lecture-title" }, lec.title || "Untitled lecture"),
+      el("h2", { class: "lecture-title", translate: lec.title ? "no" : null }, lec.title || "Untitled lecture"),
       items.length
-        ? el("ul", { class: "bullets" }, items.map((t) => el("li", null, t)))
+        ? el("ul", { class: "bullets", translate: "no" }, items.map((t) => el("li", null, t)))
         : el("p", { class: "dim" }, "No summary yet."),
-      linked.length ? el("div", { class: "linked" }, el("span", { class: "k" }, "Linked to"), linked) : null,
+      linked.length ? el("div", { class: "linked" }, el("span", { class: "k" }, "Linked to"), el("span", { translate: "no" }, linked)) : null,
       opts.actions ? el("div", { class: "row", style: { marginTop: "18px" } }, opts.actions) : null
     );
   }
@@ -62,7 +62,7 @@
     const options = el("div", { class: "options", role: "radiogroup" },
       (version.options || []).map((o) => {
         const input = el("input", { type: "radio", name, value: o.id });
-        const row = el("label", { class: "opt", dataset: { opt: o.id } }, input, el("span", { class: "opttext" }, o.text));
+        const row = el("label", { class: "opt", dataset: { opt: o.id } }, input, el("span", { class: "opttext", translate: "no" }, o.text));
         input.addEventListener("change", () => {
           if (done) return;
           chosen = o.id;
@@ -98,7 +98,7 @@
       feedback.replaceChildren(
         el("p", { class: "verdict " + (res.correct ? "ok" : "bad") },
           res.correct ? "Correct." : `Not quite. The answer is ${right ? right.text : res.correct_option_id}.`),
-        el("p", { class: "explain" }, res.explanation || ""));
+        el("p", { class: "explain", translate: "no" }, res.explanation || ""));
       if (opts.onNext) after.replaceChildren(el("button", { class: "btn primary", type: "button", onclick: opts.onNext }, opts.nextLabel || "Next question"));
     });
 
@@ -106,7 +106,7 @@
     return el("div", { class: "question" },
       m ? el("div", { class: "qhead" }, el("span", null, m.left || ""), el("span", null, m.right || "")) : null,
       m && m.progress != null ? el("div", { class: "progress" }, el("span", { style: { width: Math.round(m.progress * 100) + "%" } })) : null,
-      el("p", { class: "stem" }, version.stem || ""),
+      el("p", { class: "stem", translate: "no" }, version.stem || ""),
       options,
       confBox,
       check, feedback, after);

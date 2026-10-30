@@ -58,6 +58,13 @@
       const uid = data.session && data.session.user.id;
       unwrap(await sb.from("profiles").update({ display_name: name }).eq("id", uid));
     },
+    // "en" | "th" — the interface language, saved on the profile.
+    async updateLang(lang) {
+      need();
+      const { data } = await sb.auth.getSession();
+      const uid = data.session && data.session.user.id;
+      unwrap(await sb.from("profiles").update({ lang }).eq("id", uid));
+    },
     // "system" | "light" | "dark" — saved on the profile so it follows the account to other devices.
     async updateTheme(theme) {
       need();

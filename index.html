@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Infection &amp; Immunity — Revision Tool</title>
 <script src="app/theme.js"></script>
+<script src="app/i18n-th.js"></script>
+<script src="app/i18n.js"></script>
 <style>
 /* Same visual language as app/app.css (Learn, Instructor), kept inline so this
    page still works offline and inside the single-file bundle. */
@@ -49,6 +51,9 @@ h1{margin:0 0 6px;font-size:27px}
 .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
 .btn{display:inline-flex;align-items:center;border:1px solid var(--line2);border-radius:8px;padding:10px 18px;color:var(--ink);text-decoration:none;font-size:15px}
 .btn:hover{background:var(--panel2);border-color:var(--hover-line)}
+.langbtn{gap:8px}
+@media (max-width:600px){.top{padding:0 16px;gap:10px} #topright .langbtn span{display:none} #topright .btn{padding:9px 12px}}
+@media (max-width:440px){.top .pill{display:none}}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
 .btn.primary:hover{background:var(--primary-hover)}
 .rule{border:none;border-top:1px solid var(--line);margin:20px 0 14px}
@@ -78,7 +83,8 @@ h1{margin:0 0 6px;font-size:27px}
 <header class="top">
   <div class="brand">Infection &amp; Immunity</div>
   <span class="pill">ศรว. 2567</span>
-  <div style="margin-left:auto"><a class="btn primary" id="login" href="views/app.html">Log in</a></div>
+  <div style="margin-left:auto;display:flex;gap:10px;align-items:center" id="topright"><a class="btn primary" id="login" href="views/app.html">Log in</a></div>
+<script>/* English / ไทย switch */ if (window.I18N) document.getElementById("topright").prepend(I18N.globeButton({ className: "btn", text: true }));</script>
 </header>
 <script>
   /* Already signed in on this browser? Offer the app instead of the sign-in page. */

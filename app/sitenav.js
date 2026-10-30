@@ -32,6 +32,7 @@
   .siteside .sclose{background:transparent;border:1px solid transparent;color:var(--sn-dim);border-radius:8px;width:32px;height:32px;
     font-size:18px;line-height:1;cursor:pointer;flex:none}
   .siteside .stheme{margin-left:auto;font-size:15px}
+  .siteside .slang{display:inline-flex;align-items:center;justify-content:center}
   .siteside .sclose:hover{border-color:var(--sn-line2);color:var(--sn-ink);background:var(--sn-hover)}
   .sitebar{display:none;align-items:center;gap:12px;position:sticky;top:0;z-index:35;background:var(--sn-bar);
     border-bottom:1px solid var(--sn-line);padding:10px 16px;font:15px/1.4 "Segoe UI",-apple-system,Roboto,sans-serif}
@@ -157,6 +158,8 @@
       paint();
       top.appendChild(tb);
     }
+    // English / ไทย
+    if (root.I18N && root.I18N.globeButton && root.I18N.available) top.appendChild(root.I18N.globeButton({ className: "sclose slang" }));
     top.appendChild(close);
     aside.appendChild(top);
     if (staff) aside.appendChild(mk("span", "spill", "Instructor"));

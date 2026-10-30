@@ -333,3 +333,8 @@ button.chip{cursor:pointer;font:inherit;font-size:13px}
 tr.ishidden td{opacity:.62}
 tr.ishidden td:first-child,tr.ishidden td:nth-child(4){opacity:1}
 .owncardpanel .answer,.owncardpanel .stem{white-space:pre-wrap}
+
+/* language switch (globe) */
+.langbtn{display:inline-flex;align-items:center;gap:7px}
+.gatebar .gatelang{margin-left:12px}
+.gatebar .status:empty + .gatelang{margin-left:auto}
