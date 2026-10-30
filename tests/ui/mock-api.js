@@ -48,6 +48,8 @@
   const items = { q1: { id: "q1", pool: "practice", author_id: "u-i1", source: "manual", retired_at: null },
                   q2: { id: "q2", pool: "practice", author_id: "u-i2", source: "ai", retired_at: null } };
   const reviews = [];
+  const reports = [{ id: "r1", question_id: "q1", version_id: "v1", version: 1, stem: "Which feature…", lecture_number: 3, reason: "wrong_key",
+    comment: '<b>B</b> seems right to me', reporter_code: "S-0412", status: "open", created_at: now, resolved_at: null, resolved_by_name: null, resolution_note: null, version_is_live: true }];
   const invites = [{ id: "inv-old", code: null, email: "old@uni.ac.th", role: "instructor", created_by_name: "Dr Admin", created_at: now, expires_at: now, used_at: now, revoked_at: null, state: "used" }];
   const log = (window.__CALLS__ = []);
   const call = (name, ...args) => { log.push([name, ...args]); };
@@ -126,6 +128,10 @@
         lectures_viewed: p.role === "student" ? 3 : 0, last_active: now, joined: now }));
     },
     async setUserRole(...a) { call("setUserRole", ...a); },
+    async reportQuestion(v, reason, comment) { call("reportQuestion", v, reason, comment); return "r9"; },
+    async reportList(status, qid) { call("reportList", status, qid);
+      return reports.filter((r) => (!qid || r.question_id === qid) && (status === "all" || r.status === (status || "open"))); },
+    async resolveReport(id, status, note) { call("resolveReport", id, status, note); const r = reports.find((x) => x.id === id); r.status = status; r.resolution_note = note; },
     async peopleList() { return profiles.map((p, i) => ({ user_id: p.user_id, email: p.email, display_name: p.display_name, role: p.role,
       cohort: p.role === "student" ? "2567" : null, joined: now, last_active: now, role_changed_at: p.role === "instructor" ? now : null, role_changed_by: p.role === "instructor" ? "Dr Admin" : null })); },
     async staffInviteList() { return invites.slice(); },

@@ -741,6 +741,39 @@ await test("People & roles is for admins only", "instructor", async (page) => {
   await page.getByText("Only admins can manage roles.").waitFor();
 });
 
+await test("Report a problem: students report a question; instructors see and resolve it", "student", async (page) => {
+  await page.goto(`${BASE}/views/app.html#learn/11111111-1111-1111-1111-111111111111/practice`);
+  await page.locator(".opt").first().click();
+  await page.getByRole("button", { name: "Check answer" }).click();
+  await page.getByRole("button", { name: "Report a problem" }).click();
+  await page.getByRole("button", { name: "Send report" }).click();
+  await page.getByText("Choose what is wrong.").waitFor();
+  await page.getByLabel("Something else", { exact: true }).check();
+  await page.getByRole("button", { name: "Send report" }).click();
+  await page.getByText("Say what is wrong.").waitFor();
+  await page.locator(".modal textarea").fill("Option C is also correct");
+  await page.getByRole("button", { name: "Send report" }).click();
+  await page.getByText("Thank you. Your instructors will check it.").waitFor();
+  const call = (await page.evaluate(() => window.__CALLS__)).find((c) => c[0] === "reportQuestion");
+  assert.deepEqual(call.slice(1), ["v1", "other", "Option C is also correct"]);
+  await shot(page, "report-problem");
+});
+await test("Report a problem: the instructor side", "instructor", async (page) => {
+  await page.goto(`${BASE}/views/instructor.html#overview`);
+  await page.getByText("1 question reported by students").waitFor();
+  await page.getByRole("link", { name: "Review reports" }).click();
+  await page.locator(".reportchip").first().waitFor();
+  assert.equal(await page.locator("main tbody tr").count(), 1, "filtered to reported questions");
+  await page.locator("td.stemcell").first().click();
+  await page.getByRole("heading", { name: "Student reports" }).waitFor();
+  assert.equal(await page.locator(".reportitem p").textContent(), "<b>B</b> seems right to me", "report text shown as typed");
+  await page.getByRole("button", { name: "Mark fixed" }).click();
+  await page.locator(".modal textarea").fill("Key corrected in v2");
+  await page.locator(".modal").getByRole("button", { name: "Mark fixed" }).click();
+  await page.getByText("All handled").waitFor();
+  assert.ok((await page.evaluate(() => window.__CALLS__)).some((c) => c[0] === "resolveReport" && c[2] === "fixed" && c[3] === "Key corrected in v2"));
+});
+
 await browser.close();
 server.close();
 console.log(`\n${passed} passed, ${failed} failed`);

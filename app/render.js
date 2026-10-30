@@ -99,7 +99,9 @@
         el("p", { class: "verdict " + (res.correct ? "ok" : "bad") },
           res.correct ? "Correct." : `Not quite. The answer is ${right ? right.text : res.correct_option_id}.`),
         el("p", { class: "explain", translate: "no" }, res.explanation || ""));
-      if (opts.onNext) after.replaceChildren(el("button", { class: "btn primary", type: "button", onclick: opts.onNext }, opts.nextLabel || "Next question"));
+      after.replaceChildren(
+        opts.onNext ? el("button", { class: "btn primary", type: "button", onclick: opts.onNext }, opts.nextLabel || "Next question") : null,
+        opts.onReport ? el("button", { class: "linkbtn reportlink", type: "button", onclick: opts.onReport }, "Report a problem") : null);
     });
 
     const m = opts.meta;

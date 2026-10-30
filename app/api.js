@@ -145,6 +145,10 @@
         .eq("status", "live").eq("lecture_id", lectureId));
     },
     submitAnswer: (v, opt, conf) => rpc("submit_answer", { p_version: v, p_option: opt, p_confidence: conf || null }),
+    // "Report a problem" on a question (students), and the instructors' side
+    reportQuestion: (v, reason, comment) => rpc("report_question", { p_version: v, p_reason: reason, p_comment: comment || null }),
+    reportList: (status, qid) => rpc("question_report_list", { p_status: status || "open", p_question: qid || null }),
+    resolveReport: (id, status, note) => rpc("resolve_question_report", { p_id: id, p_status: status, p_note: note || null }),
 
     // ---- student app ----
     myStatus: () => rpc("my_status"),

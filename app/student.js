@@ -464,6 +464,7 @@
         confidence: true,
         meta: { left: nicheName(v.niche || lec.niche), right: `Question ${i + 1} of ${qs.length}`, progress: (i + 1) / qs.length },
         onAnswer: async (opt, conf) => { const r = await API.submitAnswer(v.id, opt, conf); if (r.correct) right++; return r; },
+        onReport: () => reportDialog(v.id),
         onNext: () => { i++; show(); }, nextLabel: i + 1 < qs.length ? "Next question" : "See results"
       }));
     }
@@ -471,6 +472,37 @@
       head(`Practice · Lecture ${lec.number}`, `${qs.length} question${qs.length === 1 ? "" : "s"}`),
       el("div", { class: "cols" }, qs.length ? box : el("div", { class: "panel" }, "No practice questions for this lecture yet."), whyWeAsk()));
     if (qs.length) show();
+  }
+
+  // ------------------------------------------------------------------
+  // "Report a problem" with a question: goes to the instructors
+  // ------------------------------------------------------------------
+  const REPORT_REASONS = [["wrong_key", "The marked answer looks wrong"], ["unclear", "The question or options are unclear"],
+                          ["outdated", "A fact is wrong or out of date"], ["typo", "Typo or formatting problem"], ["other", "Something else"]];
+  function reportDialog(versionId) {
+    let reason = null;
+    const radios = REPORT_REASONS.map(([v, t]) => {
+      const r = el("input", { type: "radio", name: "reportreason", value: v });
+      r.addEventListener("change", () => { reason = v; });
+      return el("label", { class: "consentbox", style: { marginBottom: "8px" } }, r, el("span", null, t));
+    });
+    const comment = el("textarea", { rows: 3, maxlength: 1000, placeholder: "What is wrong? e.g. I think B is right because…" });
+    const err = el("p", { class: "err", role: "alert", style: { margin: "8px 0 0" } });
+    modal("Report a problem", [
+      el("p", { class: "dim", style: { marginTop: 0 } }, "Your instructors will check this question. They see your short ID, not your name."),
+      el("div", { role: "radiogroup", "aria-label": "What is wrong?" }, radios),
+      el("label", { class: "f" }, el("span", null, "Details (optional unless you chose Something else)"), comment), err
+    ], [
+      { label: "Cancel" },
+      { label: "Send report", cls: "primary", onClick: async (close) => {
+        if (!reason) { err.textContent = "Choose what is wrong."; return; }
+        if (reason === "other" && !comment.value.trim()) { err.textContent = "Say what is wrong."; return; }
+        try { await API.reportQuestion(versionId, reason, comment.value.trim()); }
+        catch (e) { err.textContent = /already reported/i.test(errMsg(e)) ? "You have already reported this question. Your instructors will look at it." : errMsg(e); return; }
+        close();
+        toast("Thank you. Your instructors will check it.");
+      } }
+    ]);
   }
   const whyWeAsk = () => el("div", { class: "panel" }, el("h3", null, "Why we ask"),
     el("p", { style: { margin: 0, color: "var(--ink2)" } }, "Questions are scored. Your confidence tap helps find topics you feel sure about but get wrong, which are the most useful ones to review."));
@@ -798,6 +830,7 @@
         el("div", { class: "panel" }, renderQuestion({ stem: c.stem, options: c.options }, {
           confidence: true, meta: { left: meta, right: c.is_new ? "New card" : "" },
           onAnswer: async (opt, conf) => { const r = await API.submitAnswer(c.version_id, opt, conf); ss.done.mcq++; if (r.correct) ss.done.right++; return r; },
+          onReport: () => reportDialog(c.version_id),
           onNext: nextCard, nextLabel: ss.i + 1 < N ? "Next card" : "Finish"
         })), whyWeAsk()));
       return;
@@ -828,7 +861,8 @@
                 c.topic ? bookmarkBtn("topic", c.topic, { offLabel: "Bookmark this topic" }) : null,
                 el("button", { class: "chip", type: "button", style: { background: "transparent", cursor: "pointer" }, onclick: () => cardForm(c, (p) => { Object.assign(c, p); back(); }) }, "Edit this card"))
             : el("div", { class: "row", style: { gap: "8px" } }, el("a", { class: "chip", href: cascadeHref(c.cascade_step) }, c.cascade_step ? "Open in the cascade" : "Open the niche map"),
-                bookmarkBtn("topic", c.topic, { offLabel: "Bookmark this topic" })),
+                bookmarkBtn("topic", c.topic, { offLabel: "Bookmark this topic" }),
+                el("button", { class: "linkbtn reportlink", type: "button", onclick: () => reportDialog(c.version_id) }, "Report a problem")),
         el("p", { class: "k", style: { margin: "20px 0 4px" } }, "How well did you know it?"),
         el("div", { class: "rate" }, [["again", "Again"], ["hard", "Hard"], ["good", "Good"], ["easy", "Easy"]].map(([r, t], i) =>
           el("button", { type: "button", onclick: async (ev) => {

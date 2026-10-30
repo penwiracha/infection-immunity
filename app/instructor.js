@@ -235,12 +235,15 @@
       el("td", { class: "mono" }, fmtDay(q.updated_at)));
 
     const myDrafts = questions.filter((q) => q.status === "draft" && q.version_author === S.me && !q.retired_at);
-    const [examsNow, schedules] = await Promise.all([API.examList(S.cohort).catch(() => []), API.scheduleList().catch(() => [])]);
+    const [examsNow, schedules, openReports] = await Promise.all([API.examList(S.cohort).catch(() => []), API.scheduleList().catch(() => []),
+                                                                  API.reportList("open").catch(() => [])]);
+    const reportedQs = new Set(openReports.map((r) => r.question_id)).size;
     const soon = examsNow.filter((e) => e.status === "open" && e.closes_at && daysSince(e.closes_at) > -3 && daysSince(e.closes_at) < 0);
     const monthlyLive = questions.filter((q) => q.pool === "monthly" && q.live_version_id && !q.retired_at && !q.hidden_at).length;
     const short = schedules.filter((x) => x.active && x.n_items > monthlyLive);
     const todo = [
       flagged.length ? [`${flagged.length} student${flagged.length === 1 ? "" : "s"} to check in with`, "#students", "See list"] : null,
+      reportedQs ? [`${reportedQs} question${reportedQs === 1 ? "" : "s"} reported by students`, "#questions", "Review reports"] : null,
       myDrafts.length ? [`${myDrafts.length} of your draft${myDrafts.length === 1 ? "" : "s"} not yet published`, "#questions", "Open drafts"] : null,
       ...soon.map((e) => [`${e.title} closes ${fmtDay(e.closes_at)} · ${e.submitted} of ${e.eligible} done`, "#exams/" + e.id, "Open"]),
       short.length ? [`The monthly pool has ${monthlyLive} live item${monthlyLive === 1 ? "" : "s"}; your schedule needs ${Math.max(...short.map((x) => x.n_items))}`, "#questions", "Add items"] : null,
@@ -248,7 +251,7 @@
     ].filter(Boolean);
     const today = el("div", { class: "panel accent" }, el("div", { class: "eyebrow" }, "Today"),
       todo.length ? todo.map(([t, href, act]) => el("div", { class: "listrow" }, el("span", null, t),
-        el("a", { href, onclick: act === "Open drafts" ? () => { S.qFilters.mine = "drafts"; } : null }, act)))
+        el("a", { href, onclick: act === "Open drafts" ? () => { S.qFilters.mine = "drafts"; } : act === "Review reports" ? () => { S.qFilters.mine = "reported"; } : null }, act)))
                   : el("p", { style: { margin: 0, color: "var(--ink2)" } }, "You are all caught up."));
 
     fill($main,
@@ -497,7 +500,9 @@
   // Questions — list
   // ------------------------------------------------------------------
   async function questionList() {
-    const [qs, lecs] = await Promise.all([API.questionList(), API.lectureList()]);
+    const [qs, lecs, reports] = await Promise.all([API.questionList(), API.lectureList(), API.reportList("open").catch(() => [])]);
+    const reportCount = {};
+    for (const r of reports) reportCount[r.question_id] = (reportCount[r.question_id] || 0) + 1;
     S.questions = qs; S.lectures = lecs;
     const F = S.qFilters;
     const sel = new Set();
@@ -515,7 +520,11 @@
     if (F.mine === "review") F.mine = "";
     const draftsBtn = el("button", { class: "btn chipbtn", type: "button", "aria-pressed": String(F.mine === "drafts") },
       `My drafts (${qs.filter((q) => q.status === "draft" && q.version_author === S.me).length})`);
-    draftsBtn.addEventListener("click", () => { F.mine = F.mine === "drafts" ? "" : "drafts"; draftsBtn.setAttribute("aria-pressed", String(F.mine === "drafts")); draw(); });
+    draftsBtn.addEventListener("click", () => { F.mine = F.mine === "drafts" ? "" : "drafts"; draftsBtn.setAttribute("aria-pressed", String(F.mine === "drafts")); reportedBtn.setAttribute("aria-pressed", "false"); draw(); });
+    const nReported = Object.keys(reportCount).length;
+    const reportedBtn = el("button", { class: "btn chipbtn", type: "button", "aria-pressed": String(F.mine === "reported") },
+      `Reported by students (${nReported})`);
+    reportedBtn.addEventListener("click", () => { F.mine = F.mine === "reported" ? "" : "reported"; reportedBtn.setAttribute("aria-pressed", String(F.mine === "reported")); draftsBtn.setAttribute("aria-pressed", "false"); draw(); });
 
     // bulk actions
     const bulk = el("div", { class: "banner info", hidden: true, style: { display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" } });
@@ -568,7 +577,7 @@
     function draw() {
       const q = F.q.trim().toLowerCase();
       visible = qs.filter((r) =>
-        (F.mine !== "drafts" || (r.status === "draft" && r.version_author === S.me)) &&
+        (F.mine !== "drafts" || (r.status === "draft" && r.version_author === S.me)) && (F.mine !== "reported" || reportCount[r.question_id]) &&
         (!F.status || (F.status === "hidden" ? !!r.hidden_at : r.status === F.status || (F.status === "live" && r.live_version_id && !r.retired_at))) &&
         (!F.pool || r.pool === F.pool) && (!F.source || (F.source === "ai" ? r.source === "ai" : r.source !== "ai")) && (!F.niche || r.niche === F.niche) && (!F.topic || r.topic === F.topic) &&
         (!F.author || r.version_author === F.author) && (!F.lecture || r.lecture_id === F.lecture) &&
@@ -588,6 +597,7 @@
           el("td", { class: "stemcell" }, r.source === "ai" ? el("span", { class: "aichip", title: "Written by AI: check before publishing" }, "AI") : null,
             el("span", { translate: "no" }, (r.stem || "").length > 150 ? r.stem.slice(0, 150) + "…" : r.stem)),
           el("td", null, statusChip(r.status), r.hidden_at ? [" ", statusChip("hidden")] : null,
+            reportCount[r.question_id] ? el("div", null, el("span", { class: "reportchip", title: "Open reports from students" }, `Reported (${reportCount[r.question_id]})`)) : null,
             r.live_version_id && r.status !== "live" && !r.retired_at ? el("div", { class: "hint" }, `v${r.live_version} live`) : null),
           el("td", null, r.pool),
           el("td", null, r.lecture_number != null ? `L${r.lecture_number}` : "—"),
@@ -609,7 +619,7 @@
         el("button", { class: "btn", type: "button", onclick: importDialog }, "Import CSV / JSON"),
         el("button", { class: "btn primary", type: "button", onclick: () => (location.hash = "questions/new") }, "New question")),
       el("div", { class: "panel" },
-      el("div", { class: "row", style: { gap: "8px", marginBottom: "14px" } }, draftsBtn),
+      el("div", { class: "row", style: { gap: "8px", marginBottom: "14px" } }, draftsBtn, reportedBtn),
       el("div", { class: "searchrow" }, el("div", { style: { flex: "1" } }, search), countEl),
       el("div", { class: "filters" },
         mk("status", "Status", STATUSES.map((s) => [s, STATUS_LABEL[s]])),
@@ -1135,8 +1145,50 @@
           errBox),
         el("div", { class: "sidebar" },
           el("div", { class: "panel" }, el("div", { class: "row" }, actions), poolAdmin),
+          isNew ? null : reportsPanel(qid),
           history)));
     drawOptions();
+  }
+
+
+  /* Student reports on one question (question editor sidebar). */
+  const REASON_LABEL = { wrong_key: "Marked answer looks wrong", unclear: "Unclear question or options", outdated: "Wrong or out-of-date fact",
+                         typo: "Typo or formatting", other: "Something else" };
+  function reportsPanel(qid) {
+    const box = el("div", { class: "panel", hidden: true });
+    const load = async () => {
+      let rows;
+      try { rows = await API.reportList("all", qid); } catch (e) { return; }
+      if (!rows.length) { box.hidden = true; return; }
+      box.hidden = false;
+      const open = rows.filter((r) => r.status === "open").length;
+      const act = (r, status) => async () => {
+        const note = el("textarea", { rows: 2, maxlength: 1000, placeholder: status === "fixed" ? "Optional, e.g. key corrected in v2" : "Optional, e.g. the key is right because…" });
+        modal(status === "fixed" ? "Mark this report fixed?" : "Dismiss this report?", [
+          el("p", { class: "dim", style: { marginTop: 0 } }, status === "fixed" ? "Fix the question first (saving a live question makes a new version), then mark the report fixed." : "Use this when the question is right as it is."),
+          el("label", { class: "f" }, el("span", null, "Note (optional)"), note)
+        ], [{ label: "Cancel" }, { label: status === "fixed" ? "Mark fixed" : "Dismiss", cls: "primary", onClick: async (close) => {
+          try { await API.resolveReport(r.id, status, note.value.trim()); } catch (e) { toast(errMsg(e), true); return; }
+          close(); toast(status === "fixed" ? "Marked fixed." : "Dismissed."); load();
+        } }]);
+      };
+      fill(box, el("h3", { style: { marginBottom: "4px" } }, "Student reports"),
+        el("p", { class: "dim", style: { margin: "0 0 10px" } }, open ? `${open} open` : "All handled"),
+        rows.map((r) => el("div", { class: "reportitem" + (r.status === "open" ? " open" : "") },
+          el("div", null, el("b", null, REASON_LABEL[r.reason] || r.reason)),
+          r.comment ? el("p", { translate: "no", style: { margin: "4px 0", whiteSpace: "pre-wrap" } }, r.comment) : null,
+          el("div", { class: "hint", style: { marginTop: 0 } }, [`v${r.version}`, r.reporter_code, fmtDay(r.created_at), r.version_is_live ? null : "older version"].filter(Boolean).join(" · ")),
+          r.status === "open"
+            ? el("div", { class: "row", style: { gap: "6px", marginTop: "8px" } },
+                el("button", { class: "btn small good", type: "button", onclick: act(r, "fixed") }, "Mark fixed"),
+                el("button", { class: "btn small", type: "button", onclick: act(r, "dismissed") }, "Dismiss"))
+            : el("div", { class: "hint", style: { marginTop: "6px" } },
+                r.status === "fixed" ? "Fixed" : "Dismissed", r.resolved_by_name ? [" · ", el("span", { translate: "no" }, r.resolved_by_name)] : null,
+                r.resolution_note ? [" · ", el("span", { translate: "no" }, r.resolution_note)] : null, " ",
+                el("button", { class: "linkbtn", type: "button", onclick: async () => { try { await API.resolveReport(r.id, "open"); load(); } catch (e) { toast(errMsg(e), true); } } }, "Reopen")))));
+    };
+    load();
+    return box;
   }
 
   // ------------------------------------------------------------------

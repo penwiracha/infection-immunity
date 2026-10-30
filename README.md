@@ -188,6 +188,13 @@ Set-up: Supabase → Edge Functions → Secrets → `TYPHOON_API_KEY` (free key 
 switch to any OpenAI-compatible provider. Deploy changes with `supabase functions deploy generate-questions`
 (the function checks the caller itself, so it is deployed with JWT verification off).
 
+**Report a problem:** after answering a practice question, and on the back of its flashcard, students can
+report it (marked answer looks wrong, unclear, wrong or out-of-date fact, typo, or something else with a comment).
+Instructors see open reports on the Overview Today card, a "Reported by students" filter in the question bank, and
+a "Student reports" box on the question itself, where they mark each report fixed or dismissed (with an optional
+note). Reports keep the version the student saw; reporters appear by short ID only; one open report per student per
+question, at most 20 a day; all changes are audited.
+
 **Instructors** can **hide** a published lecture (students stop seeing it and its practice questions) or a
 question that no student has answered or reviewed and that is in no exam (it leaves practice and exam
 picking); both come back with one click, and hiding and showing are logged. **Admins** also see every
@@ -207,7 +214,7 @@ Code: `app/` (browser), `supabase/migrations/` (schema, RLS, functions),
 
 1. Create a Supabase project. Apply the migrations in order and then the seed:
    `supabase link` → `supabase db push` → run `supabase/seed.sql` in the SQL editor
-   (or paste the eleven migration files and the seed into the SQL editor, in that order).
+   (or paste the twelve migration files and the seed into the SQL editor, in that order).
 2. Authentication → enable **Email** (password sign-in; email confirmation can be switched on later). Add the address you host the site at
    (e.g. your GitHub Pages URL) to *Site URL* and *Redirect URLs*.
 3. Put the project URL and the **publishable / anon** key in `app/config.js`. Never the secret key.
@@ -269,9 +276,9 @@ plus everything submitted or later (admins see all); lecture summaries are **pla
 ### Tests
 
 ```
-supabase test db            # 268 pgTAP tests: supabase/tests/database/
+supabase test db            # 282 pgTAP tests: supabase/tests/database/
 bash scripts/test-db.sh     # same tests on a plain local Postgres (uses scripts/local-supabase-shim.sql)
-npm i && npx playwright install chromium && node tests/ui/run.mjs   # 43 browser tests with a mock backend
+npm i && npx playwright install chromium && node tests/ui/run.mjs   # 45 browser tests with a mock backend
 ONLY="bookmarks|flashcards" node tests/ui/run.mjs                     # run only the tests whose names match
 ```
 
