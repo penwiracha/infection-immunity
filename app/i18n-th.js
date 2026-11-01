@@ -517,6 +517,8 @@ window.I18N_TH = {
   "{a} of {b} organisms": "{a} จาก {b} ชนิด",
   "No organisms match these filters.": "ไม่มีเชื้อที่ตรงกับตัวกรอง",
   "Select an organism from the tree.": "เลือกเชื้อจากแผนผัง",
+  "Select an organism from the chart.": "เลือกเชื้อจากแผนผัง",
+  "Scroll sideways (or drag) to see the whole chart.": "เลื่อนไปด้านข้าง (หรือลาก) เพื่อดูแผนผังทั้งหมด",
   "Niche:": "Niche:",
   "Transmission — how it reaches humans": "การติดต่อ — เข้าสู่คนได้อย่างไร",
   "Life cycle": "วงจรชีวิต",

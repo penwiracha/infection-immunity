@@ -40,16 +40,34 @@ h1{margin:0 0 6px;font-size:22px}
 .side{position:sticky;top:0;max-height:100vh;overflow:auto;background:var(--panel);
  border-left:1px solid var(--line);padding:22px 24px 60px}
 .src{font-size:11.5px;color:var(--dim);margin:0 0 12px}
-.node{margin-left:16px;border-left:1px solid var(--line);padding-left:14px;margin-top:2px}
-.nlabel{font-size:13px;padding:3px 0}
-.ntest{font-size:11px;color:var(--dim);font-style:italic;margin-left:6px}
-.nnote{font-size:11px;color:var(--dim);margin-left:6px}
-.leaf{display:inline-block;font-size:12.5px;padding:4px 10px;border-radius:7px;margin:3px 0;
- background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--surf);cursor:pointer;transition:.12s}
-.leaf:hover{transform:translateY(-1px);border-color:var(--dim)}
+/* ---- top-down identification chart ---- */
+.tree{min-width:0}
+.chart-scroll{max-width:100%;overflow-x:auto;overflow-y:hidden;padding:4px 2px 12px;-webkit-overflow-scrolling:touch}
+.chart-scroll.pannable{cursor:grab}
+.chart-scroll.panning{cursor:grabbing;user-select:none}
+.chart{position:relative;margin:0 auto}
+.chart svg.edges{position:absolute;left:0;top:0;pointer-events:none;overflow:visible}
+.chart svg.edges path{fill:none;stroke:var(--dim);stroke-opacity:.5;stroke-width:1.5;stroke-linejoin:round;stroke-linecap:round}
+.tbox{position:absolute;left:0;top:0;width:var(--bw,184px)}
+.tnode{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 11px;font-size:12.5px;line-height:1.35}
+.tnode .tl{font-weight:600}
+.tnode .tn{font-size:11px;color:var(--dim);margin-top:3px}
+.tnode .tt{margin-top:7px;padding-top:6px;border-top:1px dashed var(--line);font-size:11px;color:var(--dim);font-style:italic;line-height:1.35}
+.tnode .tt::before{content:"↓ ";font-style:normal}
+.tnode.troot{border-color:var(--k);box-shadow:inset 4px 0 0 var(--k);font-size:14px;padding-left:14px}
+.tstack{border:1px dashed var(--line);border-radius:12px;padding:6px;display:flex;flex-direction:column;gap:6px}
+.leaf{display:block;width:100%;text-align:left;font:inherit;font-size:12.5px;line-height:1.35;color:var(--txt);
+ padding:6px 9px;border-radius:7px;background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--surf);
+ cursor:pointer;transition:transform .12s,border-color .12s}
+.leaf:hover{transform:translateY(-1px);border-color:var(--dim);border-left-color:var(--surf)}
+.leaf:focus-visible{outline:2px solid var(--surf);outline-offset:2px}
 .leaf.active{background:var(--surf);color:var(--on-c);border-color:var(--surf);font-weight:600}
-.leaf b{font-weight:600}
-.root>.node{border-left:none;margin-left:0;padding-left:0}
+.leaf b{font-weight:600;display:block}
+.leaf .ll{display:block;font-size:11px;color:var(--dim);font-weight:400;margin-top:1px}
+.leaf.active .ll{color:inherit;opacity:.85}
+.chart-hint{font-size:11.5px;color:var(--dim);margin:-4px 0 10px;display:none}
+.chart-hint.on{display:block}
+@media (prefers-reduced-motion:reduce){.leaf{transition:none}}
 .pending{color:var(--dim);font-size:13.5px;max-width:640px;line-height:1.7;
  border-left:3px solid var(--line);padding-left:16px}
 .empty{color:var(--dim);font-size:13.5px;text-align:center;padding-top:44px;line-height:1.7}
@@ -100,7 +118,7 @@ h1{margin:0 0 6px;font-size:22px}
 <div class="kings" id="kings"></div>
 <div class="wrap">
   <div class="tree" id="tree"></div>
-  <div class="side" id="side"><div class="empty">Select an organism from the tree.<br>Its identification, microscopy and mechanism detail appears here.</div></div>
+  <div class="side" id="side"><div class="empty">Select an organism from the chart.<br>Its identification, microscopy and mechanism detail appears here.</div></div>
 </div>
 
 <script src="../data/enums.js"></script>
@@ -178,30 +196,152 @@ function schematic(o){
   </svg>`;
 }
 
-/* ---- tree ---- */
-function renderNode(node, path){
-  const wrap=document.createElement('div'); wrap.className='node';
-  if(node.organism){
-    const o=ORG.get(node.organism);
-    const leaf=document.createElement('div'); leaf.className='leaf';
-    leaf.innerHTML='<b>'+(o?o.name:node.organism)+'</b>'+(node.label?` <span class="nnote">— ${node.label}</span>`:'');
-    leaf.onclick=()=>{
-      document.querySelectorAll('.leaf').forEach(x=>x.classList.remove('active'));
-      leaf.classList.add('active'); selEl=leaf;
-      showDetail(o||{id:node.organism,name:node.organism}, path.concat(node.label?[{label:node.label}]:[]));
-    };
-    wrap.appendChild(leaf); return wrap;
-  }
-  const lab=document.createElement('div'); lab.className='nlabel';
-  lab.innerHTML=`${node.label||''}`+(node.test?`<span class="ntest">→ ${node.test}</span>`:'')+
-    (node.note?`<span class="nnote">(${node.note})</span>`:'');
-  wrap.appendChild(lab);
-  const nextPath=path.concat(node.label?[{label:node.label,test:node.test}]:[]);
-  (node.children||[]).forEach(c=>wrap.appendChild(renderNode(c,nextPath)));
-  return wrap;
+/* ---- top-down chart ----
+   The key is drawn as a top-down chart: decision nodes (label + the test that
+   splits them) at the top, branching down to the organisms. Organisms that sit
+   side by side under one node are grouped in a dashed box, stacked vertically,
+   so the chart stays narrow. When the kingdom's branches don't fit across the
+   screen they wrap into rows, joined to the kingdom by a trunk on the left.
+   Positions are computed here; connectors are drawn in an SVG layer behind. */
+const BW_MAX=184, BW_MIN=150; let NW=184, SW=184; const HG=14, TG=34, VG=30, TRUNK=14, GUT=34;
+let chartEl=null, svgEl=null, scrollEl=null, hintEl=null, ROOTU=null, activeId=null, ro=null, raf=0;
+
+function txt(tag, cls, s){ const e=document.createElement(tag); if(cls) e.className=cls; e.textContent=s; return e; }
+
+function makeLeaf(node, path){
+  const o=ORG.get(node.organism);
+  const b=document.createElement('button'); b.type='button'; b.className='leaf'; b.dataset.id=node.organism;
+  b.appendChild(txt('b','',o?o.name:node.organism));
+  if(node.label) b.appendChild(txt('span','ll',node.label));
+  if(node.organism===activeId) b.classList.add('active');
+  b.onclick=()=>{
+    document.querySelectorAll('.leaf').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active'); selEl=b; activeId=node.organism;
+    showDetail(o||{id:node.organism,name:node.organism}, path.concat(node.label?[{label:node.label}]:[]));
+  };
+  return b;
 }
+function makeUnit(node, path, depth){
+  const u={kind:'node', node, depth, kids:[]};
+  const el=document.createElement('div'); el.className='tbox tnode'+(depth===0?' troot':'');
+  if(node.label) el.appendChild(txt('div','tl',node.label));
+  if(node.note) el.appendChild(txt('div','tn','('+node.note+')'));
+  if(node.test) el.appendChild(txt('div','tt',node.test));
+  chartEl.appendChild(el); u.el=el;
+  const nextPath=path.concat(node.label?[{label:node.label,test:node.test}]:[]);
+  let stack=null;
+  (node.children||[]).forEach(c=>{
+    if(c.organism){
+      if(!stack){ stack={kind:'stack', depth:depth+1, el:document.createElement('div')};
+        stack.el.className='tbox tstack'; chartEl.appendChild(stack.el); u.kids.push(stack); }
+      stack.el.appendChild(makeLeaf(c,nextPath));
+    } else { stack=null; u.kids.push(makeUnit(c,nextPath,depth+1)); }
+  });
+  return u;
+}
+
+function widths(u){
+  if(u.kind==='stack'){ u.w=SW; return u.w; }
+  const span=u.kids.reduce((a,k)=>a+widths(k),0)+HG*Math.max(0,u.kids.length-1);
+  return u.w=Math.max(NW,span);
+}
+function heights(u){ u.h=u.el.offsetHeight; if(u.kind==='node') u.kids.forEach(heights); }
+/* widest box size (BW_MAX → BW_MIN) at which every row fits the screen */
+function fitBox(R, avail){
+  for(let bw=BW_MAX; bw>=BW_MIN; bw-=2){
+    NW=SW=bw; R.kids.forEach(widths);
+    const total=R.kids.reduce((a,k)=>a+k.w,0)+TG*Math.max(0,R.kids.length-1);
+    if(total<=avail||Math.max(...R.kids.map(k=>k.w))+GUT<=avail) return;
+  }
+}
+function collect(u, levels){                 // tallest decision node per depth
+  if(u.kind!=='node') return;
+  levels[u.depth]=Math.max(levels[u.depth]||0,u.h);
+  u.kids.forEach(k=>collect(k,levels));
+}
+function place(u, x0, Y){
+  u.y=Y[u.depth];
+  if(u.kind==='stack'){ u.x=x0; u.ax=x0+SW/2; return; }
+  if(!u.kids.length){ u.x=x0+(u.w-NW)/2; u.ax=u.x+NW/2; return; }
+  const span=u.kids.reduce((a,k)=>a+k.w,0)+HG*(u.kids.length-1);
+  let x=x0+(u.w-span)/2;
+  u.kids.forEach(k=>{ place(k,x,Y); x+=k.w+HG; });
+  const mid=(u.kids[0].ax+u.kids[u.kids.length-1].ax)/2;
+  u.ax=Math.min(Math.max(mid,x0+NW/2),x0+u.w-NW/2);
+  u.x=u.ax-NW/2;
+}
+function edges(u, out){                       // parent → bus → children
+  if(u.kind!=='node'||!u.kids.length) return;
+  const bot=u.y+u.h, bus=bot+VG/2, xs=u.kids.map(k=>k.ax);
+  out.push(`M${u.ax},${bot}V${bus}`);
+  const lo=Math.min(u.ax,...xs), hi=Math.max(u.ax,...xs);
+  if(hi>lo) out.push(`M${lo},${bus}H${hi}`);
+  u.kids.forEach(k=>out.push(`M${k.ax},${bus}V${k.y}`));
+  u.kids.forEach(k=>edges(k,out));
+}
+function setPos(u){
+  u.el.style.left=u.x+'px'; u.el.style.top=u.y+'px';
+  if(u.kind==='node') u.kids.forEach(setPos);
+}
+function bottom(u){ return u.kind==='node'?Math.max(u.y+u.h,...u.kids.map(bottom)):u.y+u.h; }
+
+function layout(){
+  raf=0; const R=ROOTU; if(!R||!chartEl.isConnected) return;
+  const branches=R.kids, avail=Math.max(320,scrollEl.clientWidth-4);
+  fitBox(R,avail); chartEl.style.setProperty('--bw',NW+'px'); heights(R); widths(R);
+  const total=branches.reduce((a,k)=>a+k.w,0)+TG*Math.max(0,branches.length-1);
+  const paths=[]; let W=0, H=0;
+  // pack the kingdom's branches into rows
+  const rows=[];
+  if(total<=avail) rows.push(branches);
+  else { let row=[], w=0; branches.forEach(k=>{
+      const need=(row.length?TG:0)+k.w;
+      if(row.length&&GUT+w+need>avail){ rows.push(row); row=[]; w=0; }
+      w+=(row.length?TG:0)+k.w; row.push(k); });
+    if(row.length) rows.push(row); }
+  const multi=rows.length>1;
+  let top=R.h+VG;
+  rows.forEach(row=>{
+    const lv={}; row.forEach(k=>collect(k,lv));
+    const Y={}, maxD=Math.max(1,...Object.keys(lv).map(Number)); let y=top;
+    for(let d=1; d<=maxD+1; d++){ Y[d]=y; y+=(lv[d]||0)+VG; }
+    let x=multi?GUT:0;
+    row.forEach(k=>{ place(k,x,Y); x+=k.w+TG; });
+    row.forEach(k=>edges(k,paths));
+    W=Math.max(W,x-TG);
+    const b=Math.max(...row.map(bottom));
+    row.bus=top-VG/2; top=b+VG*1.6;
+    H=Math.max(H,b);
+  });
+  // the kingdom (root) node and its connectors
+  R.y=0;
+  if(!multi){
+    const xs=branches.map(k=>k.ax), mid=(xs[0]+xs[xs.length-1])/2;
+    R.ax=Math.min(Math.max(mid,NW/2),Math.max(W,NW)-NW/2); R.x=R.ax-NW/2;
+    const bus=R.h+VG/2; paths.push(`M${R.ax},${R.h}V${bus}`);
+    paths.push(`M${Math.min(R.ax,...xs)},${bus}H${Math.max(R.ax,...xs)}`);
+    branches.forEach(k=>paths.push(`M${k.ax},${bus}V${k.y}`));
+  } else {
+    R.x=0; R.ax=NW/2;
+    paths.push(`M${TRUNK},${R.h}V${rows[rows.length-1].bus}`);
+    rows.forEach(row=>{
+      paths.push(`M${TRUNK},${row.bus}H${row[row.length-1].ax}`);
+      row.forEach(k=>paths.push(`M${k.ax},${row.bus}V${k.y}`));
+    });
+  }
+  R.el.style.left=R.x+'px'; R.el.style.top='0px';
+  branches.forEach(setPos);
+  W=Math.max(W,R.x+NW)+2; H+=2;
+  chartEl.style.width=W+'px'; chartEl.style.height=H+'px';
+  svgEl.setAttribute('width',W); svgEl.setAttribute('height',H); svgEl.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  svgEl.innerHTML=`<path d="${paths.join('')}"/>`;
+  const over=W>scrollEl.clientWidth+2;
+  scrollEl.classList.toggle('pannable',over); hintEl.classList.toggle('on',over);
+}
+function schedule(){ if(!raf) raf=requestAnimationFrame(layout); }
+
 function draw(){
-  treeEl.innerHTML='';
+  treeEl.innerHTML=''; ROOTU=null; if(ro) ro.disconnect();
   const entry=TAXONOMY[cur];
   if(!entry||entry.pending){
     treeEl.innerHTML='<div class="pending"><b>'+cur[0].toUpperCase()+cur.slice(1)+
@@ -210,10 +350,27 @@ function draw(){
     return;
   }
   if(entry.source){const s=document.createElement('div');s.className='src';s.textContent='Source: '+entry.source;treeEl.appendChild(s);}
-  const root=document.createElement('div'); root.className='root';
-  root.appendChild(renderNode(entry.tree,[]));
-  treeEl.appendChild(root);
+  hintEl=txt('div','chart-hint','Scroll sideways (or drag) to see the whole chart.'); treeEl.appendChild(hintEl);
+  scrollEl=document.createElement('div'); scrollEl.className='chart-scroll';
+  chartEl=document.createElement('div'); chartEl.className='chart'; chartEl.style.setProperty('--k',KCOL[cur]||'var(--surf)');
+  chartEl.setAttribute('role','tree'); chartEl.setAttribute('aria-label',cur+' identification key');
+  svgEl=document.createElementNS('http://www.w3.org/2000/svg','svg'); svgEl.setAttribute('class','edges'); svgEl.setAttribute('aria-hidden','true');
+  chartEl.appendChild(svgEl); scrollEl.appendChild(chartEl); treeEl.appendChild(scrollEl);
+  ROOTU=makeUnit(entry.tree,[],0);
+  if(window.ResizeObserver){ ro=new ResizeObserver(schedule); chartEl.querySelectorAll('.tbox').forEach(e=>ro.observe(e)); ro.observe(scrollEl); }
+  layout();
+  enablePan(scrollEl);
 }
+/* drag the background to pan a chart wider than the screen */
+function enablePan(sc){
+  let sx=0, sl=0, on=false;
+  sc.addEventListener('pointerdown',e=>{ if(e.pointerType!=='mouse'||e.target.closest('.leaf')||!sc.classList.contains('pannable')) return;
+    on=true; sx=e.clientX; sl=sc.scrollLeft; sc.classList.add('panning'); });
+  window.addEventListener('pointermove',e=>{ if(on) sc.scrollLeft=sl-(e.clientX-sx); });
+  window.addEventListener('pointerup',()=>{ if(on){ on=false; sc.classList.remove('panning'); } });
+}
+window.addEventListener('resize',schedule);
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(schedule);
 
 /* ---- detail panel ---- */
 function showDetail(o, path){
@@ -311,15 +468,15 @@ ENUMS.kingdoms.forEach(k=>{
   c.className='king'+(TAXONOMY[k]&&TAXONOMY[k].pending?' seam':'')+(k===cur?' on':'');
   c.style.setProperty('--c',KCOL[k]||'var(--dim)');
   c.innerHTML=k[0].toUpperCase()+k.slice(1)+'<small>'+(COUNTS[k]||0)+'</small>';
-  c.onclick=()=>{cur=k;document.querySelectorAll('.king').forEach(x=>x.classList.remove('on'));c.classList.add('on');
-    side.innerHTML='<div class="empty">Select an organism from the tree.</div>';draw();};
+  c.onclick=()=>{cur=k;activeId=null;document.querySelectorAll('.king').forEach(x=>x.classList.remove('on'));c.classList.add('on');
+    side.innerHTML='<div class="empty">Select an organism from the chart.</div>';draw();};
   kh.appendChild(c);
 });
 draw();
 </script>
 <!-- selection detail as a centered popup (POPUP-MODAL) -->
 <style>
-.wrap{grid-template-columns:1fr !important}
+.wrap{grid-template-columns:minmax(0,1fr) !important}
 #pop-backdrop{position:fixed;inset:0;background:rgba(6,8,12,.66);opacity:0;pointer-events:none;
   transition:opacity .16s ease;z-index:90}
 body.pop-open #pop-backdrop{opacity:1;pointer-events:auto}
