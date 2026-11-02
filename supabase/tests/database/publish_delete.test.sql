@@ -9,7 +9,8 @@ select plan(17);
 \set s1    '00000000-0000-0000-0000-0000000000c1'
 insert into auth.users (id, email) values (:'admin', 'a@t'), (:'i1', 'i1@t'), (:'i2', 'i2@t'), (:'s1', 's1@t');
 update profiles set role = 'admin' where id = :'admin';
-update profiles set role = 'instructor' where id in (:'i1', :'i2');
+update profiles set role = 'coordinator' where id = :'i1';
+update profiles set role = 'lecturer' where id = :'i2';
 create temp table ids (k text primary key, v uuid); grant all on ids to public;
 create function pg_temp.as_user(p uuid) returns void language plpgsql as $$
 begin
@@ -46,8 +47,8 @@ select ok(exists (select 1 from audit_log where table_name = 'question_versions'
 
 select pg_temp.as_user(:'admin');
 insert into ids select 'M', (save_question(pg_temp.q('Monthly item', 'monthly')) ->> 'version_id')::uuid;
-select pg_temp.as_user(:'i1');
-select throws_ok(format($$select publish_question_now(%L)$$, (select v from ids where k = 'M')), '42501', null, 'instructors cannot publish monthly-pool items');
+select pg_temp.as_user(:'i2');
+select throws_ok(format($$select publish_question_now(%L)$$, (select v from ids where k = 'M')), '42501', null, 'lecturers cannot publish monthly-pool items');
 select pg_temp.as_user(:'admin');
 select lives_ok(format($$select publish_question_now(%L)$$, (select v from ids where k = 'M')), 'admins can');
 

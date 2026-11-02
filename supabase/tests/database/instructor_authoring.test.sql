@@ -18,7 +18,7 @@ select plan(78);
 insert into auth.users (id, email) values
   (:'admin', 'admin@test'), (:'i1', 'i1@test'), (:'i2', 'i2@test'), (:'s1', 's1@test'), (:'s2', 's2@test');
 update profiles set role = 'admin'      where id = :'admin';
-update profiles set role = 'instructor' where id in (:'i1', :'i2');
+update profiles set role = 'lecturer' where id in (:'i1', :'i2');
 
 create temp table ids (k text primary key, v uuid);
 grant all on ids to public;
@@ -59,15 +59,15 @@ select lives_ok(format($$update profiles set display_name = 'Somchai' where id =
 select pg_temp.as_user(:'i1');
 select throws_ok(format($$update profiles set role = 'admin' where id = %L$$, :'i1'),
                  '42501', null, 'instructor cannot promote themselves');
-select throws_ok(format($$select set_user_role(%L, 'instructor')$$, :'s2'),
+select throws_ok(format($$select set_user_role(%L, 'lecturer')$$, :'s2'),
                  '42501', null, 'instructor cannot grant roles to others');
 
 select pg_temp.as_user(:'admin');
 select throws_ok(format($$select set_user_role(%L, 'student')$$, :'admin'),
                  '42501', null, 'admin cannot change their own role');
-select lives_ok(format($$select set_user_role(%L, 'instructor')$$, :'s2'), 'admin can grant a role');
+select lives_ok(format($$select set_user_role(%L, 'lecturer')$$, :'s2'), 'admin can grant a role');
 reset role;
-select is((select role::text from profiles where id = :'s2'), 'instructor', 'role grant took effect');
+select is((select role::text from profiles where id = :'s2'), 'lecturer', 'role grant took effect');
 select ok(exists (select 1 from audit_log where action = 'role_change' and row_id = :'s2' and actor_id = :'admin'),
           'role change is audited with the admin as actor');
 update profiles set role = 'student' where id = :'s2';
@@ -173,7 +173,7 @@ select pg_temp.as_user(:'admin');
 select set_question_pool((select v from ids where k = 'Q2'), 'pretest');
 select pg_temp.as_user(:'i1');
 select throws_ok(format($$select publish_question_now(%L)$$, (select v from ids where k = 'Q2v1')), '42501',
-                 'only an admin can put pretest items live', 'only an admin can put a pretest item live');
+                 'only a course coordinator can put pretest items live', 'only a coordinator can put a pretest item live');
 select pg_temp.as_user(:'admin');
 select lives_ok(format($$select publish_question_now(%L)$$, (select v from ids where k = 'Q2v1')), 'admin puts the pretest item live');
 

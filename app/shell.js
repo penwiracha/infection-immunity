@@ -4,6 +4,8 @@
    ============================================================ */
 ;(function (root) {
   "use strict";
+  const ROLE_NAMES = { student: "student", lecturer: "lecturer", coordinator: "course coordinator", admin: "admin" };
+  const roleName = (r) => ROLE_NAMES[r] || r || "student";
   const { el, clear, fill } = root.Safe;
 
   function toast(msg, bad) {
@@ -52,7 +54,7 @@
     button.hidden = false;
     button.replaceChildren(
       el("span", { class: "avatar" }, initials(profile.display_name || email)),
-      el("span", null, profile.display_name || email, el("small", null, profile.role || "student")));
+      el("span", null, profile.display_name || email, el("small", null, roleName(profile.role))));
     button.setAttribute("aria-label", "Account menu");
     button.setAttribute("aria-haspopup", "menu");
     let menu = null;
@@ -293,7 +295,7 @@
             pwBtn, pwMsg)),
         el("div", null,
           section("Your account", null, el("dl", { class: "meta", style: { marginTop: 0 } },
-            el("dt", null, "Role"), el("dd", null, opts.profile.role || "student"),
+            el("dt", null, "Role"), el("dd", null, roleName(opts.profile.role)),
             opts.student ? [el("dt", null, "Class"), cohortVal] : null),
             el("p", { class: "hint" }, opts.student ? "Only an admin can change roles." : "Only an admin can change roles.")),
           appearance, language, classBox, research, opts.extra || null)));

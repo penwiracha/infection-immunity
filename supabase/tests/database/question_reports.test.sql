@@ -6,7 +6,7 @@ select plan(14);
 \set s1 '00000000-0000-0000-0000-0000000000c1'
 \set s2 '00000000-0000-0000-0000-0000000000c2'
 insert into auth.users (id, email) values (:'i1', 'i1@t'), (:'s1', 's1@t'), (:'s2', 's2@t');
-update profiles set role = 'instructor' where id = :'i1';
+update profiles set role = 'lecturer' where id = :'i1';
 create temp table ids (k text primary key, v uuid); grant all on ids to public;
 create function pg_temp.as_user(p uuid) returns void language plpgsql as $$
 begin

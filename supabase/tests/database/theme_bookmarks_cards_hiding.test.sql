@@ -10,7 +10,7 @@ select plan(53);
 \set s2    '00000000-0000-0000-0000-0000000000c2'
 insert into auth.users (id, email) values (:'admin', 'a@t'), (:'i1', 'i1@t'), (:'i2', 'i2@t'), (:'s1', 's1@t'), (:'s2', 's2@t');
 update profiles set role = 'admin' where id = :'admin';
-update profiles set role = 'instructor' where id in (:'i1', :'i2');
+update profiles set role = 'lecturer' where id in (:'i1', :'i2');
 create temp table ids (k text primary key, v uuid); grant all on ids to public;
 create function pg_temp.as_user(p uuid) returns void language plpgsql as $$
 begin
@@ -90,7 +90,7 @@ select is((select count(*)::int from session_cards('mixed', null, 50) s join que
 select is((select count(*)::int from session_cards('mixed', null, 50)), 1, 'other lectures are untouched');
 select throws_ok(format($$select log_lecture_view(%L)$$, pg_temp.id('L1')), 'P0002', null, 'a hidden lecture cannot be opened');
 select pg_temp.as_user(:'i2');
-select is((select count(*)::int from lectures where id = pg_temp.id('L1')), 1, 'other instructors still see it');
+select is((select count(*)::int from lectures where id = pg_temp.id('L1')), 0, 'other lecturers do not see it (own content only)');
 select pg_temp.as_user(:'i1');
 select set_lecture_hidden(pg_temp.id('L1'), false);
 select pg_temp.as_user(:'s1');

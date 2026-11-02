@@ -162,7 +162,7 @@
     if (root.I18N && root.I18N.globeButton && root.I18N.available) top.appendChild(root.I18N.globeButton({ className: "sclose slang" }));
     top.appendChild(close);
     aside.appendChild(top);
-    if (staff) aside.appendChild(mk("span", "spill", "Instructor"));
+    if (staff) aside.appendChild(mk("span", "spill", opts.badge || "Instructor"));
     const nav = mk("nav"); nav.setAttribute("aria-label", "Sections");
     const staffRows = STAFF;
     nav.appendChild(group(null, staff ? staffRows : STUDENT));

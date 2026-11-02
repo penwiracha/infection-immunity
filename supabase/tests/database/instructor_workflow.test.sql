@@ -10,7 +10,8 @@ select plan(16);
 \set s2    '00000000-0000-0000-0000-0000000000c2'
 insert into auth.users (id, email) values (:'admin', 'a@t'), (:'i1', 'i1@t'), (:'i2', 'i2@t'), (:'s1', 's1@t');
 update profiles set role = 'admin' where id = :'admin';
-update profiles set role = 'instructor' where id in (:'i1', :'i2');
+update profiles set role = 'coordinator' where id = :'i1';
+update profiles set role = 'lecturer' where id = :'i2';
 create temp table ids (k text primary key, v uuid); grant all on ids to public;
 create function pg_temp.as_user(p uuid) returns void language plpgsql as $$
 begin
@@ -29,9 +30,9 @@ select pg_temp.as_user(:'admin');
 insert into ids select 'L', save_lecture('{"number":1,"title":"L1","niche":"extra"}');
 insert into ids select 'P', (save_question(pg_temp.q('Practice item', 'practice')) ->> 'version_id')::uuid;
 insert into ids select 'M', (save_question(pg_temp.q('Monthly item', 'monthly')) ->> 'version_id')::uuid;
-select pg_temp.as_user(:'i1');
+select pg_temp.as_user(:'i2');
 select throws_ok(format($$select publish_question_now(%L)$$, (select v from ids where k = 'M')), '42501', null,
-                 'an instructor cannot put a monthly item live');
+                 'a lecturer cannot put a monthly item live');
 select pg_temp.as_user(:'admin');
 select publish_question_now((select v from ids where k = 'P'));
 select publish_question_now((select v from ids where k = 'M'));

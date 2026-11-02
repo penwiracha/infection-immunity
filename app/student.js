@@ -74,7 +74,7 @@
     Shell.syncTheme(S.profile);
     Shell.syncLang(S.profile);
     S.email = sess.user.email;
-    const staff = S.profile.role === "instructor" || S.profile.role === "admin";
+    const staff = ["lecturer", "coordinator", "admin"].includes(S.profile.role);
     if (staff && !PREVIEW) { location.replace("instructor.html"); return; }
     SiteNav.mount({ role: "student", remember: !staff, active: "home", preview: staff });
     const userBtn = el("button", { class: "userbtn", type: "button" });

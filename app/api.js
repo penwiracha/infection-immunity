@@ -179,6 +179,8 @@
     // ---- cohorts, exams, cohort reporting (instructors) ----
     async cohorts() { return unwrap(await from("cohorts").select("id,name,starts_on,created_at").order("name", { ascending: false })); },
     cohortList: () => rpc("cohort_list"),
+    cohortStaffList: () => rpc("cohort_staff_list"),
+    setCohortLecturers: (cid, users) => rpc("set_cohort_lecturers", { p_cohort: cid, p_users: users }),
     newCohortCode: (id) => rpc("new_cohort_code", { p_cohort: id }),
     joinCohort: (code) => rpc("join_cohort", { p_code: code }),
     scheduleList: () => rpc("schedule_list"),

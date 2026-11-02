@@ -12,7 +12,7 @@
 
   const $main = document.getElementById("main");
   const S = {
-    me: null, profile: null, isAdmin: false,
+    me: null, profile: null, isAdmin: false, isCoord: false,
     vocab: {}, vocabRows: [], lectures: [], questions: [],
     cohort: "", days: 30, cohorts: [], cohortSize: {},
     qFilters: { mine: "", status: "", pool: "", source: "", niche: "", topic: "", author: "", lecture: "", tier: "", difficulty: "", q: "" }
@@ -23,6 +23,16 @@
   const STATUS_LABEL = { draft: "Draft", live: "Live",
                          superseded: "Superseded", retired: "Retired", published: "Published", hidden: "Hidden" };
   const POOLS = ["practice", "pretest", "monthly"];
+  const STAFF_ROLES = ["lecturer", "coordinator", "admin"];
+  const ROLE_LABEL = { student: "Student", lecturer: "Lecturer", coordinator: "Course coordinator", admin: "Admin" };
+  /* Your own row: shown as a locked dropdown (nobody can change their own role). */
+  const ownRoleSelect = (r, aria) => el("select", { disabled: true, "aria-label": aria, title: "You cannot change your own role" },
+    el("option", { value: r.role, selected: true }, ROLE_LABEL[r.role] || r.role));
+  const ROLE_A = { student: "a student", lecturer: "a lecturer", coordinator: "a course coordinator", admin: "an admin" };
+  /* Roles the signed-in person may give this person: admins any; coordinators switch student <-> lecturer. */
+  const rolesFor = (r) => r.user_id === S.me ? null
+    : S.isAdmin ? ["student", "lecturer", "coordinator", "admin"]
+    : S.isCoord && (r.role === "student" || r.role === "lecturer") ? ["student", "lecturer"] : null;
   const statusChip = (s) => el("span", { class: "status " + s }, STATUS_LABEL[s] || s);
   const vlabel = (kind, id) => label(S.vocab, kind, id);
   const opts = (kind, sel, blank) => [
@@ -80,7 +90,7 @@
     try { sess = await API.session(); } catch (e) { sess = null; }
     if (!sess) {
       document.body.classList.add("nonav");
-      signInScreen($main, "Use your university email.", "Instructor access is granted by an admin after you first sign in.");
+      signInScreen($main, "Use your university email.", "Staff access is granted by an admin or a course coordinator after you first sign in.");
       return;
     }
     if (S.me === sess.user.id) return;          // already booted (auth event + initial load)
@@ -88,10 +98,11 @@
     Shell.syncTheme(S.profile);
     Shell.syncLang(S.profile);
     S.isAdmin = S.profile.role === "admin";
+    S.isCoord = S.isAdmin || S.profile.role === "coordinator";   // oversees every lecturer's content
 
     // Students who land here go to their own app; the database enforces roles regardless.
-    if (S.profile.role !== "instructor" && S.profile.role !== "admin") { location.replace("app.html"); return; }
-    SiteNav.mount({ role: "staff", active: "overview", admin: S.isAdmin });
+    if (!STAFF_ROLES.includes(S.profile.role)) { location.replace("app.html"); return; }
+    SiteNav.mount({ role: "staff", active: "overview", admin: S.isAdmin, badge: ROLE_LABEL[S.profile.role] });
     const userBtn = el("button", { class: "userbtn", type: "button" });
     SiteNav.foot.append(userBtn);
     avatarMenu(userBtn, S.profile, sess.user.email, [{ label: "Revision home page", href: "../index.html" }]);
@@ -124,7 +135,7 @@
     if (tab === "settings") {
       dirtyGuard = null; setTabs("settings");
       Shell.settingsPage($main, { profile: S.profile, email: S.email, student: false,
-        extra: [S.isAdmin ? peopleLinkPanel() : null, aiUsagePanel(), S.isAdmin ? vocabPanel() : null] });
+        extra: [S.isCoord ? peopleLinkPanel() : null, aiUsagePanel(), S.isAdmin ? vocabPanel() : null] });
       return;
     }
     const t = TABS.some(([id]) => id === tab) ? tab : "overview";
@@ -246,8 +257,9 @@
       reportedQs ? [`${reportedQs} question${reportedQs === 1 ? "" : "s"} reported by students`, "#questions", "Review reports"] : null,
       myDrafts.length ? [`${myDrafts.length} of your draft${myDrafts.length === 1 ? "" : "s"} not yet published`, "#questions", "Open drafts"] : null,
       ...soon.map((e) => [`${e.title} closes ${fmtDay(e.closes_at)} · ${e.submitted} of ${e.eligible} done`, "#exams/" + e.id, "Open"]),
-      short.length ? [`The monthly pool has ${monthlyLive} live item${monthlyLive === 1 ? "" : "s"}; your schedule needs ${Math.max(...short.map((x) => x.n_items))}`, "#questions", "Add items"] : null,
-      !S.cohorts.length ? ["No class yet: create a cohort and share its class code", "#students", "Set up"] : null
+      short.length && S.isCoord ? [`The monthly pool has ${monthlyLive} live item${monthlyLive === 1 ? "" : "s"}; your schedule needs ${Math.max(...short.map((x) => x.n_items))}`, "#questions", "Add items"] : null,
+      !S.cohorts.length && S.isCoord ? ["No class yet: create a cohort and share its class code", "#students", "Set up"] : null,
+      !S.cohorts.length && !S.isCoord ? ["No cohort is assigned to you yet. A course coordinator assigns lecturers to cohorts.", "#students", "Students"] : null
     ].filter(Boolean);
     const today = el("div", { class: "panel accent" }, el("div", { class: "eyebrow" }, "Today"),
       todo.length ? todo.map(([t, href, act]) => el("div", { class: "listrow" }, el("span", null, t),
@@ -380,7 +392,7 @@
     const isNew = id === "new";
     const lec = isNew ? { number: "", title: "", niche: "", summary: "", disease_ids: [], organism_ids: [], cascade_step: null, status: "draft", author_id: S.me }
                       : await API.getLecture(id);
-    const canEdit = isNew || lec.author_id === S.me || S.isAdmin;
+    const canEdit = isNew || lec.author_id === S.me || S.isCoord;
     const viewers = isNew ? 0 : await API.lectureViewCount(id).catch(() => 0);
 
     const f = {
@@ -478,7 +490,7 @@
       pagehead(isNew ? "New lecture" : `Lecture ${lec.number}: ${lec.title}`,
         isNew ? "Write the summary, tag it, preview it, then publish." : null, statusChip(lec.status), lec.hidden_at ? statusChip("hidden") : null),
       lec.hidden_at ? el("div", { class: "banner info" }, `Hidden from students since ${fmtDay(lec.hidden_at)}. They cannot open it, and its questions are out of their practice. Click “Show to students” to bring it back.`) : null,
-      !canEdit ? el("div", { class: "banner info" }, "Read only — only the author or an admin can edit this lecture.") : null,
+      !canEdit ? el("div", { class: "banner info" }, "Read only — only the author or a course coordinator can edit this lecture.") : null,
       lec.status === "published" && !lec.hidden_at && canEdit ? el("div", { class: "banner warn" }, "This lecture is published. Saved changes appear to students immediately.") : null,
       el("div", { class: "split" },
         el("div", { class: "panel" },
@@ -555,7 +567,7 @@
             return API.publishQuestionNow(r.version_id);
           });
         } }, "Publish"),
-        S.isAdmin ? [poolSel, el("button", { class: "btn small", type: "button", onclick: () => runBulk("Moved", (r) => API.setQuestionPool(r.question_id, poolSel.value)) }, "Move")] : null,
+        S.isCoord ? [poolSel, el("button", { class: "btn small", type: "button", onclick: () => runBulk("Moved", (r) => API.setQuestionPool(r.question_id, poolSel.value)) }, "Move")] : null,
         el("button", { class: "btn small danger", type: "button", onclick: async () => {
           const ok = await confirmBox(`Retire ${sel.size} item${sel.size === 1 ? "" : "s"}?`, "They leave every student pool. All versions and answers are kept.", "Retire", true);
           if (ok) runBulk("Retired", (r) => API.retireQuestion(r.question_id));
@@ -751,7 +763,7 @@
       const r0 = rows[0];
       fill(box, el("h3", { style: { marginBottom: "4px" } }, "AI question generation"),
         el("p", { class: "dim", style: { margin: "0 0 12px" } },
-          (S.isAdmin ? "Recent generations by everyone. " : "Your recent generations. ") +
+          (S.isCoord ? "Recent generations by everyone. " : "Your recent generations. ") +
           (r0 ? `You have used ${r0.used_today} of ${r0.daily_limit} questions today.` : "Up to 100 questions a day per instructor.")),
         rows.length ? el("div", { class: "tablewrap" }, el("table", null,
           el("thead", null, el("tr", null, ["When", "Who", "Lecture", "Source", "Saved", "Rejected", "Status"].map((h, i) => el("th", { class: i === 4 || i === 5 ? "num" : null }, h)))),
@@ -908,7 +920,7 @@
     let data = { item: null, versions: [], keys: [] };
     if (!isNew) data = await API.getQuestion(qid);
     const { item, versions, keys } = data;
-    if (!isNew && !item) throw new Error("Question not found, or it is a draft by another instructor.");
+    if (!isNew && !item) throw new Error("Question not found, or it belongs to another lecturer.");
     const keyOf = (vid) => keys.find((k) => k.version_id === vid) || {};
     const open = versions.find((v) => v.status === "draft");
     const live = versions.find((v) => v.status === "live");
@@ -918,8 +930,8 @@
     const pool = item ? item.pool : "practice";
     const iAmVersionAuthor = work && work.author_id === S.me;
     const willCreateVersion = !isNew && !open && !retired;
-    const canEdit = !retired && (S.isAdmin || pool === "practice") &&
-      (isNew || willCreateVersion || iAmVersionAuthor || S.isAdmin);
+    const canEdit = !retired && (S.isCoord || pool === "practice") &&
+      (isNew || S.isCoord || iAmVersionAuthor || (willCreateVersion && item && item.author_id === S.me));
 
     // ---- form state ----
     const st = {
@@ -942,7 +954,7 @@
       tier: sel("tier", work && work.tier), failure_mode: sel("failure_mode", work && work.failure_mode),
       bloom: sel("bloom", work && work.bloom), difficulty: sel("difficulty", work && work.difficulty)
     };
-    const poolSel = el("select", { disabled: !canEdit || !S.isAdmin || !isNew }, POOLS.map((p) => el("option", { value: p, selected: p === pool }, p)));
+    const poolSel = el("select", { disabled: !canEdit || !S.isCoord || !isNew }, POOLS.map((p) => el("option", { value: p, selected: p === pool }, p)));
     const orgs = multiPicker("organism", work ? work.organism_ids : [], !canEdit);
     const dis = multiPicker("disease", work ? work.disease_ids : [], !canEdit);
     const optBox = el("div");
@@ -978,7 +990,7 @@
       niche: tags.niche.value, topic: tags.topic.value, lecture_id: tags.lecture.value,
       tier: tags.tier.value, failure_mode: tags.failure_mode.value, bloom: tags.bloom.value, difficulty: tags.difficulty.value,
       organism_ids: orgs.get(), disease_ids: dis.get(),
-      ...(S.isAdmin && isNew ? { pool: poolSel.value } : {})
+      ...(S.isCoord && isNew ? { pool: poolSel.value } : {})
     });
     function showErrors(list) {
       fill(errBox, list.length ? el("div", { class: "banner bad" }, el("b", null, "Fix before saving:"), el("ul", null, list.map((x) => el("li", null, x)))) : null);
@@ -1045,7 +1057,7 @@
       actions.push(saveBtn);
     }
     const canPublish = work && work.status === "draft" && !retired &&
-      (iAmVersionAuthor || (item && item.author_id === S.me) || S.isAdmin) && (pool === "practice" || S.isAdmin);
+      (iAmVersionAuthor || (item && item.author_id === S.me) || S.isCoord) && (pool === "practice" || S.isCoord);
     if (canPublish) {
       submitBtn = el("button", { class: "btn good", type: "button" }, live ? `Publish v${work.version} (replaces v${live.version})` : "Publish");
       submitBtn.addEventListener("click", async () => {
@@ -1055,8 +1067,8 @@
         route();
       });
       actions.push(submitBtn);
-    } else if (work && work.status === "draft" && pool !== "practice" && !S.isAdmin) {
-      actions.push(el("span", { class: "hint" }, "An admin publishes pre-test and monthly items."));
+    } else if (work && work.status === "draft" && pool !== "practice" && !S.isCoord) {
+      actions.push(el("span", { class: "hint" }, "A course coordinator publishes pre-test and monthly items."));
     }
     const preview = el("button", { class: "btn", type: "button", onclick: () => {
       const p = payload();
@@ -1071,14 +1083,14 @@
         location.hash = "questions/" + r.question_id;
       } }, "Duplicate"));
     }
-    if (!isNew && !retired && (item.author_id === S.me || S.isAdmin)) {
+    if (!isNew && !retired && (item.author_id === S.me || S.isCoord)) {
       actions.push(el("button", { class: "btn danger", type: "button", onclick: async () => {
         const ok = await confirmBox("Retire this item?", "It leaves every student pool. All versions, the answer key and students' past answers are kept.", "Retire", true);
         if (!ok) return;
         await guard(() => API.retireQuestion(qid), "Retired."); route();
       } }, "Retire"));
     }
-    if (!isNew && !retired && (item.author_id === S.me || S.isAdmin)) {
+    if (!isNew && !retired && (item.author_id === S.me || S.isCoord)) {
       actions.push(el("button", { class: "btn", type: "button", onclick: async () => {
         if (item.hidden_at) { await guard(() => API.setQuestionHidden(qid, false), "Shown again."); route(); return; }
         const u = await API.questionUsage(qid).catch(() => ({ answers: 0, reviews: 0, exams: 0 }));
@@ -1092,19 +1104,19 @@
         await guard(() => API.setQuestionHidden(qid, true), "Hidden."); route();
       } }, item.hidden_at ? "Show again" : "Hide"));
     }
-    if (!isNew && (item.author_id === S.me || S.isAdmin)) {
+    if (!isNew && (item.author_id === S.me || S.isCoord)) {
       actions.push(el("button", { class: "btn danger", type: "button", onclick: async () => {
         if (await deleteQuestionFlow(qid)) location.hash = "questions";
       } }, "Delete"));
     }
     let poolAdmin = null;
-    if (!isNew && S.isAdmin && !retired) {
+    if (!isNew && S.isCoord && !retired) {
       const ps = el("select", null, POOLS.map((p) => el("option", { value: p, selected: p === pool }, p)));
       ps.addEventListener("change", async () => {
         try { await guard(() => API.setQuestionPool(qid, ps.value), `Moved to the ${ps.value} pool.`); route(); }
         catch (e) { ps.value = pool; }
       });
-      poolAdmin = field("Pool (admin)", ps, false, "Pretest and monthly items are never shown in student practice.");
+      poolAdmin = field("Pool (coordinator)", ps, false, "Pretest and monthly items are never shown in student practice.");
     }
 
     // ---- banners ----
@@ -1114,7 +1126,7 @@
       willCreateVersion && live ? el("div", { class: "banner warn" },
         `Version ${live.version} is live. Saving creates version ${versions[0].version + 1} as a draft; students keep seeing version ${live.version} until you publish the new one. Past answers stay linked to the version each student saw.`) : null,
       !canEdit && !retired && !isNew ? el("div", { class: "banner info" },
-        pool !== "practice" ? `This is a ${pool} item; only admins can edit it.` : "Read only — another instructor has an open version of this item.") : null,
+        pool !== "practice" ? `This is a ${pool} item; only course coordinators can edit it.` : "Read only — someone else has an open version of this item.") : null,
       item && item.source === "ai" && work && work.status !== "live" ? el("div", { class: "banner info" }, "AI-generated item — check the facts and the key carefully before publishing.") : null
     ];
 
@@ -1140,7 +1152,7 @@
               field("Niche", tags.niche, true), field("Topic", tags.topic, true), field("Lecture", tags.lecture, true),
               field("Tier", tags.tier), field("Failure mode", tags.failure_mode), field("Bloom level", tags.bloom),
               field("Expected difficulty", tags.difficulty),
-              isNew ? field("Pool", poolSel, false, S.isAdmin ? "Admins may place items in pretest or monthly." : "New items go to practice. Only admins can choose pretest or monthly.") : null),
+              isNew ? field("Pool", poolSel, false, S.isCoord ? "Course coordinators may place items in pretest or monthly." : "New items go to practice. Only course coordinators can choose pretest or monthly.") : null),
             el("div", { class: "grid2" }, field("Organisms", orgs.node), field("Diseases", dis.node))),
           errBox),
         el("div", { class: "sidebar" },
@@ -1249,7 +1261,7 @@
       lecture_number: 3, organism_ids: ["streptococcus-pneumoniae"], disease_ids: [], tier: "1", bloom: "apply", difficulty: "medium" }], null, 2), "application/json") }, "JSON template");
     const results = el("div");
     modal("Import questions", [
-      el("div", { class: "banner info" }, "Every imported item becomes a draft owned by you; check it and publish it. Status and pool columns in the file are ignored", S.isAdmin ? " (admins: pool is honoured)." : ".",
+      el("div", { class: "banner info" }, "Every imported item becomes a draft owned by you; check it and publish it. Status and pool columns in the file are ignored", S.isCoord ? " (course coordinators: pool is honoured)." : ".",
         " Writing questions with an AI chat? ", el("button", { class: "linkbtn", type: "button", onclick: () => promptDialog() }, "Get the prompt"), "."),
       el("label", { class: "f" }, el("span", null, "File (.csv or .json)"), file),
       el("div", { class: "row" }, el("label", null, srcHuman, " Written by people"), el("label", null, srcAI, " AI-generated (marked so you check it carefully)")),
@@ -1273,18 +1285,20 @@
   // Students
   // ------------------------------------------------------------------
   async function students() {
-    const rows = await API.studentSummary(S.cohort, S.days);
+    const [rows, staff] = await Promise.all([API.studentSummary(S.cohort, S.days), API.cohortStaffList().catch(() => [])]);
     let roleFilter = "student", showNames = true;
+    const lecturersOf = (cid) => staff.filter((x) => x.cohort_id === cid).map((x) => x.display_name || x.email);
     const body = el("tbody");
-    const rf = el("select", null, [["student", "Students"], ["instructor", "Instructors"], ["admin", "Admins"], ["", "Everyone"]]
+    const rf = el("select", null, [["student", "Students"], ["lecturer", "Lecturers"], ["coordinator", "Course coordinators"], ["admin", "Admins"], ["", "Everyone"]]
       .map(([v, l]) => el("option", { value: v, selected: v === roleFilter }, l)));
     rf.addEventListener("change", () => { roleFilter = rf.value; draw(); });
     function roleCell(r) {
-      if (!S.isAdmin) return r.role;
-      const s = el("select", { disabled: r.user_id === S.me, title: r.user_id === S.me ? "You cannot change your own role" : "" },
-        ["student", "instructor", "admin"].map((x) => el("option", { value: x, selected: x === r.role }, x)));
+      if (r.user_id === S.me && S.isCoord) return ownRoleSelect(r, "Role");
+      const can = rolesFor(r);
+      if (!can) return ROLE_LABEL[r.role] || r.role;
+      const s = el("select", { "aria-label": "Role" }, can.map((x) => el("option", { value: x, selected: x === r.role }, ROLE_LABEL[x])));
       s.addEventListener("change", async () => {
-        const ok = await confirmBox("Change role?", `Make ${r.display_name || r.email} ${s.value === "admin" ? "an admin" : s.value === "instructor" ? "an instructor" : "a student"}?`, "Change role");
+        const ok = await confirmBox("Change role?", `Make ${r.display_name || r.email} ${ROLE_A[s.value]}?`, "Change role");
         if (!ok) { s.value = r.role; return; }
         try { await guard(() => API.setUserRole(r.user_id, s.value), "Role updated."); r.role = s.value; draw(); }
         catch (e) { s.value = r.role; }
@@ -1292,6 +1306,7 @@
       return s;
     }
     function cohortCell(r) {
+      if (!S.isCoord) { const c = S.cohorts.find((x) => x.id === r.cohort_id); return el("span", { translate: "no" }, c ? c.name : "—"); }
       const s = el("select", { "aria-label": "Cohort" }, el("option", { value: "" }, "—"),
         S.cohorts.map((c) => el("option", { value: c.id, selected: c.id === r.cohort_id }, c.name)));
       s.addEventListener("change", async () => {
@@ -1313,7 +1328,7 @@
     }
     const namesBtn = el("button", { class: "btn small", type: "button" }, "Hide names");
     namesBtn.addEventListener("click", () => { showNames = !showNames; namesBtn.textContent = showNames ? "Hide names" : "Show names"; if (showNames) API.logNamesShown().catch(() => {}); draw(); });
-    const newCohort = el("button", { class: "btn", type: "button", onclick: () => {
+    const newCohort = !S.isCoord ? null : el("button", { class: "btn", type: "button", onclick: () => {
       const name = el("input", { type: "text", placeholder: "e.g. 2567" });
       const start = el("input", { type: "text", placeholder: "YYYY-MM-DD (optional)" });
       modal("New cohort", [field("Name", name, true), field("Start date", start)], [
@@ -1327,32 +1342,54 @@
     } }, "New cohort");
     API.logNamesShown().catch(() => {});   // this page shows names by default
     fill($main,
-      pagehead("Students", `Activity over ${periodText()}. ${S.isAdmin ? "You can grant roles here; nobody can change their own role." : "Only admins can grant roles."}`,
+      pagehead("Students", `Activity over ${periodText()}. ${S.isAdmin ? "You can grant roles here; nobody can change their own role." : S.isCoord ? "You can switch people between student and lecturer here." : "Students in the cohorts assigned to you."}`,
         scopeControls(), control("Show", rf), newCohort),
+      !S.isCoord && !S.cohorts.length ? el("div", { class: "banner info" }, "No cohort is assigned to you yet. A course coordinator assigns lecturers to cohorts; then their students appear here.") : null,
       el("div", { class: "panel" }, el("h3", { style: { marginBottom: "4px" } }, "Class codes"),
         el("p", { class: "dim", style: { margin: "0 0 12px" } }, "Share a class code with your students. They type it when they create their account (or later in Settings) and land in the right cohort."),
         S.cohorts.length ? el("div", { class: "tablewrap" }, el("table", null,
-          el("thead", null, el("tr", null, ["Cohort", "Class code", "Students", ""].map((h, i) => el("th", { class: i === 2 ? "num" : null }, h)))),
+          el("thead", null, el("tr", null, ["Cohort", "Class code", "Students", "Lecturers", ""].map((h, i) => el("th", { class: i === 2 ? "num" : null }, h)))),
           el("tbody", null, S.cohorts.map((c) => el("tr", null, el("td", null, c.name),
             el("td", { class: "mono", style: { fontSize: "17px", letterSpacing: "2px", fontWeight: 700 } }, c.join_code || "—"),
             el("td", { class: "num" }, String(c.students != null ? c.students : (S.cohortSize[c.id] || 0))),
+            el("td", { translate: "no" }, lecturersOf(c.id).join(", ") || "—"),
             el("td", null, el("div", { class: "row", style: { gap: "6px" } },
               el("button", { class: "btn small", type: "button", onclick: async () => {
                 try { await navigator.clipboard.writeText(c.join_code); toast("Code copied."); } catch (e) { toast(c.join_code); } } }, "Copy"),
-              el("button", { class: "btn small", type: "button", onclick: async () => {
+              S.isCoord ? el("button", { class: "btn small", type: "button", onclick: () => lecturersDialog(c, staff) }, "Lecturers…") : null,
+              S.isCoord ? el("button", { class: "btn small", type: "button", onclick: async () => {
                 const ok = await confirmBox("Make a new code?", "The old code stops working. Students already in the class stay in it.", "New code");
                 if (!ok) return;
                 await guard(() => API.newCohortCode(c.id), "New code made."); await loadCohorts(); route();
-              } }, "New code")))))))) : el("p", { class: "dim", style: { margin: 0 } }, "No cohorts yet. Click New cohort above.")),
+              } }, "New code") : null))))))) : el("p", { class: "dim", style: { margin: 0 } }, S.isCoord ? "No cohorts yet. Click New cohort above." : "No cohorts assigned to you yet.")),
       el("div", { class: "panel" },
         el("div", { class: "row", style: { justifyContent: "space-between", marginBottom: "8px" } },
-          el("span", { class: "dim" }, "Students with a class code are placed automatically. You can still move anyone here."), namesBtn),
+          el("span", { class: "dim" }, S.isCoord ? "Students with a class code are placed automatically. You can still move anyone here." : "Students with a class code are placed automatically."), namesBtn),
         el("div", { class: "tablewrap" }, el("table", null,
           el("thead", null, el("tr", null, ["Student", "Email", "Cohort", "Role", "Answers", "Correct", "Active days", "Lectures", "Last active", "Research"]
             .map((h, i) => el("th", { class: i >= 4 && i <= 7 ? "num" : null }, h)))),
           body))),
       S.isAdmin ? studentCardsPanel() : null);
     draw();
+  }
+
+  /* Course coordinators: choose which lecturers see a cohort's students. */
+  async function lecturersDialog(c, staff) {
+    const people = (await guard(() => API.peopleList())).filter((p) => p.role === "lecturer");
+    const chosen = new Set(staff.filter((x) => x.cohort_id === c.id).map((x) => x.user_id));
+    const list = people.length ? people.map((p) => {
+      const cb = el("input", { type: "checkbox", checked: chosen.has(p.user_id) });
+      cb.addEventListener("change", () => (cb.checked ? chosen.add(p.user_id) : chosen.delete(p.user_id)));
+      return el("label", { style: { display: "flex", gap: "10px", padding: "8px 0", borderBottom: "1px solid var(--line)", cursor: "pointer" } }, cb,
+        el("span", { translate: "no" }, el("b", { style: { fontWeight: 600 } }, p.display_name || p.email), el("div", { class: "hint", style: { marginTop: "2px" } }, p.email)));
+    }) : el("p", { class: "dim" }, "No lecturers yet. Give someone the Lecturer role in People & roles first.");
+    modal(`Lecturers for ${c.name}`, [
+      el("p", { class: "dim", style: { marginTop: 0 } }, "Assigned lecturers see these students' activity and results. Course coordinators see every cohort."),
+      el("div", { style: { maxHeight: "50vh", overflow: "auto" } }, list)
+    ], [{ label: "Cancel" }, { label: "Save", cls: "primary", onClick: async (close) => {
+      await guard(() => API.setCohortLecturers(c.id, [...chosen]), "Lecturers updated.");
+      close(); route();
+    } }]);
   }
 
   /* Admins only: every flashcard students wrote for themselves (deleted ones included).
@@ -1405,36 +1442,38 @@
   // People & roles (admins): everyone's role in one place, and invites for
   // staff who have not signed up yet.
   // ------------------------------------------------------------------
-  const ROLE_LABEL = { student: "Student", instructor: "Instructor", admin: "Admin" };
   /* Admin Settings: the way in to People & roles (kept out of the main menu on purpose). */
   function peopleLinkPanel() {
     return el("div", { class: "panel" }, el("h3", { style: { marginBottom: "4px" } }, "People & roles"),
-      el("p", { class: "dim", style: { margin: "0 0 14px" } }, "Make someone an instructor or admin, or invite staff who have not signed up yet."),
+      el("p", { class: "dim", style: { margin: "0 0 14px" } }, S.isAdmin ? "Give people their roles (lecturer, course coordinator, admin), or invite staff who have not signed up yet." : "Make someone a lecturer, or invite lecturers who have not signed up yet."),
       el("a", { class: "btn", href: "#settings/people" }, "Manage people & roles"));
   }
   async function people() {
-    if (!S.isAdmin) { fill($main, pagehead("People & roles", null), el("div", { class: "banner info" }, "Only admins can manage roles.")); return; }
+    if (!S.isCoord) { fill($main, pagehead("People & roles", null), el("div", { class: "banner info" }, "Only admins and course coordinators can manage roles.")); return; }
     const [rows, invites] = await Promise.all([API.peopleList(), API.staffInviteList().catch(() => [])]);
     const F = { q: "", role: "" };
     const body = el("tbody");
     const countEl = el("span", { class: "dim" });
     const search = el("input", { type: "search", placeholder: "Search name or email…", "aria-label": "Search people" });
-    const roleF = el("select", { style: { width: "auto" }, "aria-label": "Show role" }, [["", "Everyone"], ["admin", "Admins"], ["instructor", "Instructors"], ["student", "Students"]]
+    const roleF = el("select", { style: { width: "auto" }, "aria-label": "Show role" }, [["", "Everyone"], ["admin", "Admins"], ["coordinator", "Course coordinators"], ["lecturer", "Lecturers"], ["student", "Students"]]
       .map(([v, t]) => el("option", { value: v }, t)));
     search.addEventListener("input", () => { F.q = search.value.trim().toLowerCase(); draw(); });
     roleF.addEventListener("change", () => { F.role = roleF.value; draw(); });
     const n = (r) => rows.filter((x) => x.role === r).length;
 
     function roleSelect(r) {
-      const me = r.user_id === S.me;
-      const s = el("select", { disabled: me, "aria-label": "Role of " + (r.display_name || r.email), title: me ? "You cannot change your own role" : "" },
-        ["student", "instructor", "admin"].map((x) => el("option", { value: x, selected: x === r.role }, ROLE_LABEL[x])));
+      if (r.user_id === S.me) return ownRoleSelect(r, "Role of " + (r.display_name || r.email));
+      const can = rolesFor(r);
+      if (!can) return ROLE_LABEL[r.role] || r.role;
+      const s = el("select", { "aria-label": "Role of " + (r.display_name || r.email) },
+        can.map((x) => el("option", { value: x, selected: x === r.role }, ROLE_LABEL[x])));
       s.addEventListener("change", async () => {
         const to = s.value;
         const ok = await confirmBox("Change role?",
           [el("p", null, el("b", { translate: "no" }, r.display_name || r.email), ": ", ROLE_LABEL[r.role], " → ", ROLE_LABEL[to]),
            to === "admin" ? el("p", { class: "dim" }, "Admins can change anyone's role, see everything and delete what students have used.")
-           : to === "instructor" ? el("p", { class: "dim" }, "Instructors can write and publish questions and lectures and see student results.")
+           : to === "coordinator" ? el("p", { class: "dim" }, "Course coordinators see and manage every lecturer's lectures and questions, run exams and cohorts, and make people lecturers.")
+           : to === "lecturer" ? el("p", { class: "dim" }, "Lecturers write and publish their own lectures and questions, and see results for the cohorts assigned to them.")
            : el("p", { class: "dim" }, "They lose staff access the next time a page loads.")], "Change role");
         if (!ok) { s.value = r.role; return; }
         try { await guard(() => API.setUserRole(r.user_id, to), "Role updated."); r.role = to; r.role_changed_at = new Date().toISOString(); r.role_changed_by = S.profile.display_name; draw(); }
@@ -1460,7 +1499,7 @@
     // invites for people who have not signed up yet
     const invBody = el("tbody");
     const invEmail = el("input", { type: "email", placeholder: "name@university.ac.th", autocomplete: "off" });
-    const invRole = el("select", { style: { width: "auto" } }, [["instructor", "Instructor"], ["admin", "Admin"]].map(([v, t]) => el("option", { value: v }, t)));
+    const invRole = el("select", { style: { width: "auto" } }, (S.isAdmin ? ["lecturer", "coordinator", "admin"] : ["lecturer"]).map((v) => el("option", { value: v }, ROLE_LABEL[v])));
     const STATE = { open: "Waiting", used: "Used", revoked: "Revoked", expired: "Expired" };
     function drawInvites(list) {
       fill(invBody, list.length ? list.map((i) => el("tr", null,
@@ -1502,7 +1541,7 @@
       backlink("#settings", "Settings"),
       pagehead("People & roles", "Give staff their roles. Everyone starts as a student; nobody can change their own role, and every change is logged."),
       el("div", { class: "panel" }, el("div", { class: "statrow" },
-        [["Admins", n("admin")], ["Instructors", n("instructor")], ["Students", n("student")]].map(([t, v]) =>
+        [["Admins", n("admin")], ["Course coordinators", n("coordinator")], ["Lecturers", n("lecturer")], ["Students", n("student")]].map(([t, v]) =>
           el("div", null, el("b", null, String(v)), el("span", null, t))))),
       el("div", { class: "panel" },
         el("div", { class: "searchrow" }, el("div", { style: { flex: "1" } }, search), roleF, countEl),
@@ -1611,7 +1650,7 @@
 
   async function exams() {
     const list = await API.examList(S.cohort);
-    const newBtn = el("button", { class: "btn primary", type: "button", onclick: () => {
+    const newBtn = !S.isCoord ? null : el("button", { class: "btn primary", type: "button", onclick: () => {
       const form = examForm(null);
       modal("New exam", form.node, [{ label: "Cancel" }, { label: "Create", cls: "primary", onClick: async (close) => {
         const p = form.payload();
@@ -1635,7 +1674,7 @@
       await schedulePanel(),
       el("div", { class: "panel" }, el("h3", null, "How exams work"),
         el("ul", { class: "history" },
-          el("li", null, "Items come from the pre-test or monthly pool. Only admins can place questions in those pools (Question bank → item → Pool)."),
+          el("li", null, "Items come from the pre-test or monthly pool. Course coordinators place questions in those pools, and build, open and close exams."),
           el("li", null, "When an open pre-test exists for a student's cohort, they record consent and take it before the rest of the app opens."),
           el("li", null, "Students never see pre-test or monthly questions anywhere else, and they see only their score and niche breakdown afterwards."),
           el("li", null, "Opening an exam pins each item to its live version, so later edits do not change a running exam."))));
@@ -1673,11 +1712,11 @@
     return el("div", { class: "panel" },
       el("div", { class: "row", style: { justifyContent: "space-between", marginBottom: "6px" } },
         el("h3", { style: { margin: 0 } }, "Monthly check-in schedule"),
-        el("button", { class: "btn small", type: "button", onclick: () => open(null) }, "New schedule")),
+        S.isCoord ? el("button", { class: "btn small", type: "button", onclick: () => open(null) }, "New schedule") : null),
       el("p", { class: "dim", style: { margin: "0 0 12px" } }, "Set it once: each month on the chosen day the check-in is created, filled from the monthly pool and opened for the cohort. No clicks needed."),
       list.length ? el("div", { class: "tablewrap" }, el("table", null,
         el("thead", null, el("tr", null, ["Cohort", "Title", "Day", "Questions", "Minutes", "Open for", "Last made", "Status"].map((h) => el("th", null, h)))),
-        el("tbody", null, list.map((x) => el("tr", { class: "click", onclick: () => open(x) },
+        el("tbody", null, list.map((x) => el("tr", S.isCoord ? { class: "click", onclick: () => open(x) } : null,
           el("td", null, x.cohort), el("td", null, x.title), el("td", { class: "mono" }, `${x.day_of_month}${["st", "nd", "rd"][((x.day_of_month + 90) % 100 - 10) % 10 - 1] || "th"}`),
           el("td", { class: "num" }, String(x.n_items)), el("td", { class: "num" }, String(x.duration_min)), el("td", null, `${x.open_days} days`),
           el("td", { class: "mono" }, x.last_period || "—"), el("td", null, el("span", { class: "status " + (x.active ? "live" : "retired") }, x.active ? "active" : "paused")))))))
@@ -1687,8 +1726,10 @@
   async function examEditor(id) {
     const d = await API.examDetail(id);
     const e = d.exam;
+    const manage = S.isCoord;              // lecturers see results for their cohorts, read only
     const draft = e.status === "draft";
     const form = examForm(e);
+    if (!manage) form.node.querySelectorAll("input, select").forEach((x) => { x.disabled = true; });
     const saveBtn = el("button", { class: "btn primary", type: "button", onclick: async () => { await guard(() => API.saveExam(form.payload()), "Saved."); route(); } }, "Save settings");
     const delBtn = el("button", { class: "btn danger", type: "button", onclick: async () => {
       const started = d.attempts.length;
@@ -1715,7 +1756,7 @@
 
     // items
     const pickN = el("input", { type: "number", min: 1, max: 200, value: Math.min(25, d.pool_live || 25), style: { width: "90px" } });
-    const itemTools = draft ? el("div", { class: "row", style: { marginBottom: "14px" } },
+    const itemTools = draft && manage ? el("div", { class: "row", style: { marginBottom: "14px" } },
       el("span", { class: "dim" }, `${d.pool_live} live item${d.pool_live === 1 ? "" : "s"} in the ${e.kind} pool.`),
       pickN,
       el("button", { class: "btn", type: "button", onclick: async () => { await guard(() => API.pickExamItems(id, +pickN.value), "Items picked, spread across niches."); route(); } }, "Auto-pick"),
@@ -1737,7 +1778,7 @@
     fill($main,
       backlink("#exams", "Exams"),
       pagehead(e.title, `${KIND[e.kind]} · ${e.cohort || "every student"} · ${e.duration_min} minutes`,
-        el("span", { class: "status " + (e.status === "open" ? "live" : e.status === "closed" ? "retired" : "draft") }, e.status), statusBtn, delBtn),
+        el("span", { class: "status " + (e.status === "open" ? "live" : e.status === "closed" ? "retired" : "draft") }, e.status), manage ? statusBtn : null, manage ? delBtn : null),
       el("div", { class: "cards" },
         stat("Items", d.items.length, draft ? "Edit the list below" : "Pinned to versions"),
         stat("Submitted", submitted.length, `${d.attempts.length - submitted.length} in progress`),
@@ -1749,13 +1790,13 @@
             el("thead", null, el("tr", null, ["#", "Item", "Topic", "Niche", "Correct", ""].map((h, i) => el("th", { class: i === 4 ? "num" : null }, h)))),
             el("tbody", null, d.items.map((it) => el("tr", null,
               el("td", { class: "mono" }, String(it.position)),
-              el("td", { class: "stemcell", translate: "no" }, el("a", { href: "#questions/" + it.question_id }, qCode(it.question_id)), " ", el("span", { class: "dim" }, (it.stem || "").slice(0, 90))),
+              el("td", { class: "stemcell", translate: "no" }, it.stem != null ? [el("a", { href: "#questions/" + it.question_id }, qCode(it.question_id)), " ", el("span", { class: "dim" }, it.stem.slice(0, 90))] : qCode(it.question_id)),
               el("td", null, vlabel("topic", it.topic)), el("td", null, Render.shortNiche(S.vocab, it.niche)),
               el("td", { class: "num" }, it.n ? pct(it.pct) : "—"),
-              el("td", null, draft ? el("button", { class: "btn small", type: "button", onclick: () => removeItem(it.question_id) }, "Remove") : null))))))
-            : el("p", { class: "dim", style: { margin: 0 } }, d.pool_live ? "No items yet. Auto-pick or choose them." : `The ${e.kind} pool is empty. An admin needs to move published questions into it first.`)),
+              el("td", null, draft && manage ? el("button", { class: "btn small", type: "button", onclick: () => removeItem(it.question_id) }, "Remove") : null))))))
+            : el("p", { class: "dim", style: { margin: 0 } }, d.pool_live ? "No items yet. Auto-pick or choose them." : `The ${e.kind} pool is empty. A course coordinator needs to move published questions into it first.`)),
         el("div", null,
-          el("div", { class: "panel" }, el("h3", null, "Settings"), form.node, saveBtn),
+          el("div", { class: "panel" }, el("h3", null, "Settings"), form.node, manage ? saveBtn : el("p", { class: "hint" }, "Only a course coordinator can change exams.")),
           el("div", { class: "panel" }, el("h3", null, "Attempts"),
             el("div", { class: "tablewrap" }, el("table", null,
               el("thead", null, el("tr", null, ["Student", "Started", "Submitted", "Score"].map((h, i) => el("th", { class: i === 3 ? "num" : null }, h)))), attBody)),

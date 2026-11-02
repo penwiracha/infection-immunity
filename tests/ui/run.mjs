@@ -83,7 +83,7 @@ await test("student Learn: question stem, option and explanation with tags show 
   await shot(page, "learn-question");
 });
 
-await test("instructor: lecture preview renders exactly like the student view, as text", "instructor", async (page) => {
+await test("instructor: lecture preview renders exactly like the student view, as text", "lecturer", async (page) => {
   await page.goto(`${BASE}/views/instructor.html#lectures`);
   await shot(page, "tab-lectures");
   await page.getByText("Extracellular bacteria").click();
@@ -95,7 +95,7 @@ await test("instructor: lecture preview renders exactly like the student view, a
   await shot(page, "lecture-preview");
 });
 
-await test("instructor: unpublishing warns when students have opened the lecture", "instructor", async (page) => {
+await test("instructor: unpublishing warns when students have opened the lecture", "lecturer", async (page) => {
   await page.goto(`${BASE}/views/instructor.html#lectures/11111111-1111-1111-1111-111111111111`);
   await page.getByRole("button", { name: "Unpublish" }).click();
   await page.locator(".modal .banner.warn").waitFor();
@@ -105,7 +105,7 @@ await test("instructor: unpublishing warns when students have opened the lecture
   assert.ok(!(await page.evaluate(() => window.__CALLS__)).some((c) => c[0] === "unpublishLecture"), "unpublished despite cancel");
 });
 
-await test("instructor: question editor + student preview keep tags as text; live item warns about versioning", "instructor", async (page) => {
+await test("instructor: question editor + student preview keep tags as text; live item warns about versioning", "lecturer", async (page) => {
   await page.goto(`${BASE}/views/instructor.html#questions`);
   await shot(page, "tab-questions");
   const cell = await page.locator("td.stemcell").first().textContent();
@@ -125,7 +125,7 @@ await test("instructor: question editor + student preview keep tags as text; liv
   assert.ok(!calls.some((c) => c[0] === "submitAnswer"), "preview must not record answers");
 });
 
-await test("publish directly (no peer review); delete with a usage warning", "instructor", async (page) => {
+await test("publish directly (no peer review); delete with a usage warning", "lecturer", async (page) => {
   await page.goto(`${BASE}/views/instructor.html#questions/q2`);   // someone else's draft: no approve buttons
   assert.equal(await page.getByRole("button", { name: /^Approve/ }).count(), 0);
   await page.goto(`${BASE}/views/instructor.html#questions/q1`);
@@ -186,7 +186,7 @@ await test("side navigation opens and closes, and remembers", "student", async (
   assert.equal(await page.evaluate(() => document.body.classList.contains("sideopen")), false, "phone menu closes after choosing");
 });
 
-await test("instructor: new question validates and only admins choose pretest/monthly", "instructor", async (page) => {
+await test("instructor: new question validates and only admins choose pretest/monthly", "lecturer", async (page) => {
   await page.goto(`${BASE}/views/instructor.html#questions/new`);
   assert.equal(await page.locator("select").filter({ has: page.locator("option[value=monthly]") }).first().isDisabled(), true);
   await page.locator("textarea").first().fill("Which feature lets S. pneumoniae resist phagocytosis by neutrophils?");
@@ -211,7 +211,7 @@ await test("admin: pool choice enabled; students tab role controls; own role loc
   await shot(page, "tab-students-admin");
 });
 
-await test("instructor: overview, items, export tabs render", "instructor", async (page) => {
+await test("instructor: overview, items, export tabs render", "lecturer", async (page) => {
   await page.goto(`${BASE}/views/instructor.html#overview`);
   await page.getByText("Your unpublished drafts").first().waitFor();
   await shot(page, "tab-overview");
@@ -231,7 +231,7 @@ await test("student opening the instructor page is sent to the student app", "st
   assert.equal(await page.locator(".siteside a", { hasText: "Practice" }).count(), 1);
 });
 
-await test("instructor opening the student app is sent to the dashboard", "instructor", async (page) => {
+await test("instructor opening the student app is sent to the dashboard", "lecturer", async (page) => {
   await page.goto(`${BASE}/views/app.html`);
   await page.waitForURL(/instructor\.html/);
   await page.getByText("Cohort overview").waitFor();
@@ -333,7 +333,7 @@ await test("student explore: niche cards, search, organism panel", "student", as
   await page.getByText("Why it fails").waitFor();
 });
 
-await test("instructor: cohort/period pickers, topic accuracy by week, flagged students", "instructor", async (page) => {
+await test("instructor: cohort/period pickers, topic accuracy by week, flagged students", "lecturer", async (page) => {
   await page.goto(`${BASE}/views/instructor.html#overview`);
   await page.getByText("Topic accuracy over time").waitFor();
   assert.ok(await page.locator(".heat th", { hasText: "Pre-test" }).count() === 1);
@@ -345,7 +345,7 @@ await test("instructor: cohort/period pickers, topic accuracy by week, flagged s
   await shot(page, "instructor-overview");
 });
 
-await test("instructor: exams tab and exam editor", "instructor", async (page) => {
+await test("coordinator: exams tab and exam editor", "coordinator", async (page) => {
   await page.goto(`${BASE}/views/instructor.html#exams`);
   await page.getByText("Check-in 1").first().waitFor();
   await shot(page, "instructor-exams");
@@ -477,7 +477,7 @@ await test("home page has a Log in button that opens the app", "student", async 
   assert.equal(await page.locator("#login").getAttribute("href"), "views/app.html");
 });
 
-await test("narrow screen: no horizontal page scroll on the question editor", "instructor", async (page) => {
+await test("narrow screen: no horizontal page scroll on the question editor", "lecturer", async (page) => {
   await page.setViewportSize({ width: 390, height: 800 });
   await page.goto(`${BASE}/views/instructor.html#questions/q1`);
   await page.locator(".optrow").first().waitFor();
@@ -564,13 +564,13 @@ await test("admin sees students' own flashcards; instructors do not", "admin", a
   await page.locator("td", { hasText: "Old card" }).waitFor();
   await shot(page, "admin-student-cards");
 });
-await test("instructor: no student flashcards panel", "instructor", async (page) => {
+await test("instructor: no student flashcards panel", "lecturer", async (page) => {
   await page.goto(`${BASE}/views/instructor.html#students`);
   await page.getByRole("heading", { name: "Class codes" }).waitFor();
   assert.equal(await page.getByText("Students' own flashcards").count(), 0);
 });
 
-await test("hide a lecture and an unused question; answered questions cannot be hidden", "instructor", async (page) => {
+await test("hide a lecture and an unused question; answered questions cannot be hidden", "lecturer", async (page) => {
   await page.goto(`${BASE}/views/instructor.html#lectures/11111111-1111-1111-1111-111111111111`);
   await page.getByRole("button", { name: "Hide from students" }).click();
   await page.locator(".modal").getByRole("button", { name: "Hide" }).click();
@@ -657,7 +657,7 @@ await test("Thai: the globe switches the interface; content stays as written", "
   await page.waitForLoadState("load");
   await page.getByText("Log in").first().waitFor();
 });
-await test("Thai on the instructor dashboard; question text and tags stay as written", "instructor", async (page) => {
+await test("Thai on the instructor dashboard; question text and tags stay as written", "lecturer", async (page) => {
   await page.addInitScript(() => { try { localStorage.setItem("ii.lang", "th"); } catch (e) {} });
   await page.goto(`${BASE}/views/instructor.html#overview`);
   await page.getByText("ความแม่นยำรายหัวข้อตามช่วงเวลา").waitFor();
@@ -698,7 +698,7 @@ await test("AI drafts: generate from a lecture inside the website; AI drafts nee
   await page.getByText("AI question generation").waitFor();
   await page.getByText("week3-handout.pdf").waitFor();
 });
-await test("AI drafts: a lecture can generate from the lecture editor; writing by hand stays", "instructor", async (page) => {
+await test("AI drafts: a lecture can generate from the lecture editor; writing by hand stays", "lecturer", async (page) => {
   await page.goto(`${BASE}/views/instructor.html#lectures/11111111-1111-1111-1111-111111111111`);
   await page.getByRole("button", { name: "Generate questions with AI" }).click();
   assert.equal(await page.locator(".modal select").first().inputValue(), "11111111-1111-1111-1111-111111111111", "the lecture is preselected");
@@ -718,9 +718,9 @@ await test("People & roles: admins change roles from a dropdown and invite staff
   await page.getByRole("link", { name: "Manage people & roles" }).click();
   await page.getByRole("heading", { name: "People & roles" }).waitFor();
   assert.equal(await page.getByLabel("Role of Dr Admin").isDisabled(), true, "own role is locked");
-  await page.getByLabel("Role of Nok").selectOption("instructor");
+  await page.getByLabel("Role of Nok").selectOption("lecturer");
   await page.locator(".modal").getByRole("button", { name: "Change role" }).click();
-  await page.waitForFunction(() => window.__CALLS__.some((c) => c[0] === "setUserRole" && c[1] === "u-s1" && c[2] === "instructor"));
+  await page.waitForFunction(() => window.__CALLS__.some((c) => c[0] === "setUserRole" && c[1] === "u-s1" && c[2] === "lecturer"));
   await page.getByPlaceholder("Search name or email…").fill("malee");
   assert.equal(await page.locator("main tbody tr").first().locator("td").nth(1).textContent(), "malee@uni.ac.th");
   await page.locator("main input[type=email]").fill("new.teacher@uni.ac.th");
@@ -733,12 +733,12 @@ await test("People & roles: admins change roles from a dropdown and invite staff
   await page.locator(".modal").getByRole("button", { name: "Revoke" }).click();
   await page.waitForFunction(() => window.__CALLS__.some((c) => c[0] === "revokeStaffInvite"));
 });
-await test("People & roles is for admins only", "instructor", async (page) => {
+await test("People & roles is for admins and coordinators only", "lecturer", async (page) => {
   await page.goto(`${BASE}/views/instructor.html#settings`);
   await page.getByRole("heading", { name: "Settings" }).waitFor();
   assert.equal(await page.getByRole("link", { name: "Manage people & roles" }).count(), 0);
   await page.goto(`${BASE}/views/instructor.html#settings/people`);
-  await page.getByText("Only admins can manage roles.").waitFor();
+  await page.getByText("Only admins and course coordinators can manage roles.").waitFor();
 });
 
 await test("Report a problem: students report a question; instructors see and resolve it", "student", async (page) => {
@@ -758,7 +758,7 @@ await test("Report a problem: students report a question; instructors see and re
   assert.deepEqual(call.slice(1), ["v1", "other", "Option C is also correct"]);
   await shot(page, "report-problem");
 });
-await test("Report a problem: the instructor side", "instructor", async (page) => {
+await test("Report a problem: the instructor side", "lecturer", async (page) => {
   await page.goto(`${BASE}/views/instructor.html#overview`);
   await page.getByText("1 question reported by students").waitFor();
   await page.getByRole("link", { name: "Review reports" }).click();
@@ -772,6 +772,33 @@ await test("Report a problem: the instructor side", "instructor", async (page) =
   await page.locator(".modal").getByRole("button", { name: "Mark fixed" }).click();
   await page.getByText("All handled").waitFor();
   assert.ok((await page.evaluate(() => window.__CALLS__)).some((c) => c[0] === "resolveReport" && c[2] === "fixed" && c[3] === "Key corrected in v2"));
+});
+
+await test("lecturer: read-only cohorts, roles and exams", "lecturer", async (page) => {
+  await page.goto(`${BASE}/views/instructor.html#students`);
+  await page.getByRole("heading", { name: "Class codes" }).waitFor();
+  for (const name of ["New cohort", "New code", "Lecturers…"]) assert.equal(await page.getByRole("button", { name }).count(), 0, name + " hidden");
+  assert.equal(await page.locator("tbody select").count(), 0, "no role or cohort dropdowns");
+  await page.goto(`${BASE}/views/instructor.html#exams`);
+  await page.getByRole("heading", { name: "Exams", exact: true }).waitFor();
+  assert.equal(await page.getByRole("button", { name: "New exam" }).count(), 0);
+  assert.equal(await page.getByRole("button", { name: "New schedule" }).count(), 0);
+});
+await test("coordinator: assigns lecturers to a cohort and may only give student/lecturer roles", "coordinator", async (page) => {
+  await page.goto(`${BASE}/views/instructor.html#students`);
+  await page.getByRole("heading", { name: "Class codes" }).waitFor();
+  await page.getByRole("button", { name: "Lecturers…" }).first().click();
+  await page.getByRole("heading", { name: "Lecturers for 2567" }).waitFor();
+  await page.locator(".modal label", { hasText: "Dr Malee" }).locator("input").check();
+  await page.locator(".modal").getByRole("button", { name: "Save" }).click();
+  await page.getByText("Lecturers updated.").waitFor();
+  assert.deepEqual(await page.evaluate(() => window.__assigned), { cid: "c1", users: ["u-i1", "u-i2"] });
+  await page.goto(`${BASE}/views/instructor.html#settings/people`);
+  await page.getByRole("heading", { name: "People & roles" }).waitFor();
+  const opts = await page.getByLabel("Role of Nok").locator("option").allTextContents();
+  assert.deepEqual(opts, ["Student", "Lecturer"]);
+  assert.equal(await page.getByLabel("Role of Dr Admin").count(), 0, "a coordinator cannot change an admin");
+  assert.deepEqual(await page.locator(".row select").last().locator("option").allTextContents(), ["Lecturer"], "invites are for lecturers only");
 });
 
 await browser.close();

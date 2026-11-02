@@ -15,7 +15,8 @@ select plan(67);
 insert into auth.users (id, email) values
   (:'admin', 'admin@test'), (:'i1', 'i1@test'), (:'i2', 'i2@test'), (:'s1', 's1@test'), (:'s2', 's2@test');
 update profiles set role = 'admin' where id = :'admin';
-update profiles set role = 'instructor' where id in (:'i1', :'i2');
+update profiles set role = 'coordinator' where id = :'i1';
+update profiles set role = 'lecturer' where id = :'i2';
 
 create temp table ids (k text primary key, v uuid);
 grant all on ids to public;

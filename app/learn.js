@@ -24,7 +24,7 @@
     me = sess.user.id;
     const p = sess.profile || {};
     const links = [{ label: "Revision tool", href: "../index.html" }];
-    if (p.role === "instructor" || p.role === "admin") links.unshift({ label: "Instructor dashboard", href: "instructor.html" });
+    if (["lecturer", "coordinator", "admin"].includes(p.role)) links.unshift({ label: "Instructor dashboard", href: "instructor.html" });
     Shell.avatarMenu(document.getElementById("avatar"), p, sess.user.email, links);
     for (const v of await API.vocab()) (vocab[v.kind] ||= {})[v.id] = v.label;
     [lectures, viewed] = await Promise.all([API.publishedLectures(),

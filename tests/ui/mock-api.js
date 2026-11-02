@@ -4,13 +4,15 @@
   const XSS_SUMMARY = 'Capsule blocks C3b deposition\n<script>window.__xss = "lecture"</script>\n<img src=x onerror="window.__xss=\'img\'"> stays as text';
   const XSS_STEM = '<script>window.__xss = "stem"</script> Which feature lets S. pneumoniae resist phagocytosis?';
   const now = new Date().toISOString();
-  const role = window.__ROLE__ || "instructor";
-  const ME = { instructor: "u-i1", admin: "u-ad", student: "u-s1" }[role];
+  const role = window.__ROLE__ || "lecturer";
+  const ME = { lecturer: "u-i1", coordinator: "u-co", admin: "u-ad", student: "u-s1" }[role];
+  const OVERSEER = role === "admin" || role === "coordinator";
   const GATE = window.__GATE__ || "";   // "", "consent", "pretest"
   const profiles = [
     { user_id: "u-ad", display_name: "Dr Admin", email: "admin@uni.ac.th", role: "admin" },
-    { user_id: "u-i1", display_name: "Dr Somchai", email: "somchai@uni.ac.th", role: "instructor" },
-    { user_id: "u-i2", display_name: "Dr Malee", email: "malee@uni.ac.th", role: "instructor" },
+    { user_id: "u-co", display_name: "Dr Coordinator", email: "coord@uni.ac.th", role: "coordinator" },
+    { user_id: "u-i1", display_name: "Dr Somchai", email: "somchai@uni.ac.th", role: "lecturer" },
+    { user_id: "u-i2", display_name: "Dr Malee", email: "malee@uni.ac.th", role: "lecturer" },
     { user_id: "u-s1", display_name: "Nok", email: "nok@student.ac.th", role: "student" }
   ];
   const vocab = [
@@ -50,7 +52,7 @@
   const reviews = [];
   const reports = [{ id: "r1", question_id: "q1", version_id: "v1", version: 1, stem: "Which feature…", lecture_number: 3, reason: "wrong_key",
     comment: '<b>B</b> seems right to me', reporter_code: "S-0412", status: "open", created_at: now, resolved_at: null, resolved_by_name: null, resolution_note: null, version_is_live: true }];
-  const invites = [{ id: "inv-old", code: null, email: "old@uni.ac.th", role: "instructor", created_by_name: "Dr Admin", created_at: now, expires_at: now, used_at: now, revoked_at: null, state: "used" }];
+  const invites = [{ id: "inv-old", code: null, email: "old@uni.ac.th", role: "lecturer", created_by_name: "Dr Admin", created_at: now, expires_at: now, used_at: now, revoked_at: null, state: "used" }];
   const log = (window.__CALLS__ = []);
   const call = (name, ...args) => { log.push([name, ...args]); };
   const lecFor = (id) => lectures.find((l) => l.id === id);
@@ -70,7 +72,7 @@
     async changeEmail(e) { call("changeEmail", e); return false; },
     async vocab() { return vocab; }, async upsertVocab(...a) { call("upsertVocab", ...a); },
     async lectureList() {
-      return lectures.filter((l) => l.status === "published" || l.author_id === ME || role === "admin").map((l) => ({
+      return lectures.filter((l) => l.author_id === ME || OVERSEER).map((l) => ({
         ...l, author_name: profiles.find((p) => p.user_id === l.author_id).display_name, viewers: l.status === "published" ? 12 : 0, questions: 1 }));
     },
     async getLecture(id) { return { ...lecFor(id) }; },
@@ -83,7 +85,7 @@
     async logLectureView(id) { call("logLectureView", id); },
     async myViewedLectures() { return [lectures[0].id]; },
     async questionList() {
-      return versions.filter((v) => v.status !== "draft" || v.author_id === ME || role === "admin").map((v) => {
+      return versions.filter((v) => items[v.question_id].author_id === ME || OVERSEER).map((v) => {
         const l = lecFor(v.lecture_id);
         return { question_id: v.question_id, pool: items[v.question_id].pool, item_author: items[v.question_id].author_id, source: items[v.question_id].source,
           retired_at: null, version_id: v.id, version: v.version, status: v.status, stem: v.stem, niche: v.niche, topic: v.topic, lecture_id: v.lecture_id,
@@ -133,7 +135,7 @@
       return reports.filter((r) => (!qid || r.question_id === qid) && (status === "all" || r.status === (status || "open"))); },
     async resolveReport(id, status, note) { call("resolveReport", id, status, note); const r = reports.find((x) => x.id === id); r.status = status; r.resolution_note = note; },
     async peopleList() { return profiles.map((p, i) => ({ user_id: p.user_id, email: p.email, display_name: p.display_name, role: p.role,
-      cohort: p.role === "student" ? "2567" : null, joined: now, last_active: now, role_changed_at: p.role === "instructor" ? now : null, role_changed_by: p.role === "instructor" ? "Dr Admin" : null })); },
+      cohort: p.role === "student" ? "2567" : null, joined: now, last_active: now, role_changed_at: p.role === "lecturer" ? now : null, role_changed_by: p.role === "lecturer" ? "Dr Admin" : null })); },
     async staffInviteList() { return invites.slice(); },
     async createStaffInvite(email, role) { call("createStaffInvite", email, role);
       if (profiles.some((p) => p.email === email)) throw new Error("that email already has an account: change their role in the list instead");
@@ -156,6 +158,9 @@
   const log = window.__CALLS__;
   const call = (name, ...args) => log.push([name, ...args]);
   const GATE = window.__GATE__ || "";
+  const role = window.__ROLE__ || "lecturer";
+  const ME = { lecturer: "u-i1", coordinator: "u-co", admin: "u-ad", student: "u-s1" }[role];
+  const OVERSEER = role === "admin" || role === "coordinator";
   const days = (n) => new Date(Date.now() + n * 864e5).toISOString();
   const L1 = "11111111-1111-1111-1111-111111111111";
   const st = { consent: GATE === "consent" ? null : { platform: true, research: false }, pre: GATE ? "todo" : "done",
@@ -243,6 +248,8 @@
 
     // instructor
     async cohorts() { return [{ id: "c1", name: "2567" }, { id: "c2", name: "2568" }]; },
+    async cohortStaffList() { return [{ cohort_id: "c1", user_id: "u-i1", display_name: "Dr Somchai", email: "somchai@uni.ac.th" }].filter((x) => OVERSEER || x.user_id === ME); },
+    async setCohortLecturers(cid, users) { window.__assigned = { cid, users }; return users.length; },
     async cohortList() { return [{ id: "c1", name: "2567", join_code: "K7M2QX", students: 84 }, { id: "c2", name: "2568", join_code: "P3RT9W", students: 0 }]; },
     async newCohortCode(id) { call("newCohortCode", id); return "NEW123"; },
     async joinCohort(c) { call("joinCohort", c); if (String(c).toUpperCase() !== "K7M2QX") throw new Error("that class code was not found"); return "2567"; },
